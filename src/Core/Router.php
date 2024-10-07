@@ -7,22 +7,36 @@ class Router
 {
     private $routes = [];
 
-    public function addRoute($url, $controller, $action)
+    public function addRoute($method, $url, $controller, $action)
     {
-        $this->routes[$url] = ['controller' => $controller, 'action' => $action];
+        $this->routes[$method][$url] = ['controller' => $controller, 'action' => $action];
     }
 
     public function dispatch($url)
     {
-
-        if (array_key_exists($url, $this->routes)) {
-            $controller = $this->routes[$url]['controller'];
-            $action = $this->routes[$url]['action'];
+        $method = $_SERVER['REQUEST_METHOD'];
+        
+        if (isset($this->routes[$method][$url])) {
+            $controller = $this->routes[$method][$url]['controller'];
+            $action = $this->routes[$method][$url]['action'];
             
-            $controllerInstance = new $controller();
+            if (!class_exists($controller)) {
+                throw new \Exception("Controller not found: $controller");
+            }
+            
+            try {
+                $controllerInstance = new $controller();
+            } catch (\Throwable $e) {
+                throw new \Exception("Error creating controller instance: " . $e->getMessage());
+            }
+            
+            if (!method_exists($controllerInstance, $action)) {
+                throw new \Exception("Action not found in controller: $action");
+            }
+
             $controllerInstance->$action();
         } else {
-            throw new \Exception("No route found for URL: $url");
+            throw new \Exception("No route found for URL: $url with method: $method");
         }
     }
 }

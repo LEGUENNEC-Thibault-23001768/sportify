@@ -6,10 +6,10 @@ use PDO;
 use PDOException;
 
 // Configuration de la base de données
-define('DB_HOST', 'localhost');
-define('DB_USER', 'votre_utilisateur');
-define('DB_PASS', 'votre_mot_de_passe');
-define('DB_NAME', 'salle_de_sport_db');
+define('DB_HOST', 'mysql-sportify.alwaysdata.net');
+define('DB_USER', 'sportify');
+define('DB_PASS', 'lechatrouge');
+define('DB_NAME', 'sportify_db');
 
 class Database
 {
@@ -18,13 +18,9 @@ class Database
 
     private function __construct()
     {
-        $host = 'localhost';
-        $db   = 'salle_de_sport_db';
-        $user = 'votre_utilisateur';
-        $pass = 'votre_mot_de_passe';
         $charset = 'utf8mb4';
 
-        $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . $charset;
         
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -33,7 +29,7 @@ class Database
         ];
 
         try {
-            $this->conn = new PDO($dsn, $user, $pass, $options);
+            $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
             throw new PDOException($e->getMessage(), (int)$e->getCode());
         }

@@ -12,7 +12,13 @@
     </header>
     
     <main>
-        <?= $content ?>
+        <?php
+        if (isset($content)) {
+            echo $content;
+        } else {
+            echo "La variable content n'est pas définie.";
+        }
+        ?>
     </main>
     
     <footer>
