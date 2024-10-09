@@ -112,16 +112,29 @@ class AuthController
             ];
 
             if ($this->userModel->create($newUser)) {
-                header('Location: /login');
+                $message = "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception.";
+                error_log($message);
+                $this->view->render('auth/register', ['message' => $message]);
+
                 exit();
             } else {
                 $error = "Erreur lors de l'inscription. Veuillez réessayer.";
                 $this->view->render('auth/register', ['error' => $error]);
             }
-        } else {
-            $this->showRegisterForm();
         }
     }
+
+    public function verifyEmail()
+    {
+        $token = $_GET['token'] ?? '';
+        if ($this->userModel->verifyEmail($token)) {
+            $message = "Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.";
+        } else {
+            $message = "Le lien de vérification est invalide ou a expiré.";
+        }
+        $this->view->render('auth/register', ['message' => $message]);
+    }
+
     /**
     public function showResetPasswordForm()
     {
