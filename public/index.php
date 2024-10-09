@@ -2,6 +2,11 @@
 
 require_once dirname(__DIR__) . '/Autoloader.php';
 
+ini_set('SMTP', 'smtp-sportify.alwaysdata.net');
+ini_set('smtp_port', 587);
+ini_set('sendmail_from', 'sportify@alwaysdata.net');
+
+
 session_start();
 
 use Core\Router;
@@ -11,6 +16,9 @@ $router = new Router();
 $router->addRoute('GET','/', 'Controllers\HomeController', 'index');
 $router->addRoute('GET', '/login', 'Controllers\AuthController', 'showLoginForm');
 $router->addRoute('POST', '/login', 'Controllers\AuthController', 'login');
+
+$router->addRoute('GET', '/verify-email', 'Controllers\AuthController', 'verifyEmail');
+
 $router->addRoute('GET', '/register', 'Controllers\AuthController', 'showRegisterForm');
 $router->addRoute('POST', '/register', 'Controllers\AuthController', 'register');
 $router->addRoute('GET', '/dashboard', 'Controllers\DashboardController', 'showDashboard');

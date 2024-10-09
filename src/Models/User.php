@@ -110,37 +110,57 @@ class User
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function create($userData)
+    public static function create($userData)
     {
         $db = self::getDb();
-        $query = "INSERT INTO MEMBER (email, password, first_name, last_name, birth_date, address, phone)
-                  VALUES (:email, :password, :first_name, :last_name, :birth_date, :address, :phone)";
+        $verificationToken = bin2hex(random_bytes(32));
+        $query = "INSERT INTO MEMBER (email, password, first_name, last_name, birth_date, address, phone, verification_token, is_verified)
+                  VALUES (:email, :password, :first_name, :last_name, :birth_date, :address, :phone, :verification_token, FALSE)";
 
         $stmt = $db->prepare($query);
-        return $stmt->execute([
+        $result = $stmt->execute([
             'email' => $userData['email'],
             'password' => $userData['password'],
             'first_name' => $userData['first_name'],
             'last_name' => $userData['last_name'],
             'birth_date' => $userData['birth_date'],
             'address' => $userData['address'],
-            'phone' => $userData['phone']
+            'phone' => $userData['phone'],
+            'verification_token' => $verificationToken
         ]);
+
+        if ($result) {
+            self::sendVerificationEmail($userData['email'], $verificationToken);
+            return $db->lastInsertId();
+        }
+        return false;
     }
 
-
-
+    private static function sendVerificationEmail($to, $token)
+    {
+        $subject = "Vérifiez votre adresse email";
+        $verifyUrl = "http://localhost:8080/verify-email?token=" . $token;
+        $message = "Cliquez sur ce lien pour vérifier votre email : $verifyUrl";
+        $headers = "From: sportify@alwaysdata.net\r\n";
+        if(mail($to, $subject, $message, $headers)) {
+            return true;
+        } else {
+            error_log("Erreur d'envoi d'email à $to: " . error_get_last());
+            return false;
+        }
+    }
+  
     public static function updatePassword($userId, $newPassword)
-{
-    $db = self::getDb();
-    $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-    $query = "UPDATE MEMBER SET password = :password WHERE member_id = :userId";
-    $stmt = $db->prepare($query);
-    return $stmt->execute([
-        'password' => $hashedPassword,
-        'userId' => $userId
-    ]);
-}
+    {
+        $db = self::getDb();
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $query = "UPDATE MEMBER SET password = :password WHERE member_id = :userId";
+        $stmt = $db->prepare($query);
+        return $stmt->execute([
+            'password' => $hashedPassword,
+            'userId' => $userId
+        ]);
+    }
 
 
     // Méthode pour mettre à jour le profil utilisateur
@@ -196,6 +216,12 @@ class User
 
 
 
-
+    public static function verifyEmail($token)
+    {
+        $db = self::getDb();
+        $query = "UPDATE MEMBER SET is_verified = TRUE, verification_token = NULL WHERE verification_token = :token";
+        $stmt = $db->prepare($query);
+        return $stmt->execute(['token' => $token]);
+    }
 
 }
