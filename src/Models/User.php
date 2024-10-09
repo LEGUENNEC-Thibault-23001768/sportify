@@ -130,6 +130,72 @@ class User
 
 
 
+    public static function updatePassword($userId, $newPassword)
+{
+    $db = self::getDb();
+    $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+    $query = "UPDATE MEMBER SET password = :password WHERE member_id = :userId";
+    $stmt = $db->prepare($query);
+    return $stmt->execute([
+        'password' => $hashedPassword,
+        'userId' => $userId
+    ]);
+}
+
+
+    // Méthode pour mettre à jour le profil utilisateur
+    public static function updateUserProfile($userId, $data)
+    {
+        $db = self::getDb();
+
+        // Champs autorisés à être mis à jour
+        $allowedFields = ['first_name', 'last_name', 'email', 'birth_date', 'address', 'phone'];
+        $setFields = [];
+        $params = ['userId' => $userId];
+
+        // Ajouter les champs autorisés à la requête SQL
+        foreach ($data as $key => $value) {
+            if (in_array($key, $allowedFields)) {
+                $setFields[] = "$key = :$key";
+                $params[$key] = $value;
+            }
+        }
+
+        // Si un nouveau mot de passe est renseigné
+        if (!empty($data['new_password'])) {
+            $setFields[] = "password = :password";
+            $params['password'] = password_hash($data['new_password'], PASSWORD_BCRYPT);
+        }
+
+        // Si aucun champ n'est renseigné (cas improbable)
+        if (empty($setFields)) {
+            return false;
+        }
+
+        // Préparation de la requête SQL pour la mise à jour
+        $setClause = implode(', ', $setFields);
+        $query = "UPDATE MEMBER SET $setClause WHERE member_id = :userId";
+        $stmt = $db->prepare($query);
+
+        // Exécution de la requête
+        return $stmt->execute($params);
+    }
+
+
+    // Méthode pour vérifier le mot de passe actuel de l'utilisateur
+    public static function verifyCurrentPassword($userId, $currentPassword)
+    {
+        $db = self::getDb();
+        $query = "SELECT password FROM MEMBER WHERE member_id = :userId";
+        $stmt = $db->prepare($query);
+        $stmt->execute(['userId' => $userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $user && password_verify($currentPassword, $user['password']);
+    }
+
+
+
 
 
 }

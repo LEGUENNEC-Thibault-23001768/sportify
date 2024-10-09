@@ -13,6 +13,12 @@ $router->addRoute('GET', '/login', 'Controllers\AuthController', 'showLoginForm'
 $router->addRoute('POST', '/login', 'Controllers\AuthController', 'login');
 $router->addRoute('GET', '/register', 'Controllers\AuthController', 'showRegisterForm');
 $router->addRoute('POST', '/register', 'Controllers\AuthController', 'register');
+$router->addRoute('GET', '/dashboard', 'Controllers\DashboardController', 'showDashboard');
+$router->addRoute('GET', '/dashboard/profile', 'Controllers\DashboardController', 'showProfile');
+$router->addRoute('POST', '/dashboard/profile', 'Controllers\DashboardController', 'updateUserProfile');
+$router->addRoute('POST', '/logout', 'Controllers\DashboardController', 'logout');
+
+
 
 // Récupérez l'URL demandée
 $url = $_SERVER['REQUEST_URI'];

@@ -100,15 +100,14 @@ class AuthController
             // Hachage du mot de passe
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-            // Création de l'utilisateur avec des valeurs par défaut pour les champs non fournis
             $newUser = [
                 'email' => $email,
                 'password' => $hashedPassword,
-                'first_name' => 'DefaultFirst', // Valeur par défaut
-                'last_name' => 'DefaultLast',   // Valeur par défaut
-                'birth_date' => null,           // Valeur par défaut
-                'address' => null,              // Valeur par défaut
-                'phone' => null                 // Valeur par défaut
+                'first_name' => 'DefaultFirst', 
+                'last_name' => 'DefaultLast',   
+                'birth_date' => null,           
+                'address' => null,              
+                'phone' => null                 
             ];
 
             if ($this->userModel->create($newUser)) {
