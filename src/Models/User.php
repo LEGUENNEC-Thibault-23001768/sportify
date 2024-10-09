@@ -8,29 +8,16 @@ use PDO;
 
 class User
 {
-    private $db;
-
-    public function __construct()
+    private static function getDb()
     {
-        $this->db = Database::getInstance()->getConnection();
+        return Database::getInstance()->getConnection();
     }
 
-    public function register($username, $email, $password)
+    public static function login($email, $password)
     {
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $query = "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)";
-        $stmt = $this->db->prepare($query);
-        return $stmt->execute([
-            'username' => $username,
-            'email' => $email,
-            'password' => $hashedPassword
-        ]);
-    }
-
-    public function login($email, $password)
-    {
-        $query = "SELECT * FROM users WHERE email = :email";
-        $stmt = $this->db->prepare($query);
+        $db = self::getDb();
+        $query = "SELECT * FROM MEMBER WHERE email = :email";
+        $stmt = $db->prepare($query);
         $stmt->execute(['email' => $email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -40,11 +27,77 @@ class User
         return false;
     }
 
-    public function getUserByEmail($email)
+    public static function getUserByEmail($email)
     {
-        $query = "SELECT * FROM users WHERE email = :email";
-        $stmt = $this->db->prepare($query);
+        $db = self::getDb();
+        $query = "SELECT * FROM MEMBER WHERE email = :email";
+        $stmt = $db->prepare($query);
         $stmt->execute(['email' => $email]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function getUserById($memberId)
+    {
+        $db = self::getDb();
+        $query = "SELECT * FROM MEMBER WHERE member_id = :memberId";
+        $stmt = $db->prepare($query);
+        $stmt->execute(['memberId' => $memberId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function updateUser($memberId, $data)
+    {
+        $db = self::getDb();
+        $allowedFields = ['last_name', 'first_name', 'email', 'birth_date', 'address', 'phone'];
+        $setFields = [];
+        $params = ['memberId' => $memberId];
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, $allowedFields)) {
+                $setFields[] = "$key = :$key";
+                $params[$key] = $value;
+            }
+        }
+
+        if (empty($setFields)) {
+            return false;
+        }
+
+        $setClause = implode(', ', $setFields);
+        $query = "UPDATE MEMBER SET $setClause WHERE member_id = :memberId";
+        $stmt = $db->prepare($query);
+        return $stmt->execute($params);
+    }
+
+    public static function deleteUser($memberId)
+    {
+        $db = self::getDb();
+        $query = "DELETE FROM MEMBER WHERE member_id = :memberId";
+        $stmt = $db->prepare($query);
+        return $stmt->execute(['memberId' => $memberId]);
+    }
+
+    public static function getSubscription($memberId)
+    {
+        $db = self::getDb();
+        $query = "SELECT * FROM SUBSCRIPTION WHERE member_id = :memberId AND status = 'Active'";
+        $stmt = $db->prepare($query);
+        $stmt->execute(['memberId' => $memberId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function addSubscription($memberId, $subscriptionType, $startDate, $endDate, $amount)
+    {
+        $db = self::getDb();
+        $query = "INSERT INTO SUBSCRIPTION (member_id, subscription_type, start_date, end_date, amount) 
+                  VALUES (:memberId, :subscriptionType, :startDate, :endDate, :amount)";
+        $stmt = $db->prepare($query);
+        return $stmt->execute([
+            'memberId' => $memberId,
+            'subscriptionType' => $subscriptionType,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'amount' => $amount
+        ]);
     }
 }

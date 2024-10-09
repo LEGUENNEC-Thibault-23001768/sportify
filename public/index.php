@@ -2,13 +2,15 @@
 
 require_once dirname(__DIR__) . '/Autoloader.php';
 
+session_start();
+
 use Core\Router;
 use Core\Database;
 
 $router = new Router();
 $router->addRoute('GET','/', 'Controllers\HomeController', 'index');
-$router->addRoute('GET', '/login', 'Controllers\LoginController', 'showLoginForm');
-$router->addRoute('POST', '/login', 'Controllers\LoginController', 'login');
+$router->addRoute('GET', '/login', 'Controllers\AuthController', 'showLoginForm');
+$router->addRoute('POST', '/login', 'Controllers\AuthController', 'login');
 
 // Récupérez l'URL demandée
 $url = $_SERVER['REQUEST_URI'];
