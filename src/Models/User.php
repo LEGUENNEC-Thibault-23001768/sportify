@@ -100,4 +100,36 @@ class User
             'amount' => $amount
         ]);
     }
+
+    public static function findByEmail($email)
+    {
+        $db = self::getDb();
+        $query = "SELECT * FROM MEMBER WHERE email = :email";
+        $stmt = $db->prepare($query);
+        $stmt->execute(['email' => $email]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function create($userData)
+    {
+        $db = self::getDb();
+        $query = "INSERT INTO MEMBER (email, password, first_name, last_name, birth_date, address, phone)
+                  VALUES (:email, :password, :first_name, :last_name, :birth_date, :address, :phone)";
+
+        $stmt = $db->prepare($query);
+        return $stmt->execute([
+            'email' => $userData['email'],
+            'password' => $userData['password'],
+            'first_name' => $userData['first_name'],
+            'last_name' => $userData['last_name'],
+            'birth_date' => $userData['birth_date'],
+            'address' => $userData['address'],
+            'phone' => $userData['phone']
+        ]);
+    }
+
+
+
+
+
 }

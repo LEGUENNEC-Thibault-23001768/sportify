@@ -11,6 +11,8 @@ $router = new Router();
 $router->addRoute('GET','/', 'Controllers\HomeController', 'index');
 $router->addRoute('GET', '/login', 'Controllers\AuthController', 'showLoginForm');
 $router->addRoute('POST', '/login', 'Controllers\AuthController', 'login');
+$router->addRoute('GET', '/register', 'Controllers\AuthController', 'showRegisterForm');
+$router->addRoute('POST', '/register', 'Controllers\AuthController', 'register');
 
 // Récupérez l'URL demandée
 $url = $_SERVER['REQUEST_URI'];

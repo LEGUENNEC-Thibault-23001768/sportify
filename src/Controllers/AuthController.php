@@ -20,6 +20,10 @@ class AuthController
     {
         echo $this->view->render('auth/login');
     }
+    public function showRegisterForm()
+    {
+        echo $this->view->render('auth/register');
+    }
 
     public function login()
     {
@@ -59,35 +63,63 @@ class AuthController
         exit;
     }
 
-    public function showRegisterForm()
-    {
-        echo $this->view->render('auth/register');
-    }
 
     public function register()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $lastName = $_POST['lastName'] ?? '';
-            $firstName = $_POST['firstName'] ?? '';
-            $email = $_POST['email'] ?? '';
-            $password = $_POST['password'] ?? '';
-            $birthDate = $_POST['birthDate'] ?? '';
-            $address = $_POST['address'] ?? '';
-            $phone = $_POST['phone'] ?? '';
+            $email = trim($_POST['email']);
+            $password = trim($_POST['password']);
+            $confirmPassword = trim($_POST['confirm_password']);
 
-            // Ici, vous devriez ajouter une validation des données
+            // Validation de base
+            if (empty($email) || empty($password) || empty($confirmPassword)) {
+                $error = 'Tous les champs sont obligatoires.';
+                $this->view->render('auth/register', ['error' => $error]);
+                return;
+            }
 
-            $result = $this->userModel->register($lastName, $firstName, $email, $password, $birthDate, $address, $phone);
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = 'Veuillez entrer un email valide.';
+                $this->view->render('auth/register', ['error' => $error]);
+                return;
+            }
 
-            if ($result) {
-                header('Location: /login?registered=1');
-                exit;
+            if ($password !== $confirmPassword) {
+                $error = 'Les mots de passe ne correspondent pas.';
+                $this->view->render('auth/register', ['error' => $error]);
+                return;
+            }
+
+            // Vérification si l'email existe déjà
+            if ($this->userModel->findByEmail($email)) {
+                $error = 'Cet email est déjà utilisé.';
+                $this->view->render('auth/register', ['error' => $error]);
+                return;
+            }
+
+            // Hachage du mot de passe
+            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+            // Création de l'utilisateur avec des valeurs par défaut pour les champs non fournis
+            $newUser = [
+                'email' => $email,
+                'password' => $hashedPassword,
+                'first_name' => 'DefaultFirst', // Valeur par défaut
+                'last_name' => 'DefaultLast',   // Valeur par défaut
+                'birth_date' => null,           // Valeur par défaut
+                'address' => null,              // Valeur par défaut
+                'phone' => null                 // Valeur par défaut
+            ];
+
+            if ($this->userModel->create($newUser)) {
+                header('Location: /login');
+                exit();
             } else {
-                echo $this->view->render('auth/register', ['error' => 'L\'inscription a échoué. Veuillez réessayer.']);
+                $error = "Erreur lors de l'inscription. Veuillez réessayer.";
+                $this->view->render('auth/register', ['error' => $error]);
             }
         } else {
-            header('Location: /register');
-            exit;
+            $this->showRegisterForm();
         }
     }
     /**
