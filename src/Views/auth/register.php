@@ -1,32 +1,18 @@
-<h2>Inscription</h2>
-<form action="/user/register" method="post">
-    <div>
-        <label for="lastName">Nom :</label>
-        <input type="text" id="lastName" name="lastName" required>
-    </div>
-    <div>
-        <label for="firstName">Prénom :</label>
-        <input type="text" id="firstName" name="firstName" required>
-    </div>
-    <div>
-        <label for="email">Email :</label>
-        <input type="email" id="email" name="email" required>
-    </div>
-    <div>
-        <label for="password">Mot de passe :</label>
-        <input type="password" id="password" name="password" required>
-    </div>
-    <div>
-        <label for="birthDate">Date de naissance :</label>
-        <input type="date" id="birthDate" name="birthDate" required>
-    </div>
-    <div>
-        <label for="address">Adresse :</label>
-        <textarea id="address" name="address" required></textarea>
-    </div>
-    <div>
-        <label for="phone">Téléphone :</label>
-        <input type="tel" id="phone" name="phone" required>
-    </div>
-    <button type="submit">S'inscrire</button>
+<h2>Registration</h2>
+
+<?php if (isset($error)): ?>
+    <p style="color: red;"><?= $error ?></p>
+<?php endif; ?>
+
+<form action="/register" method="POST">
+    <label for="email">Email :</label>
+    <input type="email" name="email" id="email" required><br>
+
+    <label for="password">Password :</label>
+    <input type="password" name="password" id="password" required><br>
+
+    <label for="confirm_password">Confirm password :</label>
+    <input type="password" name="confirm_password" id="confirm_password" required><br>
+
+    <button type="submit">Register</button>
 </form>
