@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__DIR__) . '/Autoloader.php';
+Core\Config::load(dirname(__DIR__) . '/config.php');
 
 ini_set('SMTP', 'smtp-sportify.alwaysdata.net');
 ini_set('smtp_port', 587);
