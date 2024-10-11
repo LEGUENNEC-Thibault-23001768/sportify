@@ -25,6 +25,10 @@ $router->addRoute('GET', '/dashboard', 'Controllers\DashboardController', 'showD
 $router->addRoute('GET', '/dashboard/profile', 'Controllers\DashboardController', 'showProfile');
 $router->addRoute('POST', '/dashboard/profile', 'Controllers\DashboardController', 'updateUserProfile');
 $router->addRoute('POST', '/logout', 'Controllers\DashboardController', 'logout');
+$router->addRoute('POST', '/create-checkout-session', 'Controllers\PaymentController', 'createCheckoutSession');
+
+
+$router->addRoute('GET', '/success', 'Controllers\PaymentController', 'success');
 
 
 
