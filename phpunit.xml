@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="Autoloader.php"
+         colors="true"
+        verbose="true"
+        testdox="true">
+    <testsuites>
+        <testsuite name="tests">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <server name="DOCUMENT_ROOT" value="./public"/>
+    </php>
+</phpunit>
