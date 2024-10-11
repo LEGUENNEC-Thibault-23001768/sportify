@@ -4,7 +4,7 @@ namespace Controllers;
 
 use Core\View;
 use Models\User;
-
+use Models\Subscription;
 class DashboardController
 {
     private $view;
@@ -27,7 +27,11 @@ class DashboardController
         $userId = $_SESSION['user_id'];
         $user = $this->userModel->getUserById($userId);
 
-        echo $this->view->render('dashboard/index', ['user' => $user]);
+        $subscriptionModel = new Subscription();
+    
+        $hasActiveSubscription = $subscriptionModel->hasActiveSubscription($userId);
+
+        echo $this->view->render('dashboard/index', ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription]);
     }
 
     public function showProfile() 
@@ -56,6 +60,12 @@ class DashboardController
             }
 
             $userId = $_SESSION['user_id'];
+
+            $subscriptionModel = new Subscription();
+        
+            $hasActiveSubscription = $subscriptionModel->hasActiveSubscription($userId);
+
+            $this->view->render('dashboard', ['hasActiveSubscription' => $hasActiveSubscription]);
 
             // Récupérer les données du formulaire et les nettoyer
             $firstName = trim($_POST['first_name']);
