@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__ . '/vendor/autoload.php';
+
 function my_autoloader($class) {
     // Replace namespace separators with directory separators
     $path = str_replace('\\', DIRECTORY_SEPARATOR, $class);

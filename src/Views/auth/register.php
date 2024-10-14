@@ -16,3 +16,5 @@
 
     <button type="submit">Register</button>
 </form>
+
+<a href="/google">S'inscrire</a>

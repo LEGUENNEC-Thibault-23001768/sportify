@@ -111,22 +111,25 @@ class User
     }
 
     public function create($userData)
-    {
-        $db = self::getDb();
-        $query = "INSERT INTO MEMBER (email, password, first_name, last_name, birth_date, address, phone)
-                  VALUES (:email, :password, :first_name, :last_name, :birth_date, :address, :phone)";
+{
+    $db = self::getDb();
+    
+    $password = $userData['password'] ?? 'GOOGLE_USER';
+    
+    $query = "INSERT INTO MEMBER (email, password, first_name, last_name, birth_date, address, phone)
+              VALUES (:email, :password, :first_name, :last_name, :birth_date, :address, :phone)";
 
-        $stmt = $db->prepare($query);
-        return $stmt->execute([
-            'email' => $userData['email'],
-            'password' => $userData['password'],
-            'first_name' => $userData['first_name'],
-            'last_name' => $userData['last_name'],
-            'birth_date' => $userData['birth_date'],
-            'address' => $userData['address'],
-            'phone' => $userData['phone']
-        ]);
-    }
+    $stmt = $db->prepare($query);
+    return $stmt->execute([
+        'email' => $userData['email'],
+        'password' => $password,  
+        'first_name' => $userData['first_name'],
+        'last_name' => $userData['last_name'],
+        'birth_date' => $userData['birth_date'] ?? null,
+        'address' => $userData['address'] ?? null,
+        'phone' => $userData['phone'] ?? null
+    ]);
+}
 
 
 
@@ -143,17 +146,14 @@ class User
 }
 
 
-    // Méthode pour mettre à jour le profil utilisateur
     public static function updateUserProfile($userId, $data)
     {
         $db = self::getDb();
 
-        // Champs autorisés à être mis à jour
         $allowedFields = ['first_name', 'last_name', 'email', 'birth_date', 'address', 'phone'];
         $setFields = [];
         $params = ['userId' => $userId];
 
-        // Ajouter les champs autorisés à la requête SQL
         foreach ($data as $key => $value) {
             if (in_array($key, $allowedFields)) {
                 $setFields[] = "$key = :$key";
@@ -161,28 +161,23 @@ class User
             }
         }
 
-        // Si un nouveau mot de passe est renseigné
         if (!empty($data['new_password'])) {
             $setFields[] = "password = :password";
             $params['password'] = password_hash($data['new_password'], PASSWORD_BCRYPT);
         }
 
-        // Si aucun champ n'est renseigné (cas improbable)
         if (empty($setFields)) {
             return false;
         }
 
-        // Préparation de la requête SQL pour la mise à jour
         $setClause = implode(', ', $setFields);
         $query = "UPDATE MEMBER SET $setClause WHERE member_id = :userId";
         $stmt = $db->prepare($query);
 
-        // Exécution de la requête
         return $stmt->execute($params);
     }
 
 
-    // Méthode pour vérifier le mot de passe actuel de l'utilisateur
     public static function verifyCurrentPassword($userId, $currentPassword)
     {
         $db = self::getDb();
@@ -195,7 +190,25 @@ class User
     }
 
 
+    public function getGoogleUserByEmail($email)
+    {
+        $db = self::getDb();
+        $stmt = $db->prepare("SELECT * FROM MEMBRE WHERE email = ?");
+        $stmt->execute([$email]);
+        return $stmt->fetch();
+    }
 
+    public function registerGoogleUser($userData)
+    {
+        $db = self::getDb();
+        $stmt = $db->prepare("INSERT INTO MEMBRE (email, first_name, last_name, google_id) VALUES (?, ?, ?, ?)");
+        return $stmt->execute([
+            $userData['email'],
+            $userData['first_name'],
+            $userData['last_name'],
+            $userData['google_id']
+        ]);
+    }
 
 
 }

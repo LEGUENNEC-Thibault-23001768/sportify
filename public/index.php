@@ -20,6 +20,12 @@ $router->addRoute('POST', '/logout', 'Controllers\DashboardController', 'logout'
 $router->addRoute('POST', '/create-checkout-session', 'Controllers\PaymentController', 'createCheckoutSession');
 
 
+
+$router->addRoute('GET', '/google', 'Controllers\GoogleAuthController' , 'login');
+$router->addRoute('GET', '/callback', 'Controllers\GoogleAuthController', 'callback');
+$router->addRoute('GET', '/logout', 'Controllers\GoogleAuthController' , 'logout');
+
+
 $router->addRoute('GET', '/success', 'Controllers\PaymentController', 'success');
 
 

@@ -19,20 +19,20 @@ class DashboardController
     public function showDashboard()
     {
         session_start();
-        if (!isset($_SESSION['user_id'])) {
+        if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
             header('Location: /login');
-            exit;
+            exit();
         }
 
         $userId = $_SESSION['user_id'];
         $user = $this->userModel->getUserById($userId);
 
         $subscriptionModel = new Subscription();
-    
         $hasActiveSubscription = $subscriptionModel->hasActiveSubscription($userId);
 
         echo $this->view->render('dashboard/index', ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription]);
     }
+
 
     public function showProfile() 
     {
@@ -132,11 +132,23 @@ class DashboardController
 
     public function logout()
     {
+
         session_start();
+
+        $_SESSION = [];
+
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, '/');
+        }
+
         session_destroy();
+
         header('Location: /login');
         exit;
+
     }
+
 
 }
 
