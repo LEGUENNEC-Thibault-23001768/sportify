@@ -17,36 +17,32 @@ $router = new Router();
 $router->addRoute('GET','/', 'Controllers\HomeController', 'index');
 $router->addRoute('GET', '/login', 'Controllers\AuthController', 'showLoginForm');
 $router->addRoute('POST', '/login', 'Controllers\AuthController', 'login');
-
 $router->addRoute('GET', '/verify-email', 'Controllers\AuthController', 'verifyEmail');
-
 $router->addRoute('GET', '/register', 'Controllers\AuthController', 'showRegisterForm');
-
-
 $router->addRoute('POST', '/register', 'Controllers\AuthController', 'register');
 $router->addRoute('GET', '/logout', 'Controllers\AuthController', 'logout');
 
 
 $router->addRoute('GET', '/dashboard', 'Controllers\DashboardController', 'showDashboard');
-
 $router->addRoute('GET', '/dashboard/profile', 'Controllers\DashboardController', 'showProfile');
 $router->addRoute('POST', '/dashboard/profile', 'Controllers\DashboardController', 'updateUserProfile');
 
 
+$router->addRoute('GET', '/google', 'Controllers\GoogleAuthController' , 'login');
+$router->addRoute('GET', '/callback', 'Controllers\GoogleAuthController', 'callback');
+$router->addRoute('GET', '/logout', 'Controllers\GoogleAuthController' , 'logout');
+
+
 $router->addRoute('POST', '/create-checkout-session', 'Controllers\PaymentController', 'createCheckoutSession');
-
-
 $router->addRoute('GET', '/success', 'Controllers\PaymentController', 'success');
 
 
 
-// Récupérez l'URL demandée
 $url = $_SERVER['REQUEST_URI'];
 
 try {
 
     $router->dispatch($url);
 } catch (Exception $e) {
-    // Gérez les erreurs (par exemple, affichez une page 404)
     echo "Page not found: " . $e->getMessage();
 }

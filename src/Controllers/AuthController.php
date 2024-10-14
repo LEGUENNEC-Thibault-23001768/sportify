@@ -92,7 +92,6 @@ class AuthController
             $password = trim($_POST['password']);
             $confirmPassword = trim($_POST['confirm_password']);
 
-            // Validation de base
             if (empty($email) || empty($password) || empty($confirmPassword)) {
                 $error = 'Tous les champs sont obligatoires.';
                 $this->view->render('auth/register', ['error' => $error]);
@@ -111,14 +110,12 @@ class AuthController
                 return;
             }
 
-            // Vérification si l'email existe déjà
             if ($this->userModel->findByEmail($email)) {
                 $error = 'Cet email est déjà utilisé.';
                 $this->view->render('auth/register', ['error' => $error]);
                 return;
             }
 
-            // Hachage du mot de passe
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
             $newUser = [
