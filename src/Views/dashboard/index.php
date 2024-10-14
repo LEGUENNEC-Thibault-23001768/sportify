@@ -1,3 +1,16 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['user'])) {
+    header('Location: /login');
+    exit();
+}
+
+$user = $_SESSION['user'];
+
+$hasActiveSubscription = isset($user['subscription']) && $user['subscription'] === 'active';
+?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -68,6 +81,15 @@
         .profile-name {
             margin: 20px 0;
         }
+
+        .alert-success {
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -76,10 +98,10 @@
         <div class="logo">Dashboard</div>
         
         <div class="profile-icon">
-            <img src="https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg" alt="Profil" id="profile-icon">
+            <img src="<?= isset($user['profile_pic']) ? htmlspecialchars($user['profile_pic']) : 'https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg'; ?>" alt="Profil" id="profile-icon">
             <div class="dropdown" id="dropdown">
                 <a href="/dashboard/profile">Mon profil</a>
-                <a href="/logout">Déconnexion</a>
+                <a href="/logout">Déconnexion</a> 
             </div>
         </div>
     </div>
@@ -88,26 +110,22 @@
         <h1>Bienvenue sur votre tableau de bord, <?= htmlspecialchars($user['first_name']) ?> !</h1>
         <p class="profile-name">Nom : <?= htmlspecialchars($user['first_name']) . ' ' . htmlspecialchars($user['last_name']) ?></p>
         <p>Email : <?= htmlspecialchars($user['email']) ?></p>
-        
+
+        <?php if (!$hasActiveSubscription): ?>
+            <form action="/create-checkout-session" method="POST">
+                <button type="submit">S'abonner</button>
+            </form>    
+        <?php else: ?>
+            <p>Votre abonnement est actif</p>
+        <?php endif; ?>
     </div>
+
     <?php
-    session_start();
     if (isset($_SESSION['message'])) {
-        echo "<div class='alert alert-success'>" . $_SESSION['message'] . "</div>";
+        echo "<div class='alert alert-success'>" . htmlspecialchars($_SESSION['message']) . "</div>";
         unset($_SESSION['message']);
     }
-    
     ?>
-    <?php if (!isset($hasActiveSubscription)): ?>
-        <form action="/create-checkout-session" method="POST">
-            <button type="submit">S'abonner</button>
-        </form>    
-    <?php else: ?>
-        <p>Votre abonnement est actif</p>
-    <?php endif; ?>
-
-    
-
 
     <script>
         document.getElementById('profile-icon').addEventListener('click', function() {

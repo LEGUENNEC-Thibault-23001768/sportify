@@ -114,13 +114,15 @@ class User
     {
         $db = self::getDb();
         $verificationToken = bin2hex(random_bytes(32));
+        $password = $userData['password'] ?? 'GOOGLE_USER';
+        $userData['password'] = password_hash($password, PASSWORD_DEFAULT);
         $query = "INSERT INTO MEMBER (email, password, first_name, last_name, birth_date, address, phone, verification_token, is_verified)
                   VALUES (:email, :password, :first_name, :last_name, :birth_date, :address, :phone, :verification_token, FALSE)";
 
         $stmt = $db->prepare($query);
         $result = $stmt->execute([
             'email' => $userData['email'],
-            'password' => $userData['password'],
+            'password' => $password,
             'first_name' => $userData['first_name'],
             'last_name' => $userData['last_name'],
             'birth_date' => $userData['birth_date'],
@@ -222,6 +224,26 @@ class User
         $query = "UPDATE MEMBER SET is_verified = TRUE, verification_token = NULL WHERE verification_token = :token";
         $stmt = $db->prepare($query);
         return $stmt->execute(['token' => $token]);
+    }
+
+    public function getGoogleUserByEmail($email)
+    {
+        $db = self::getDb();
+        $stmt = $db->prepare("SELECT * FROM MEMBRE WHERE email = ?");
+        $stmt->execute([$email]);
+        return $stmt->fetch();
+    }
+
+    public function registerGoogleUser($userData)
+    {
+        $db = self::getDb();
+        $stmt = $db->prepare("INSERT INTO MEMBRE (email, first_name, last_name, google_id) VALUES (?, ?, ?, ?)");
+        return $stmt->execute([
+            $userData['email'],
+            $userData['first_name'],
+            $userData['last_name'],
+            $userData['google_id']
+        ]);
     }
 
 }

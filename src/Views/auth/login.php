@@ -16,3 +16,4 @@ if (isset($_SESSION['error_message'])) {
     </div>
     <button type="submit">Se connecter</button>
 </form>
+<a href="/google">Se connecter avec Google</a>
