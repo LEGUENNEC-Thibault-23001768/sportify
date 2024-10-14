@@ -1,7 +1,10 @@
 <?php
-
 require_once dirname(__DIR__) . '/Autoloader.php';
-Core\Config::load(dirname(__DIR__) . '/config.php');
+
+use Core\Config;
+use Core\Router;
+
+Config::load(dirname(__DIR__) . '/config.php');
 
 ini_set('SMTP', 'smtp-sportify.alwaysdata.net');
 ini_set('smtp_port', 587);
@@ -9,9 +12,6 @@ ini_set('sendmail_from', 'sportify@alwaysdata.net');
 
 
 session_start();
-
-use Core\Router;
-use Core\Database;
 
 $router = new Router();
 $router->addRoute('GET','/', 'Controllers\HomeController', 'index');
