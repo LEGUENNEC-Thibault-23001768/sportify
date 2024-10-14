@@ -30,11 +30,16 @@ $router->addRoute('POST', '/dashboard/profile', 'Controllers\DashboardController
 
 $router->addRoute('GET', '/google', 'Controllers\GoogleAuthController' , 'login');
 $router->addRoute('GET', '/callback', 'Controllers\GoogleAuthController', 'callback');
-$router->addRoute('GET', '/logout', 'Controllers\GoogleAuthController' , 'logout');
 
 
 $router->addRoute('POST', '/create-checkout-session', 'Controllers\PaymentController', 'createCheckoutSession');
 $router->addRoute('GET', '/success', 'Controllers\PaymentController', 'success');
+
+
+$router->addRoute('GET', '/forgot-password', 'Controllers\AuthController', 'showForgotPasswordForm');
+$router->addRoute('POST', '/forgot-password', 'Controllers\AuthController', 'sendResetLink');
+$router->addRoute('GET', '/reset-password', 'Controllers\AuthController', 'showResetPasswordForm');
+$router->addRoute('POST', '/reset-password', 'Controllers\AuthController', 'resetPassword');
 
 
 

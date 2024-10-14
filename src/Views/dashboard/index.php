@@ -1,16 +1,3 @@
-<?php
-session_start();
-
-if (!isset($_SESSION['user'])) {
-    header('Location: /login');
-    exit();
-}
-
-$user = $_SESSION['user'];
-
-$hasActiveSubscription = isset($user['subscription']) && $user['subscription'] === 'active';
-?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
