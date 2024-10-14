@@ -88,9 +88,26 @@
         <h1>Bienvenue sur votre tableau de bord, <?= htmlspecialchars($user['first_name']) ?> !</h1>
         <p class="profile-name">Nom : <?= htmlspecialchars($user['first_name']) . ' ' . htmlspecialchars($user['last_name']) ?></p>
         <p>Email : <?= htmlspecialchars($user['email']) ?></p>
-
-        <!-- Ajoutez ici d'autres sections ou fonctionnalités du tableau de bord -->
+        
     </div>
+    <?php
+    session_start();
+    if (isset($_SESSION['message'])) {
+        echo "<div class='alert alert-success'>" . $_SESSION['message'] . "</div>";
+        unset($_SESSION['message']);
+    }
+    
+    ?>
+    <?php if (!isset($hasActiveSubscription)): ?>
+        <form action="/create-checkout-session" method="POST">
+            <button type="submit">S'abonner</button>
+        </form>    
+    <?php else: ?>
+        <p>Votre abonnement est actif</p>
+    <?php endif; ?>
+
+    
+
 
     <script>
         document.getElementById('profile-icon').addEventListener('click', function() {
@@ -102,7 +119,6 @@
             }
         });
 
-        // Fermer le menu déroulant si l'utilisateur clique en dehors
         window.onclick = function(event) {
             if (!event.target.matches('#profile-icon')) {
                 const dropdown = document.getElementById('dropdown');
