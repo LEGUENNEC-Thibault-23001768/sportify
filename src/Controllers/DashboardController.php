@@ -18,9 +18,8 @@ class DashboardController
 
     public function showDashboard()
     {
-        session_start();
         if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
+            header('Location: /login'); // pas connecté
             exit;
         }
 
@@ -36,7 +35,6 @@ class DashboardController
 
     public function showProfile() 
     {
-        session_start();
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
             exit;
@@ -50,7 +48,6 @@ class DashboardController
 
     public function updateUserProfile()
     {
-        session_start();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Vérifier si l'utilisateur est connecté
@@ -128,16 +125,6 @@ class DashboardController
             exit;
         }
     }
-
-
-    public function logout()
-    {
-        session_start();
-        session_destroy();
-        header('Location: /login');
-        exit;
-    }
-
 }
 
 ?>

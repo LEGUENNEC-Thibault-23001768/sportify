@@ -21,11 +21,18 @@ $router->addRoute('POST', '/login', 'Controllers\AuthController', 'login');
 $router->addRoute('GET', '/verify-email', 'Controllers\AuthController', 'verifyEmail');
 
 $router->addRoute('GET', '/register', 'Controllers\AuthController', 'showRegisterForm');
+
+
 $router->addRoute('POST', '/register', 'Controllers\AuthController', 'register');
+$router->addRoute('GET', '/logout', 'Controllers\AuthController', 'logout');
+
+
 $router->addRoute('GET', '/dashboard', 'Controllers\DashboardController', 'showDashboard');
+
 $router->addRoute('GET', '/dashboard/profile', 'Controllers\DashboardController', 'showProfile');
 $router->addRoute('POST', '/dashboard/profile', 'Controllers\DashboardController', 'updateUserProfile');
-$router->addRoute('POST', '/logout', 'Controllers\DashboardController', 'logout');
+
+
 $router->addRoute('POST', '/create-checkout-session', 'Controllers\PaymentController', 'createCheckoutSession');
 
 

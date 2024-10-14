@@ -79,7 +79,7 @@
             <img src="https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg" alt="Profil" id="profile-icon">
             <div class="dropdown" id="dropdown">
                 <a href="/dashboard/profile">Mon profil</a>
-                <a href="/login">Déconnexion</a>
+                <a href="/logout">Déconnexion</a>
             </div>
         </div>
     </div>

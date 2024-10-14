@@ -18,10 +18,18 @@ class AuthController
 
     public function showLoginForm()
     {
+        if (isset($_SESSION['user_id'])) {
+            header('Location: /dashboard');
+            exit;
+        }
         echo $this->view->render('auth/login');
     }
     public function showRegisterForm()
     {
+        if (isset($_SESSION['user_id'])) {
+            header('Location: /dashboard');
+            exit;
+        }
         echo $this->view->render('auth/register');
     }
 
@@ -57,7 +65,20 @@ class AuthController
 
     public function logout()
     {
-        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+        $_SESSION = array();
+        
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', 1,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+        
         session_destroy();
         header('Location: /login');
         exit;
