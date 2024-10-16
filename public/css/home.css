@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap');
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'League Spartan', sans-serif;
+    height: 100%;
+    background: black;
+    color: white;
+}
+
+.dashboard {
+    display: flex;
+    height: 100%;
+}
+
+.sidebar {
+    width: 70px;
+    background-color: #161616b8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    background-color: #C1FF72;
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.nav-item {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 20px;
+    background-color: transparent;
+    border: none;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: #888;
+}
+
+.nav-item.active {
+    background-color: #c2ff72;
+    color: black;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.section-header h2 {
+    font-size: 40px;
+    font-weight: bold;
+    background: linear-gradient(to right, #ffffff, #3b3b3b);
+    -webkit-background-clip: text;
+    -moz-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.section-header p {
+    color: #aaa;
+    text-align: center;
+    font-size: 18px;
+}
+
+.card {
+    background-color: rgba(116, 116, 116, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.small-card {
+    background-color: rgba(116, 116, 116, 0.1);
+    border: 2px solid rgb(28, 28, 28);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    width: 300px;
+}
+
+.card-title {
+    font-size: 18px;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.card-value {
+    font-size: 36px;
+    font-weight: bold;
+    color: #C1FF72;
+}
+
+.card-subtitle {
+    font-size: 14px;
+    color: white;
+}
+
+.right-column .card {
+    width: 100%;
+}

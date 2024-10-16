@@ -1,0 +1,89 @@
+body {
+    font-family: 'League Spartan', sans-serif;
+    background-color: black;
+    color: #ccc;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    text-align: center;
+}
+
+#header-logo {
+    margin-top: 50px;
+    width: 200px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cta-section h1 {
+    font-size: 60px;
+    font-weight: bold;
+    background: linear-gradient(to right, #ffffff, #3b3b3b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+
+.cta-section p {
+    color: #aaa;
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.limited-width {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.confidentiality-policy h2 {
+    font-size: 50px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    background: linear-gradient(to right, #ffffff, #000000);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.confidentiality-policy p, .confidentiality-policy ul {
+    color: #aaa;
+    font-size: 18px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+.confidentiality-policy ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.confidentiality-policy ul li {
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #ccc;
+}
+
+.confidentiality-policy ul li strong {
+    font-weight: bold;
+    color: #C1FF72;
+}
+
+@media (max-width: 768px) {
+    .cta-section h1 {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+    .confidentiality-policy h2 {
+        font-size: 40px;
+    }
+
+    .confidentiality-policy p, .confidentiality-policy ul {
+        font-size: 16px;
+    }
+}

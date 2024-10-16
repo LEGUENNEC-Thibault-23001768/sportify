@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap');
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'League Spartan', sans-serif;
+    height: 100%;
+    background: black;
+    color: white;
+}
+
+.dashboard {
+    display: flex;
+    height: 100%;
+}
+
+.sidebar {
+    width: 70px;
+    background-color: #161616b8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.section-header h2 {
+    font-size: 40px;
+    font-weight: bold;
+    background: linear-gradient(to right, #ffffff, #3b3b3b);
+    -webkit-background-clip: text;
+    -moz-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.section-header p {
+    color: #aaa;
+    text-align: center;
+    font-size: 18px;
+}
+
+.card {
+    background-color: rgba(116, 116, 116, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.small-card {
+    background-color: rgba(116, 116, 116, 0.1);
+    border: 2px solid rgb(28, 28, 28);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    width: 300px;
+}
+
+.card-title {
+    font-size: 18px;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.card-value {
+    font-size: 36px;
+    font-weight: bold;
+    color: #C1FF72;
+}
+
+.card-subtitle {
+    font-size: 14px;
+    color: white;
+}
+
+.chart {
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.bar {
+    flex-grow: 1;
+    background-color: #4caf50;
+    border-radius: 5px 5px 0 0;
+}
+
+.chart-labels {
+    display: flex;
+    justify-content: space-between;
+    color: #C1FF72;
+    font-size: 12px;
+}
+
+.progress-card {
+    background-color: rgba(116, 116, 116, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.sport-card {
+    width: 700px;
+    background-color: rgba(116, 116, 116, 0.1);
+    padding: 20px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
+.progress-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: conic-gradient(#C1FF72 80%, #ffa07a 0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.progress-inner {
+    width: 80px;
+    height: 80px;
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.progress-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #C1FF72;
+}
+
+.progress-label {
+    font-size: 10px;
+    color: white;
+}
