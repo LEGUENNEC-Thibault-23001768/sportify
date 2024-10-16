@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des événements</title>
+    <link rel="stylesheet" href="/public/css/event.css">
+    <style>
+        .team-management-card {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 22V12H15V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <nav>
+                <button class="nav-item active" aria-label="Événements">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="card event-list-card">
+                <h3 class="title">Événements disponibles</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Événement</th>
+                            <th>Date</th>
+                            <th>Heure de début</th>
+                            <th>Heure de fin</th>
+                            <th>Lieu</th>
+                            <th>Capacité</th>
+                            <th>Inscrits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Tournoi de football</td>
+                            <td>20 octobre 2024</td>
+                            <td>14:00</td>
+                            <td>16:00</td>
+                            <td>Stade municipal</td>
+                            <td>20</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Compétition de natation</td>
+                            <td>25 octobre 2024</td>
+                            <td>10:00</td>
+                            <td>12:00</td>
+                            <td>Piscine municipale</td>
+                            <td>10</td>
+                            <td>5</td>
+                        </tr>
+                        <tr>
+                            <td>Course à pied</td>
+                            <td>30 octobre 2024</td>
+                            <td>09:00</td>
+                            <td>11:00</td>
+                            <td>Parc central</td>
+                            <td>30</td>
+                            <td>18</td>
+                        </tr>
+                        <tr>
+                            <td>Match de basket</td>
+                            <td>5 novembre 2024</td>
+                            <td>15:00</td>
+                            <td>17:00</td>
+                            <td>Gymnase du collège</td>
+                            <td>10</td>
+                            <td>6</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card event-history-card">
+                <h3 class="title">Historique des événements</h3>
+                <ul>
+                    <li>Tournoi de basket - 15 septembre 2024 - Gagnant : Équipe 3</li>
+                    <li>Course à pied - 10 septembre 2024 - Gagnant : Équipe 1</li>
+                </ul>
+            </div>
+
+            <div class="card event-signup-card">
+                <h3 class="title">Inscription à un événement</h3>
+                <form>
+                    <label for="event-select">Choisir un événement :</label>
+                    <select id="event-select" name="event">
+                        <option value="football">Tournoi de football</option>
+                        <option value="natation">Compétition de natation</option>
+                        <option value="course">Course à pied</option>
+                        <option value="basket">Match de basket</option>
+                    </select>
+                    <button type="button" onclick="toggleTeamManagement()">S'inscrire</button>
+                </form>
+            </div>
+
+            <div class="card team-management-card">
+                <h3 class="title">Gestion des équipes</h3>
+                <p>Créer, rejoindre ou modifier une équipe</p>
+                <form>
+                    <label for="team-select">Choisir une équipe :</label>
+                    <select id="team-select" name="team">
+                        <option value="team1">Équipe 1</option>
+                        <option value="team2">Équipe 2</option>
+                        <option value="team3">Équipe 3</option>
+                    </select>
+                    <button type="submit">Rejoindre</button>
+                    <button type="button">Créer une nouvelle équipe</button>
+                    <button type="button">Modifier une équipe</button>
+                </form>
+            </div>
+
+            <div class="card event-creation-card">
+                <h3 class="title">Créer un événement</h3>
+                <form>
+                    <label for="event-name">Nom de l'événement :</label>
+                    <input type="text" id="event-name" name="event-name" placeholder="Nom de l'événement">
+
+                    <label for="event-date">Date de l'événement :</label>
+                    <input type="date" id="event-date" name="event-date">
+
+                    <label for="event-start-time">Heure de début :</label>
+                    <input type="time" id="event-start-time" name="event-start-time">
+
+                    <label for="event-end-time">Heure de fin :</label>
+                    <input type="time" id="event-end-time" name="event-end-time">
+
+                    <label for="event-location">Lieu :</label>
+                    <input type="text" id="event-location" name="event-location" placeholder="Lieu de l'événement">
+
+                    <label for="event-capacity">Capacité maximale :</label>
+                    <input type="number" id="event-capacity" name="event-capacity" min="1" placeholder="Nombre de participants max.">
+
+                    <button type="submit">Créer l'événement</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="/public/js/script.js"></script>
+</body>
+</html>

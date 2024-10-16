@@ -1,8 +1,3 @@
-
-
-
-/* header scroll fonctionne pas*/
-
 let lastScrollTop = 0;
 const header = document.querySelector("header");
 let isScrollingDown = false;
@@ -19,10 +14,20 @@ window.addEventListener("scroll", () => {
     header.style.pointerEvents = "all"; 
     isScrollingDown = false;
   }
-  
 
   lastScrollTop = scrollTop;
 });
+
+
+function toggleTeamManagement() {
+  const teamManagement = document.querySelector('.team-management-card');
+  if (teamManagement.style.display === "none" || teamManagement.style.display === "") {
+    teamManagement.style.display = "block";
+  } else {
+    teamManagement.style.display = "none";
+  }
+}
+
 
 const showMoreBtn = document.getElementById('show-more-btn');
 const testimonialsOnTablet = window.matchMedia("(max-width: 1024px)");
@@ -69,6 +74,7 @@ pricingCards.forEach(card => {
 
 document.querySelector('.pro-plan').classList.add('active');
 
+/* Charger le footer */
 fetch('footer.html')
   .then(response => response.text())
   .then(data => {
