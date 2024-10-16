@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statistiques sportives</title>
     <link rel="stylesheet" href="/public/css/stat.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="dashboard">
@@ -25,14 +25,12 @@
 
         <main class="main-content">
             <div class="grid">
-                <!-- Sélection du sport -->
                 <div class="left-column">
                     <div class="section-header">
                         <h2>Statistiques sportives</h2>
                         <p>Résumé de vos performances par sport</p>
                     </div>
 
-                    <!-- Sélectionner un sport -->
                     <div class="card sport-selection-card">
                         <h3 class="title">Sélectionner un sport</h3>
                         <form>
@@ -46,7 +44,6 @@
                         </form>
                     </div>
 
-                    <!-- Statistiques détaillées par sport -->
                     <div class="card sport-stats-card">
                         <h3 class="title">Statistiques pour <span id="selected-sport">Football</span></h3>
                         <ul id="sport-stats">
@@ -56,13 +53,11 @@
                         </ul>
                     </div>
 
-                    <!-- Graphique interactif montrant la progression -->
                     <div class="card progress-chart-card">
                         <h3 class="title">Progression par sport</h3>
                         <canvas id="progressChart"></canvas>
                     </div>
 
-                    <!-- Comparaison des performances avec les objectifs personnels -->
                     <div class="card comparison-card">
                         <h3 class="title">Comparaison avec vos objectifs</h3>
                         <ul id="performance-comparison">
@@ -72,7 +67,6 @@
                         </ul>
                     </div>
 
-                    <!-- Historique des activités -->
                     <div class="card history-card">
                         <h3 class="title">Historique des activités</h3>
                         <ul id="activity-history">
