@@ -1,4 +1,5 @@
 <?php
+echo "dirname(__DIR__) . ";
 require_once dirname(__DIR__) . '/Autoloader.php';
 
 use Core\Config;
@@ -15,6 +16,7 @@ session_start();
 
 $router = new Router();
 $router->addRoute('GET','/', 'Controllers\HomeController', 'index');
+
 $router->addRoute('GET', '/login', 'Controllers\AuthController', 'showLoginForm');
 $router->addRoute('POST', '/login', 'Controllers\AuthController', 'login');
 $router->addRoute('GET', '/verify-email', 'Controllers\AuthController', 'verifyEmail');
