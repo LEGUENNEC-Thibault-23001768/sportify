@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord de fitness</title>
+    <link rel="stylesheet" href="/public/css/calorie.css">
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 22V12H15V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <nav>
+                <button class="nav-item active" aria-label="Tableau de bord">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </button>
+                <button class="nav-item" aria-label="Activité">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                </button>
+                <button class="nav-item" aria-label="Calendrier">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </button>
+                <button class="nav-item" aria-label="Paiements">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                </button>
+                <button class="nav-item" aria-label="Notifications">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                </button>
+                <button class="nav-item" aria-label="Paramètres">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <div class="grid">
+                <div class="left-column">
+                    <div class="section-header">
+                        <h2>Suivi de l'alimentation</h2>
+                        <p>Résumé de vos apports caloriques</p>
+                    </div>
+                    <div class="card-row">
+                        <div class="small-card">
+                            <div class="card-title"><span class="emoji">🔥</span> Consommé</div>
+                            <div class="card-value">350 Kcal</div>
+                            <div class="card-subtitle">Moyenne</div>
+                        </div>
+                        <div class="small-card">
+                            <div class="card-title"><span class="emoji">🥗</span> Restant</div>
+                            <div class="card-value">282 Kcal</div>
+                            <div class="card-subtitle">maximum</div>
+                        </div>
+                    </div>
+                    <div class="card progress-card">
+                        <h3 class="title">Continuez comme ça - vous avez pris 2 kg en un mois seulement !</h3>
+                        <div class="progress-info">
+                            <div class="date-info">
+                                <div class="card-subtitle">Période actuelle</div>
+                                <div class="card-title">8 sept</div>
+                                <div class="card-subtitle">2024</div>
+                            </div>
+                            <div class="progress-circle">
+                                <div class="progress-inner">
+                                    <div class="progress-value">06</div>
+                                    <div class="progress-label">Jour du cycle</div>
+                                </div>
+                            </div>
+                            <div class="date-info">
+                                <div class="card-subtitle">Période actuelle</div>
+                                <div class="card-title">13 oct</div>
+                                <div class="card-subtitle">2024</div>
+                            </div>
+                        </div>
+                        <div class="daily-step">
+                            <div class="step-header">
+                                <div class="card-title">Pas quotidiens</div>
+                                <div class="card-subtitle">16:56</div>
+                            </div>
+                            <div class="step-progress">
+                                <div class="card-value">83%</div>
+                                <div class="step-graph"></div>
+                            </div>
+                            <div class="card-subtitle">8h 20m au lit</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="right-column">
+                    <div class="card activity-card">
+                        <div class="card-header">
+                            <h3 class="title"><span class="emoji">📊</span> Activité</h3>
+                            <select aria-label="Sélectionner la période">
+                                <option>Ce mois-ci</option>
+                            </select>
+                        </div>
+                        <div class="chart">
+                            <div class="bar" style="height: 20%;"></div>
+                            <div class="bar" style="height: 30%;"></div>
+                            <div class="bar" style="height: 40%;"></div>
+                            <div class="bar" style="height: 100%;"></div>
+                            <div class="bar" style="height: 60%;"></div>
+                            <div class="bar" style="height: 80%;"></div>
+                        </div>
+                        <div class="chart-labels">
+                            <div>Dim</div>
+                            <div>Lun</div>
+                            <div>Mar</div>
+                            <div>Mer</div>
+                            <div>Jeu</div>
+                            <div>Ven</div>
+                        </div>
+                        <div class="activity-summary">
+                            <span class="card-value">+20%</span>
+                            <span class="card-subtitle">Le suivi de cette semaine est supérieur à celui de la semaine dernière</span>
+                        </div>
+                    </div>
+                    <div class="card calories-card">
+                        <div class="card-header">
+                            <h3 class="title"><span class="emoji">📊</span> Analyse des calories</h3>
+                            <select aria-label="Sélectionner la période">
+                                <option>Semaine</option>
+                            </select>
+                        </div>
+                        <div class="calories-progress">
+                            <div class="calories-progress-inner"></div>
+                        </div>
+                        <div class="calories-item">
+                            <div class="calories-label">
+                                <div class="calories-dot protein"></div>
+                                Protéines
+                            </div>
+                            <div class="card-subtitle">
+                                120,55 g <span class="light">Apport moyen</span> <span class="bold">182,88 Objectif</span> <span class="percentage">43,5%</span>
+                            </div>
+                        </div>
+                        <div class="calories-item">
+                            <div class="calories-label">
+                                <div class="calories-dot carbs"></div>
+                                Glucides
+                            </div>
+                            <div class="card-subtitle">
+                                120,55 g <span class="light">Apport moyen</span> <span class="bold">209,00 Objectif</span> <span class="percentage">27,5%</span>
+                            </div>
+                        </div>
+                        <div class="calories-item">
+                            <div class="calories-label">
+                                <div class="calories-dot fat"></div>
+                                Lipides
+                            </div>
+                            <div class="card-subtitle">
+                                120,55 g <span class="light">Apport moyen</span> <span class="bold">209,00 Objectif</span> <span class="percentage">62,3%</span>
+                            </div>
+                        </div>
+                        <div class="calories-item">
+                            <div class="calories-label">
+                                <div class="calories-dot calories"></div>
+                                Calories
+                            </div>
+                            <div class="card-subtitle">
+                                120,55 g <span class="light">Apport moyen</span> <span class="bold">209,00 Objectif</span> <span class="percentage">22,8%</span>
+                            </div>
+                        </div>
+                        <div class="calories-item">
+                            <div class="calories-label">
+                                <div class="calories-dot fat-alt"></div>
+                                Lipides
+                            </div>
+                            <div class="card-subtitle">
+                                120,55 g <span class="light">Apport moyen</span> <span class="bold">209,00 Objectif</span> <span class="percentage">62,3%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="/public/js/test.js"></script>
+</body>
+</html>
