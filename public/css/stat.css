@@ -37,12 +37,19 @@ body, html {
     align-items: start;
 }
 
+.left-column, .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
 .section-header h2 {
     font-size: 40px;
     font-weight: bold;
     background: linear-gradient(to right, #ffffff, #3b3b3b);
     -webkit-background-clip: text;
     -moz-background-clip: text;
+    -ms-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     text-align: center;
@@ -62,102 +69,81 @@ body, html {
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
 
-.small-card {
-    background-color: rgba(116, 116, 116, 0.1);
-    border: 2px solid rgb(28, 28, 28);
-    border-radius: 20px;
-    padding: 20px;
-    text-align: center;
-    width: 300px;
-}
-
-.card-title {
-    font-size: 18px;
-    color: white;
-    margin-bottom: 10px;
-}
-
-.card-value {
-    font-size: 36px;
-    font-weight: bold;
-    color: #C1FF72;
-}
-
-.card-subtitle {
-    font-size: 14px;
-    color: white;
-}
-
-.chart {
-    height: 200px;
-    display: flex;
-    align-items: flex-end;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.bar {
-    flex-grow: 1;
-    background-color: #4caf50;
-    border-radius: 5px 5px 0 0;
-}
-
-.chart-labels {
-    display: flex;
-    justify-content: space-between;
-    color: #C1FF72;
-    font-size: 12px;
-}
-
-.progress-card {
-    background-color: rgba(116, 116, 116, 0.1);
-    border-radius: 20px;
-    padding: 20px;
-    margin-top: 30px;
-}
-
-.sport-card {
-    width: 700px;
-    background-color: rgba(116, 116, 116, 0.1);
-    padding: 20px;
-    border-radius: 20px;
+.sport-selection-card, .sport-stats-card, .progress-chart-card, .comparison-card, .history-card {
     margin-bottom: 30px;
 }
 
-.progress-info {
-    display: flex;
-    justify-content: space-between;
-    margin: 20px 0;
-}
-
-.progress-circle {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: conic-gradient(#C1FF72 80%, #ffa07a 0);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.progress-inner {
-    width: 80px;
-    height: 80px;
-    background-color: white;
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.progress-value {
+.title {
     font-size: 24px;
-    font-weight: bold;
+    margin-bottom: 15px;
     color: #C1FF72;
 }
 
-.progress-label {
-    font-size: 10px;
+form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #C1FF72;
+}
+
+form select {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #C1FF72;
+    background-color: black;
     color: white;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: white;
+}
+
+#sport-stats li, #performance-comparison li, #activity-history li {
+    font-size: 16px;
+    color: white;
+}
+
+canvas {
+    width: 100% !important;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table, th, td {
+    border: 1px solid #C1FF72;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+button {
+    background-color: #C1FF72;
+    color: black;
+    cursor: pointer;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #a7e65c;
 }

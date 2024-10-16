@@ -3,101 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistiques de sport</title>
-    <link rel="stylesheet" href="/public/css/dashboard.css">
+    <title>Statistiques sportives</title>
+    <link rel="stylesheet" href="/public/css/stat.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Pour les graphiques -->
 </head>
 <body>
     <div class="dashboard">
         <aside class="sidebar">
             <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="24"24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M9 22V12H15V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
             <nav>
-                <button class="nav-item" aria-label="Statistiques">
+                <button class="nav-item active" aria-label="Statistiques">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                </button>
-                <button class="nav-item active" aria-label="Activité">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 </button>
             </nav>
         </aside>
 
         <main class="main-content">
             <div class="grid">
+                <!-- Sélection du sport -->
                 <div class="left-column">
                     <div class="section-header">
-                        <h2>Statistiques par sport</h2>
-                        <p>Résumé de vos performances</p>
+                        <h2>Statistiques sportives</h2>
+                        <p>Résumé de vos performances par sport</p>
                     </div>
 
-                    <div class="card-row">
-                        <div class="small-card">
-                            <div class="card-title"><span class="emoji">⏱️</span> Temps passé</div>
-                            <div class="card-value">12h 30m</div>
-                            <div class="card-subtitle">Total</div>
-                        </div>
-                        <div class="small-card">
-                            <div class="card-title"><span class="emoji">🏆</span> Record personnel</div>
-                            <div class="card-value">15400 pts</div>
-                            <div class="card-subtitle">Record</div>
-                        </div>
-                    </div>
-
-                    <div class="card progress-card">
-                        <h3 class="title">Progression cette semaine</h3>
-                        <div class="chart">
-                            <div class="bar" style="height: 40%;"></div>
-                            <div class="bar" style="height: 60%;"></div>
-                            <div class="bar" style="height: 80%;"></div>
-                            <div class="bar" style="height: 90%;"></div>
-                        </div>
-                        <div class="chart-labels">
-                            <div>Jour 1</div>
-                            <div>Jour 2</div>
-                            <div>Jour 3</div>
-                            <div>Jour 4</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="right-column">
-                    <div class="card sport-card">
-                        <div class="card-header">
-                            <h3 class="title">Comparaison aux objectifs</h3>
-                            <p>Objectif : 15h d'entraînement cette semaine</p>
-                        </div>
-                        <div class="progress-info">
-                            <div class="progress-circle">
-                                <div class="progress-inner">
-                                    <div class="progress-value">80%</div>
-                                    <div class="progress-label">Complété</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card sport-card">
-                        <div class="card-header">
-                            <h3 class="title">Historique d'activité</h3>
-                            <select aria-label="Sélectionner le sport">
-                                <option>Football</option>
-                                <option>Basketball</option>
-                                <option>Course</option>
-                                <option>Tennis</option>
+                    <!-- Sélectionner un sport -->
+                    <div class="card sport-selection-card">
+                        <h3 class="title">Sélectionner un sport</h3>
+                        <form>
+                            <label for="sport-select">Choisir un sport :</label>
+                            <select id="sport-select" name="sport" onchange="loadSportStats(this.value)">
+                                <option value="football">Football</option>
+                                <option value="natation">Natation</option>
+                                <option value="course">Course</option>
+                                <option value="basket">Basket</option>
                             </select>
-                        </div>
-                        <ul>
-                            <li>Football - 10h jouées cette semaine</li>
-                            <li>Basketball - 2h jouées cette semaine</li>
+                        </form>
+                    </div>
+
+                    <!-- Statistiques détaillées par sport -->
+                    <div class="card sport-stats-card">
+                        <h3 class="title">Statistiques pour <span id="selected-sport">Football</span></h3>
+                        <ul id="sport-stats">
+                            <li>Temps total : 10h 20m</li>
+                            <li>Meilleur score : 5 buts</li>
+                            <li>Records personnels : 12 matchs gagnés</li>
+                        </ul>
+                    </div>
+
+                    <!-- Graphique interactif montrant la progression -->
+                    <div class="card progress-chart-card">
+                        <h3 class="title">Progression par sport</h3>
+                        <canvas id="progressChart"></canvas>
+                    </div>
+
+                    <!-- Comparaison des performances avec les objectifs personnels -->
+                    <div class="card comparison-card">
+                        <h3 class="title">Comparaison avec vos objectifs</h3>
+                        <ul id="performance-comparison">
+                            <li>Objectif de matchs gagnés : 20 / 30</li>
+                            <li>Objectif de buts marqués : 18 / 25</li>
+                            <li>Temps total visé : 15h / 20h</li>
+                        </ul>
+                    </div>
+
+                    <!-- Historique des activités -->
+                    <div class="card history-card">
+                        <h3 class="title">Historique des activités</h3>
+                        <ul id="activity-history">
+                            <li>20 septembre 2024 : Match gagné 3-1</li>
+                            <li>15 septembre 2024 : Match perdu 1-2</li>
+                            <li>10 septembre 2024 : Match gagné 2-0</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-    <script src="/public/js/test.js"></script>
+    <script src="/public/js/script.js"></script>
 </body>
 </html>
