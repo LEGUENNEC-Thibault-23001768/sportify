@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Paramètres</title>
+    <link rel="stylesheet" href="../../assets/parametres.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Paramètres</h2>
+        <div class="section">
+            <h3>Modifier les informations personnelles</h3>
+            <form id="personal-info-form">
+                <label for="username">Nom d'utilisateur :</label>
+                <input type="text" id="username" name="username" value="JohnDoe">
+                
+                <label for="email">Adresse email :</label>
+                <input type="email" id="email" name="email" value="johndoe@example.com">
+                
+                <label for="password">Nouveau mot de passe :</label>
+                <input type="password" id="password" name="password">
+                
+                <button type="submit">Mettre à jour</button>
+            </form>
+        </div>
+        <div class="section">
+            <h3>Gestion de l'abonnement</h3>
+            <div class="subscription-info">
+                <p>Type d'abonnement : <strong>Premium</strong></p>
+                <p>Date de renouvellement : <strong>15 octobre 2024</strong></p>
+                <button type="button">Changer d'abonnement</button>
+                <button type="button">Annuler l'abonnement</button>
+            </div>
+        </div>
+        <div class="section">
+            <h3>Historique des paiements</h3>
+            <ul id="payment-history">
+                <li>15 septembre 2024  <strong>50 €</strong></li>
+                <li>15 août 2024 <strong>50 €</strong></li>
+                <li>15 juillet 2024  <strong>50 €</strong></li>
+            </ul>
+        </div>
+    </div>
+    <script src="../../assets/parametres.js"></script>
+</body>
+</html>
