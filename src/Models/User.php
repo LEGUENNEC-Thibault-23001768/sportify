@@ -246,4 +246,50 @@ class User
         ]);
     }
 
+    public static function storeResetToken($email, $token)
+    {
+        $db = self::getDb();
+        $query = "UPDATE MEMBER SET reset_token = :token, reset_token_expiry = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE email = :email";
+        $stmt = $db->prepare($query);
+        return $stmt->execute(['token' => $token, 'email' => $email]);
+    }
+
+    public static function findByResetToken($token)
+    {
+        $db = self::getDb();
+        $query = "SELECT * FROM MEMBER WHERE reset_token = :token AND reset_token_expiry > NOW()";
+        $stmt = $db->prepare($query);
+        $stmt->execute(['token' => $token]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function resetPassword($token, $newPassword)
+    {
+        $db = self::getDb();
+        $user = self::findByResetToken($token);
+
+        if ($user) {
+            $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+            $query = "UPDATE MEMBER SET password = :password, reset_token = NULL, reset_token_expiry = NULL WHERE member_id = :userId";
+            $stmt = $db->prepare($query);
+            return $stmt->execute(['password' => $hashedPassword, 'userId' => $user['member_id']]);
+        }
+
+        return false;
+    }
+
+    public static function sendPasswordResetEmail($email, $token)
+    {
+        $subject = "Réinitialisation de votre mot de passe";
+        $resetUrl = "http://localhost:8080/reset-password?token=" . $token;
+        $message = "Cliquez sur ce lien pour réinitialiser votre mot de passe : $resetUrl";
+        $headers = "From: sportify@alwaysdata.net\r\n";
+        if(mail($email, $subject, $message, $headers)) {
+            return true;
+        } else {
+            error_log("Erreur d'envoi d'email de réinitialisation à $email: " . error_get_last());
+            return false;
+        }
+    }
+
 }
