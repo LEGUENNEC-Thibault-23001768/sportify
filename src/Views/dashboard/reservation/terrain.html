@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte de la Salle de Sport</title>
+    <link rel="stylesheet" href="../../assets/terrain.css">
+</head>
+<body>
+    <h2>Carte de la Salle de Sport</h2>
+    <div class="gym-map">
+        <img src="../../assets/Map_sportify.png" alt="Carte de la salle de sport" class="gym-image">
+        <div class="room tennis" data-room="Tennis">Tennis</div>
+        <div class="room foot" data-room="Foot">Foot</div>
+        <div class="room rpm" data-room="RPM">RPM</div>
+        <div class="room yoga" data-room="Yoga">Yoga</div>
+        <div class="room basketball" data-room="Basketball">Basketball</div>
+        <div class="room boxe" data-room="Boxe">Boxe</div>
+    </div>
+    
+    <div id="reservation-container">
+        <h3>Réserver une salle</h3>
+        <form id="form">
+            <label for="name">Votre Nom:</label>
+            <input type="text" id="name" required>
+    
+            <label for="date">Date:</label>
+            <input type="date" id="date" required>
+    
+            <label for="start-time">Heure de Début:</label>
+            <input type="time" id="start-time" required>
+    
+            <label for="end-time">Heure de Fin:</label>
+            <input type="time" id="end-time" required>
+    
+            <button type="submit">Réserver</button>
+            <button type="button" onclick="closeReservationForm()">Annuler</button>
+        </form>
+        <div id="reservations">
+            <h3>Historique des Réservations</h3>
+            <ul id="reservation-list"></ul>
+        </div>
+    </div>
+
+    <script src="../../assets/terrain.js"></script>
+</body>
+</html>
