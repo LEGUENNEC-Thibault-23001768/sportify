@@ -3,9 +3,9 @@
 namespace Controllers;
 
 use Google\Auth\OAuth2;
-use Google\Auth\Credentials\UserRefreshCredentials;
 use GuzzleHttp\Client;
 use Core\View;
+use core\Config;
 use Models\User;
 
 class GoogleAuthController
@@ -17,21 +17,21 @@ class GoogleAuthController
     {
         $this->view = new View();
 
-        $clientId = '857873046046355-3bigof3avgr1rgqq0ng703587g7nh4dn.apps.googleusercontent.com';
+        /*clientId = '857873046046355-3bigof3avgr1rgqq0ng703587g7nh4dn.apps.googleusercontent.com';
         $clientSecret = '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';
         $redirectUri = 'http://localhost:8888/callback';
-
+        
         $clientSecrets = json_decode(file_get_contents(__DIR__ . '/../../client_secret.json'), true)['web'];
-
+*/
         $this->oauth = new OAuth2([
-            'clientId' => $clientSecrets['client_id'],
-            'clientSecret' => $clientSecrets['client_secret'],
-            'authorizationUri' => $clientSecrets['auth_uri'],
-            'tokenCredentialUri' => $clientSecrets['token_uri'],
-            'redirectUri' => $clientSecrets['redirect_uris'][0],
+            'clientId' => Config::get("google")["clientId"],
+            'clientSecret' => Config::get("google")["clientSecret"],
+            'authorizationUri' => Config::get("google")["authorizationUri"],
+            'tokenCredentialUri' => Config::get("google")["tokenCredentialUri"],
+            'redirectUri' => Config::get("google")["redirectUri"],
             'scope' => ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
         ]);
-        
+    
     }
 
     public function login()

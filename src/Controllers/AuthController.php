@@ -88,31 +88,38 @@ class AuthController
     public function register()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
             $email = trim($_POST['email']);
             $password = trim($_POST['password']);
             $confirmPassword = trim($_POST['confirm_password']);
 
+
             if (empty($email) || empty($password) || empty($confirmPassword)) {
                 $error = 'Tous les champs sont obligatoires.';
-                $this->view->render('auth/register', ['error' => $error]);
+                echo $this->view->render('auth/register', ['error' => $error]);
                 return;
             }
+
 
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $error = 'Veuillez entrer un email valide.';
-                $this->view->render('auth/register', ['error' => $error]);
+                echo $this->view->render('auth/register', ['error' => $error]);
                 return;
             }
+
 
             if ($password !== $confirmPassword) {
                 $error = 'Les mots de passe ne correspondent pas.';
-                $this->view->render('auth/register', ['error' => $error]);
+                echo $this->view->render('auth/register', ['error' => $error]);
                 return;
             }
 
+
+            
+
             if ($this->userModel->findByEmail($email)) {
                 $error = 'Cet email est déjà utilisé.';
-                $this->view->render('auth/register', ['error' => $error]);
+                echo $this->view->render('auth/register', ['error' => $error]);
                 return;
             }
 
@@ -131,12 +138,10 @@ class AuthController
             if ($this->userModel->create($newUser)) {
                 $message = "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception.";
                 error_log($message);
-                $this->view->render('auth/register', ['message' => $message]);
-
-                exit();
+                echo $this->view->render('auth/register', ['message' => $message]);
             } else {
                 $error = "Erreur lors de l'inscription. Veuillez réessayer.";
-                $this->view->render('auth/register', ['error' => $error]);
+                echo $this->view->render('auth/register', ['error' => $error]);
             }
         }
     }

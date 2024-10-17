@@ -5,6 +5,7 @@ namespace Models;
 
 use Core\Database;
 use PDO;
+use Core\Config;
 
 class User
 {
@@ -132,7 +133,7 @@ class User
         ]);
 
         if ($result) {
-            self::sendVerificationEmail($userData['email'], $verificationToken);
+            self::sendVerificationEmail($userData['email'], $verificationToken); // todo if we couldn't send email, delete from the database.
             return $db->lastInsertId();
         }
         return false;
@@ -140,10 +141,28 @@ class User
 
     private static function sendVerificationEmail($to, $token)
     {
-        $subject = "Vérifiez votre adresse email";
-        $verifyUrl = "http://localhost:8080/verify-email?token=" . $token;
-        $message = "Cliquez sur ce lien pour vérifier votre email : $verifyUrl";
+        $mail_parts = Config::get("mail_parts");
+
+        $verify_url = Config::get("server_url" . "/verify-mail?token=" . $token);
+        $title = "Vérifiez votre adresse mail - " . Config::get("brand", "Sportify");
+
+        $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "Merci de cliquer sur le lien ci-dessous pour vérifier votre adresse email :", $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", Config::get("server_url") . $verify_url, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Vérifier mon mail",$mail_parts['mail_body']);
+
+        $subject = $title;
+
+        $message =  $mail_parts['mail_head'] . 
+                    $mail_parts['mail_title'] . 
+                    $mail_parts['mail_head_end'] .
+                    $mail_parts['mail_body'] .
+                    $mail_parts['mail_footer'];
+
         $headers = "From: sportify@alwaysdata.net\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
         if(mail($to, $subject, $message, $headers)) {
             return true;
         } else {
@@ -280,10 +299,28 @@ class User
 
     public static function sendPasswordResetEmail($email, $token)
     {
-        $subject = "Réinitialisation de votre mot de passe";
-        $resetUrl = "http://localhost:8080/reset-password?token=" . $token;
-        $message = "Cliquez sur ce lien pour réinitialiser votre mot de passe : $resetUrl";
+        $mail_parts = Config::get("mail_parts");
+
+        $verify_url = Config::get("server_url" . "/reset-password?token=" . $token);
+        $title = "Réinitialisation de votre mot de passe " . Config::get("brand", "Sportify");
+
+        $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "Merci de cliquer sur ce lien pour réinitialiser votre mot de passe : ", $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", Config::get("server_url") . $verify_url, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Changer mon mot de passe",$mail_parts['mail_body']);
+
+        $subject = $title;
+
+        $message =  $mail_parts['mail_head'] . 
+                    $mail_parts['mail_title'] . 
+                    $mail_parts['mail_head_end'] .
+                    $mail_parts['mail_body'] .
+                    $mail_parts['mail_footer'];
+
         $headers = "From: sportify@alwaysdata.net\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
         if(mail($email, $subject, $message, $headers)) {
             return true;
         } else {
