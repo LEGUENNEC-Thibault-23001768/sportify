@@ -22,6 +22,19 @@ $router->addRoute('GET', '/register', 'Controllers\AuthController', 'showRegiste
 $router->addRoute('POST', '/register', 'Controllers\AuthController', 'register');
 $router->addRoute('GET', '/logout', 'Controllers\AuthController', 'logout');
 
+$router->addRoute('GET', '/dashboard/events', 'Controllers\EventController', 'index');
+$router->addRoute('GET', '/dashboard/events/show', 'Controllers\EventController', 'show');
+$router->addRoute('GET', '/dashboard/events/create', 'Controllers\EventController', 'create');
+$router->addRoute('POST', '/dashboard/events/{event_id}/delete', 'Controllers\EventController', 'delete');
+$router->addRoute('POST', '/dashboard/events/store', 'Controllers\EventController', 'store');
+$router->addRoute('POST', '/dashboard/events/{event_id}/delete', 'Controllers\EventController', 'delete');
+$router->addRoute('GET', '/dashboard/events/{event_id}', 'Controllers\EventController', 'show');
+$router->addRoute('POST', '/dashboard/events/{event_id}/join', 'Controllers\EventController', 'join');
+
+
+
+$router->addRoute('POST', '/teams/{team_id}/add-member', 'Controllers\TeamController', 'addParticipant');
+$router->addRoute('POST', '/teams/{team_id}/remove-member', 'Controllers\TeamController', 'removeParticipant');
 
 $router->addRoute('GET', '/dashboard', 'Controllers\DashboardController', 'showDashboard');
 $router->addRoute('GET', '/dashboard/profile', 'Controllers\DashboardController', 'showProfile');
