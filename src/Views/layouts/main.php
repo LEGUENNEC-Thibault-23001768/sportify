@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'Gestion Salle de Sport' ?></title>
-    <link rel="stylesheet" href="/css/style.css">
+    <?php if (isset($css)) { echo '<link rel=stylesheet" href="_asssets/css/'.$css.'">'; }
+        else { echo '<link rel="stylesheet" href="_assets/css/main.css">';}
+    ?> 
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
+    <?php if (isset($content)) {
+            echo $content;
+    } ?>
+
+    <?php /*<header>
         <!-- Votre en-tête ici -->
     </header>
     
@@ -26,5 +33,8 @@
     </footer>
     
     <script src="/js/main.js"></script>
+    */ ?>
+
+
 </body>
 </html>

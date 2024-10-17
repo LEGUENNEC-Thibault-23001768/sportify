@@ -6,15 +6,11 @@ use Core\Router;
 
 Config::load(dirname(__DIR__) . '/config.php');
 
-ini_set('SMTP', 'smtp-sportify.alwaysdata.net');
-ini_set('smtp_port', 587);
-ini_set('sendmail_from', 'sportify@alwaysdata.net');
-
-
 session_start();
 
 $router = new Router();
 $router->addRoute('GET','/', 'Controllers\HomeController', 'index');
+$router->addRoute('GET','/404', 'Controllers\HomeController', 'notfound');
 
 $router->addRoute('GET', '/login', 'Controllers\AuthController', 'showLoginForm');
 $router->addRoute('POST', '/login', 'Controllers\AuthController', 'login');
@@ -45,10 +41,14 @@ $router->addRoute('POST', '/reset-password', 'Controllers\AuthController', 'rese
 
 
 $url = $_SERVER['REQUEST_URI'];
+echo "ee";
+exit();
 
 try {
-
     $router->dispatch($url);
 } catch (Exception $e) {
-    echo "Page not found: " . $e->getMessage();
+    http_response_code(404);
+    header("Location: /404");
+    exit();
+    //echo "Page not found: " . $e->getMessage();
 }

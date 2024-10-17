@@ -21,4 +21,8 @@ class HomeController
             'content' => 'Bienvenue sur notre site'
         ]);
     }
+
+    public function notfound() {
+        echo $this->view->render('404/404', ['title' => 'Erreur page non trouvé']);
+    }
 }
