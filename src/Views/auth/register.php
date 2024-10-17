@@ -1,7 +1,10 @@
 <h2>Registration</h2>
 
 <?php if (isset($error)): ?>
-    <p style="color: red;"><?= $error ?></p>
+    <p style="color: red;"><?= htmlspecialchars($error) ?></p>
+<?php endif; ?>
+<?php if (isset($message)): ?>
+    <p style="color: green;"><?= htmlspecialchars($message) ?></p>
 <?php endif; ?>
 
 <form action="/register" method="POST">
@@ -17,4 +20,4 @@
     <button type="submit">Register</button>
 </form>
 
-<a href="/google">S'inscrire</a>
+<a href="/google">S'inscrire avec google</a>

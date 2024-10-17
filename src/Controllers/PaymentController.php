@@ -5,15 +5,13 @@ namespace Controllers;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Models\Subscription;
-
-require_once __DIR__ . '/../../vendor/autoload.php';
-
+use Core\Config;
 
 class PaymentController
 {
     public function __construct()
     {
-        Stripe::setApiKey('sk_test_51Q80Nv01Olm6yDgOjM3A9yXbw0WgaWxqmrh4Xfjnfh2kwTmFlAyzplOz5jIfnzUm9y3iGrCZqrsgfBwn81ofPb9X00hLSncyxX');
+        Stripe::setApiKey(Config::get("stripe_key"));
     }
 
     public function createCheckoutSession()
@@ -56,7 +54,7 @@ class PaymentController
             return;
         }
 
-        Stripe::setApiKey('sk_test_51Q80Nv01Olm6yDgOjM3A9yXbw0WgaWxqmrh4Xfjnfh2kwTmFlAyzplOz5jIfnzUm9y3iGrCZqrsgfBwn81ofPb9X00hLSncyxX');
+        Stripe::setApiKey(Config::get('stripe_key'));
 
         $session = Session::retrieve($sessionId);
         if (!$session) {
