@@ -3,3 +3,4 @@ RewriteEngine On
 Rewrite %{REQUEST_FILENAME} ! -f
 
 RewriteRule ^(.*)$ index.php [QSA,L]
+ErrorDocument 404 /404
