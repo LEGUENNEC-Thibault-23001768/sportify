@@ -88,31 +88,38 @@ class AuthController
     public function register()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
             $email = trim($_POST['email']);
             $password = trim($_POST['password']);
             $confirmPassword = trim($_POST['confirm_password']);
 
+
             if (empty($email) || empty($password) || empty($confirmPassword)) {
                 $error = 'Tous les champs sont obligatoires.';
-                $this->view->render('auth/register', ['error' => $error]);
+                echo $this->view->render('auth/register', ['error' => $error]);
                 return;
             }
+
 
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $error = 'Veuillez entrer un email valide.';
-                $this->view->render('auth/register', ['error' => $error]);
+                echo $this->view->render('auth/register', ['error' => $error]);
                 return;
             }
+
 
             if ($password !== $confirmPassword) {
                 $error = 'Les mots de passe ne correspondent pas.';
-                $this->view->render('auth/register', ['error' => $error]);
+                echo $this->view->render('auth/register', ['error' => $error]);
                 return;
             }
 
+
+            
+
             if ($this->userModel->findByEmail($email)) {
                 $error = 'Cet email est déjà utilisé.';
-                $this->view->render('auth/register', ['error' => $error]);
+                echo $this->view->render('auth/register', ['error' => $error]);
                 return;
             }
 
@@ -131,12 +138,10 @@ class AuthController
             if ($this->userModel->create($newUser)) {
                 $message = "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception.";
                 error_log($message);
-                $this->view->render('auth/register', ['message' => $message]);
-
-                exit();
+                echo $this->view->render('auth/register', ['message' => $message]);
             } else {
                 $error = "Erreur lors de l'inscription. Veuillez réessayer.";
-                $this->view->render('auth/register', ['error' => $error]);
+                echo $this->view->render('auth/register', ['error' => $error]);
             }
         }
     }
@@ -152,16 +157,66 @@ class AuthController
         $this->view->render('auth/register', ['message' => $message]);
     }
 
-    /**
+
+
+    public function sendResetLink()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+            
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                echo $this->view->render('auth/forgot-password', ['error' => "Format d'email invalide."]);
+                return;
+            }
+
+            $user = $this->userModel->findByEmail($email);
+            if ($user) {
+                $token = bin2hex(random_bytes(32));
+                if ($this->userModel->storeResetToken($email, $token)) {
+                    $this->userModel->sendPasswordResetEmail($email, $token);
+                    echo $this->view->render('auth/forgot-password', ['message' => "Un lien de réinitialisation a été envoyé à votre adresse email."]);
+                } else {
+                    echo $this->view->render('auth/forgot-password', ['error' => "Une erreur est survenue. Veuillez réessayer."]);
+                }
+            } else {
+                echo $this->view->render('auth/forgot-password', ['error' => "Aucun compte trouvé avec cet email."]);
+            }
+        }
+    }
+
+    public function showForgotPasswordForm()
+    {
+        echo $this->view->render('auth/forgot-password');
+    }
+
     public function showResetPasswordForm()
     {
-        echo $this->view->render('auth/reset-password');
+        $token = $_GET['token'] ?? '';
+        if (empty($token)) {
+            header('Location: /login');
+            exit;
+        }
+        echo $this->view->render('auth/reset-password', ['token' => $token]);
     }
 
     public function resetPassword()
     {
-        // Implémentez ici la logique de réinitialisation du mot de passe
-        // Cela pourrait inclure l'envoi d'un email avec un lien de réinitialisation
-        // et la mise à jour du mot de passe dans la base de données
-    }*/
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $token = $_POST['token'] ?? '';
+            $password = $_POST['password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+
+            if ($password !== $confirmPassword) {
+                echo $this->view->render('auth/reset-password', ['error' => "Les mots de passe ne correspondent pas.", 'token' => $token]);
+                return;
+            }
+
+            if ($this->userModel->resetPassword($token, $password)) {
+                echo $this->view->render('auth/login', ['message' => "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter."]);
+            } else {
+                echo $this->view->render('auth/reset-password', ['error' => "Le lien de réinitialisation est invalide ou a expiré.", 'token' => $token]);
+            }
+        }
+    }
+
 }

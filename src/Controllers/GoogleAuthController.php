@@ -2,37 +2,46 @@
 
 namespace Controllers;
 
-use Google_Client;
-use Google_Service_Oauth2;
+use Google\Auth\OAuth2;
+use GuzzleHttp\Client;
 use Core\View;
-use Models\User; 
+use core\Config;
+use Models\User;
 
 class GoogleAuthController
 {
     private $view;
-    private $client;
+    private $oauth;
 
     public function __construct()
     {
         $this->view = new View();
 
-        $this->client = new Google_Client();
-        $this->client->setClientId('857873046355-3bigof3avgr1rgqq0ng703587g7nh4dn.apps.googleusercontent.com');
-        $this->client->setClientSecret('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');
-        $this->client->setAuthConfig(__DIR__ . '/../../client_secret.json');
-        $this->client->setRedirectUri('http://localhost:8888/callback');
-        $this->client->addScope(Google_Service_Oauth2::USERINFO_EMAIL);
-        $this->client->addScope(Google_Service_Oauth2::USERINFO_PROFILE);
-        $this->client->setAccessType('offline');
-        $this->client->setPrompt('consent');
+        /*clientId = '857873046046355-3bigof3avgr1rgqq0ng703587g7nh4dn.apps.googleusercontent.com';
+        $clientSecret = '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';
+        $redirectUri = 'http://localhost:8888/callback';
+        
+        $clientSecrets = json_decode(file_get_contents(__DIR__ . '/../../client_secret.json'), true)['web'];
+*/
+        $this->oauth = new OAuth2([
+            'clientId' => Config::get("google")["clientId"],
+            'clientSecret' => Config::get("google")["clientSecret"],
+            'authorizationUri' => Config::get("google")["authorizationUri"],
+            'tokenCredentialUri' => Config::get("google")["tokenCredentialUri"],
+            'redirectUri' => Config::get("google")["redirectUri"],
+            'scope' => ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+        ]);
+    
     }
 
     public function login()
     {
-        session_start();
+        $authUrl = $this->oauth->buildFullAuthorizationUri([
+            'access_type' => 'offline',
+            'prompt' => 'consent',
+            'response_type' => 'code'
+        ]);
 
-        
-        $authUrl = $this->client->createAuthUrl();
         header('Location: ' . filter_var($authUrl, FILTER_SANITIZE_URL));
         exit();
     }
@@ -44,52 +53,62 @@ class GoogleAuthController
             exit();
         }
 
-        $this->client->fetchAccessTokenWithAuthCode($_GET['code']);
-        $accessToken = $this->client->getAccessToken();
-        $_SESSION['google_access_token'] = $accessToken;
+        try {
+            
+            $this->oauth->setCode($_GET['code']);
+            
+            $token = $this->oauth->fetchAuthToken();
+            $_SESSION['google_access_token'] = $token['access_token'];
 
-        if (isset($accessToken['refresh_token'])) {
-            $_SESSION['google_refresh_token'] = $accessToken['refresh_token'];
-        }
+            if (isset($token['refresh_token'])) {
+                $_SESSION['google_refresh_token'] = $token['refresh_token'];
+            }
 
-        $oauth = new Google_Service_Oauth2($this->client);
-        $userInfo = $oauth->userinfo->get();
+            $userInfo = $this->getUserInfo($token['access_token']);
 
-        $firstName = $userInfo->givenName;
-        $lastName = $userInfo->familyName;
-        $email = $userInfo->email;
+            $firstName = $userInfo['given_name'];
+            $lastName = $userInfo['family_name'];
+            $email = $userInfo['email'];
 
-        $user = User::findByEmail($email);
+            $user = User::findByEmail($email);
 
-        if (!$user) {
-            $userData = [
-                'email' => $email,
+            if (!$user) {
+                $userData = [
+                    'email' => $email,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'password' => null, 
+                ];
+
+                $userModel = new User();
+                $userModel->create($userData);
+            }
+
+            $_SESSION['user'] = [
                 'first_name' => $firstName,
                 'last_name' => $lastName,
-                'password' => null, 
+                'email' => $email
             ];
+            $_SESSION['user_id'] = $user['member_id'];
 
-            $userModel = new User();
-            $userModel->create($userData);
+            header('Location: /dashboard');
+            exit();
+        } catch (Exception $e) {
+            // Gérer l'erreur, par exemple en redirigeant vers une page d'erreur
+            header('Location: /error?message=' . urlencode($e->getMessage()));
+            exit();
         }
-
-        $_SESSION['user'] = [
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => $email
-        ];
-        $_SESSION['user_id'] = $user['member_id'];
-
-        header('Location: /dashboard');
-        exit();
     }
 
-
-    public function logout()
+    private function getUserInfo($accessToken)
     {
-        session_start();
-        session_destroy();
-        header('Location: /login');
-        exit();
+        $client = new Client();
+        $response = $client->get('https://www.googleapis.com/oauth2/v2/userinfo', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken
+            ]
+        ]);
+
+        return json_decode($response->getBody(), true);
     }
 }

@@ -2,25 +2,20 @@
 
 namespace Controllers;
 
-use Core\View;
-use Models\User;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Models\Subscription;
-
-require_once __DIR__ . '/../../vendor/autoload.php';
-
+use Core\Config;
 
 class PaymentController
 {
     public function __construct()
     {
-        \Stripe\Stripe::setApiKey('sk_test_51Q80Nv01Olm6yDgOjM3A9yXbw0WgaWxqmrh4Xfjnfh2kwTmFlAyzplOz5jIfnzUm9y3iGrCZqrsgfBwn81ofPb9X00hLSncyxX');
+        Stripe::setApiKey(Config::get("stripe_key"));
     }
 
     public function createCheckoutSession()
     {
-        session_start();
         
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
@@ -29,7 +24,7 @@ class PaymentController
 
         $DOMAIN = 'http://localhost:8888';
 
-        $session = \Stripe\Checkout\Session::create([
+        $session = Session::create([
             'payment_method_types' => ['card'],
             'line_items' => [[
                 'price' => 'price_1Q80V201Olm6yDgOR1TVO9zG',
@@ -59,7 +54,7 @@ class PaymentController
             return;
         }
 
-        Stripe::setApiKey('sk_test_51Q80Nv01Olm6yDgOjM3A9yXbw0WgaWxqmrh4Xfjnfh2kwTmFlAyzplOz5jIfnzUm9y3iGrCZqrsgfBwn81ofPb9X00hLSncyxX');
+        Stripe::setApiKey(Config::get('stripe_key'));
 
         $session = Session::retrieve($sessionId);
         if (!$session) {
@@ -83,6 +78,3 @@ class PaymentController
         exit();
     }
 }
-
-
-?>

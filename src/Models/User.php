@@ -5,6 +5,7 @@ namespace Models;
 
 use Core\Database;
 use PDO;
+use Core\Config;
 
 class User
 {
@@ -132,7 +133,7 @@ class User
         ]);
 
         if ($result) {
-            self::sendVerificationEmail($userData['email'], $verificationToken);
+            self::sendVerificationEmail($userData['email'], $verificationToken); // todo if we couldn't send email, delete from the database.
             return $db->lastInsertId();
         }
         return false;
@@ -140,10 +141,28 @@ class User
 
     private static function sendVerificationEmail($to, $token)
     {
-        $subject = "Vérifiez votre adresse email";
-        $verifyUrl = "http://localhost:8080/verify-email?token=" . $token;
-        $message = "Cliquez sur ce lien pour vérifier votre email : $verifyUrl";
+        $mail_parts = Config::get("mail_parts");
+
+        $verify_url = Config::get("server_url" . "/verify-mail?token=" . $token);
+        $title = "Vérifiez votre adresse mail - " . Config::get("brand", "Sportify");
+
+        $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "Merci de cliquer sur le lien ci-dessous pour vérifier votre adresse email :", $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", Config::get("server_url") . $verify_url, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Vérifier mon mail",$mail_parts['mail_body']);
+
+        $subject = $title;
+
+        $message =  $mail_parts['mail_head'] . 
+                    $mail_parts['mail_title'] . 
+                    $mail_parts['mail_head_end'] .
+                    $mail_parts['mail_body'] .
+                    $mail_parts['mail_footer'];
+
         $headers = "From: sportify@alwaysdata.net\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
         if(mail($to, $subject, $message, $headers)) {
             return true;
         } else {
@@ -244,6 +263,70 @@ class User
             $userData['last_name'],
             $userData['google_id']
         ]);
+    }
+
+    public static function storeResetToken($email, $token)
+    {
+        $db = self::getDb();
+        $query = "UPDATE MEMBER SET reset_token = :token, reset_token_expiry = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE email = :email";
+        $stmt = $db->prepare($query);
+        return $stmt->execute(['token' => $token, 'email' => $email]);
+    }
+
+    public static function findByResetToken($token)
+    {
+        $db = self::getDb();
+        $query = "SELECT * FROM MEMBER WHERE reset_token = :token AND reset_token_expiry > NOW()";
+        $stmt = $db->prepare($query);
+        $stmt->execute(['token' => $token]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function resetPassword($token, $newPassword)
+    {
+        $db = self::getDb();
+        $user = self::findByResetToken($token);
+
+        if ($user) {
+            $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+            $query = "UPDATE MEMBER SET password = :password, reset_token = NULL, reset_token_expiry = NULL WHERE member_id = :userId";
+            $stmt = $db->prepare($query);
+            return $stmt->execute(['password' => $hashedPassword, 'userId' => $user['member_id']]);
+        }
+
+        return false;
+    }
+
+    public static function sendPasswordResetEmail($email, $token)
+    {
+        $mail_parts = Config::get("mail_parts");
+
+        $verify_url = Config::get("server_url" . "/reset-password?token=" . $token);
+        $title = "Réinitialisation de votre mot de passe " . Config::get("brand", "Sportify");
+
+        $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "Merci de cliquer sur ce lien pour réinitialiser votre mot de passe : ", $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", Config::get("server_url") . $verify_url, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Changer mon mot de passe",$mail_parts['mail_body']);
+
+        $subject = $title;
+
+        $message =  $mail_parts['mail_head'] . 
+                    $mail_parts['mail_title'] . 
+                    $mail_parts['mail_head_end'] .
+                    $mail_parts['mail_body'] .
+                    $mail_parts['mail_footer'];
+
+        $headers = "From: sportify@alwaysdata.net\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
+        if(mail($email, $subject, $message, $headers)) {
+            return true;
+        } else {
+            error_log("Erreur d'envoi d'email de réinitialisation à $email: " . error_get_last());
+            return false;
+        }
     }
 
 }

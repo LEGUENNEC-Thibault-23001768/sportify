@@ -15,5 +15,6 @@ if (isset($_SESSION['error_message'])) {
         <input type="password" id="password" name="password" required>
     </div>
     <button type="submit">Se connecter</button>
+    <a href="/forgot-password">Mot de passe oublié ?</a>
 </form>
 <a href="/google">Se connecter avec Google</a>
