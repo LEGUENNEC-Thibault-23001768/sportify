@@ -41,9 +41,6 @@ $router->addRoute('POST', '/reset-password', 'Controllers\AuthController', 'rese
 
 
 $url = $_SERVER['REQUEST_URI'];
-echo "ee";
-exit();
-
 try {
     $router->dispatch($url);
 } catch (Exception $e) {
