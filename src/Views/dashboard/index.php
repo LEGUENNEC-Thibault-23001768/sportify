@@ -77,6 +77,31 @@
             border: 1px solid #c3e6cb;
             border-radius: 5px;
         }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .admin-panel, .coach-panel {
+            margin-top: 20px;
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .admin-panel h2, .coach-panel h2 {
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
@@ -100,10 +125,26 @@
 
         <?php if (!$hasActiveSubscription): ?>
             <form action="/create-checkout-session" method="POST">
-                <button type="submit">S'abonner</button>
+                <button type="submit" class="btn">S'abonner</button>
             </form>    
         <?php else: ?>
             <p>Votre abonnement est actif</p>
+        <?php endif; ?>
+
+        <?php if ($user['status'] === 'coach' || $user['status'] === 'admin'): ?>
+            <div class="coach-panel">
+                <h2>Gérer les événements</h2>
+                <p>En tant que coach, vous pouvez créer et gérer des événements pour les membres.</p>
+                <a href="/dashboard/events" class="btn">Créer un événement</a>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($user['status'] === 'admin'): ?>
+            <div class="admin-panel">
+                <h2>Panneau d'administration</h2>
+                <p>En tant qu'administrateur, vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
+                <a href="/dashboard/admin/users" class="btn btn-danger">Gérer les utilisateurs</a>
+            </div>
         <?php endif; ?>
     </div>
 

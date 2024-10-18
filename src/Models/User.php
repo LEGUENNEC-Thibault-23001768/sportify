@@ -14,6 +14,27 @@ class User
         return Database::getInstance()->getConnection();
     }
 
+
+    public function getAllUsers() {
+        $db = self::getDb();
+        $stmt = $db->query("SELECT member_id, first_name, last_name, email, status FROM MEMBER");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function getAll()
+    {
+        $db = self::getDb();
+        return $db->query("SELECT * FROM MEMBER");
+
+    }
+
+    public function find($memberId) {
+        $db = self::getDb();
+        $stmt = $db->prepare("SELECT * FROM MEMBER WHERE member_id = ?");
+        $stmt->execute([$memberId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public static function login($email, $password)
     {
         $db = self::getDb();

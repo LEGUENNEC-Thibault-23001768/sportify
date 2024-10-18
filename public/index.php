@@ -29,6 +29,9 @@ $router->addRoute('GET', '/dashboard/events/{event_id}', 'Controllers\EventContr
 $router->addRoute('POST', '/dashboard/events/{event_id}/join', 'Controllers\EventController', 'join');
 
 
+$router->addRoute('GET', '/dashboard/admin/users', 'Controllers\DashboardController', 'manageUsers');
+
+
 
 $router->addRoute('POST', '/teams/{team_id}/add-member', 'Controllers\TeamController', 'addParticipant');
 $router->addRoute('POST', '/teams/{team_id}/remove-member', 'Controllers\TeamController', 'removeParticipant');
@@ -57,8 +60,5 @@ $url = $_SERVER['REQUEST_URI'];
 try {
     $router->dispatch($url);
 } catch (Exception $e) {
-    http_response_code(404);
-    header("Location: /404");
-    exit();
-    //echo "Page not found: " . $e->getMessage();
+    echo "Page not found: " . $e->getMessage();
 }

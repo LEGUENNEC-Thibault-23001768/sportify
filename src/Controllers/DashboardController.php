@@ -3,8 +3,10 @@
 namespace Controllers;
 
 use Core\View;
+use Models\Member;
 use Models\User;
 use Models\Subscription;
+
 class DashboardController
 {
     private $view;
@@ -116,4 +118,26 @@ class DashboardController
             exit;
         }
     }
+
+    public function manageUsers() {
+        session_start();
+
+        $user_id = $_SESSION['user_id'];
+
+        $membreModel = new User();
+        $membre = $membreModel->find($user_id);
+
+
+
+        if ($membre['status'] !== 'admin') {
+            header("Location: /dashboard");
+            exit;
+        }
+    
+        $userModel = new User();
+        $users = $this->userModel->getAllUsers();
+
+        echo $this->view->render('dashboard/admin/users/index', ['users' => $users, 'membre' => $membre]);
+    }
+    
 }
