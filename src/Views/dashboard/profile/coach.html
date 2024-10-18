@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - Coach</title>
+    <link rel="stylesheet" href="../../assets/coach.css">
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 22V12H15V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <nav>
+                <button class="nav-item" aria-label="Tableau de bord">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </button>
+                <button class="nav-item" aria-label="Mon Emploi du Temps">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18m-9 6h9" stroke="currentColor"></path><path d="M3 6V4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"></path><path d="M3 12v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8"></path></svg>
+                </button>
+                <button class="nav-item" aria-label="Mes Réservations">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16m-7 5h7" stroke="currentColor"></path><path d="M4 7V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1"></path></svg>
+                </button>
+                <button class="nav-item" aria-label="Mon Profil">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2.5 0 4.5-2 4.5-4.5S14.5 3 12 3 7.5 5 7.5 7.5 9.5 12 12 12z" stroke="currentColor"></path><path d="M19.5 20a7.5 7.5 0 0 0-15 0" stroke="currentColor"></path></svg>
+                </button>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <div class="grid">
+                <div class="left-column">
+                    <div class="section-header">
+                        <h2>Tableau de bord Coach</h2>
+                        <p>Résumé de mes activités</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 class="title">📅 Mes Réservations à venir</h3>
+                        <ul>
+                            <li>Entraînement avec [Nom de l'utilisateur] le 15 octobre 2024 à 10h00</li>
+                            <li><button id="openBookingModalBtn">Modifier ma Réservation</button></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card-row">
+                        <div class="small-card">
+                            <div class="card-title"><span class="emoji">📅</span> Mon Emploi du Temps</div>
+                            <div class="card-value">Gérer mes horaires</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="right-column">
+                    <div class="section-header">
+                        <h2>Statistiques</h2>
+                        <p>Mes performances récentes</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 class="title">📊 Rapport de Réservations</h3>
+                        <ul>
+                            <li>Nombre total de réservations ce mois : 10</li>
+                            <li><button id="openReportModalBtn">Créer ou Modifier un Rapport</button></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Modifier ma Réservation</h2>
+            <form id="bookingForm">
+                <label for="bookingDate">Date :</label>
+                <input type="date" id="bookingDate" required>
+                <label for="bookingTime">Heure :</label>
+                <input type="time" id="bookingTime" required>
+                <button type="submit">Envoyer</button>
+            </form>
+            <div id="bookingInfoContainer" class="info-container"></div> 
+        </div>
+    </div>
+
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Formulaire Rapport</h2>
+            <form id="reportForm">
+                <label for="reportTitle">Titre du Rapport :</label>
+                <input type="text" id="reportTitle" required>
+                <label for="reportContent">Contenu :</label>
+                <textarea id="reportContent" required></textarea>
+                <button type="submit">Envoyer</button>
+            </form>
+            <div id="reportInfoContainer" class="info-container"></div> 
+        </div>
+    </div>
+
+    <script src="../../assets/coach.js"></script>
+</body>
+</html>
