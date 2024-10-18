@@ -87,22 +87,22 @@
         <form action="" method="POST">
             <!-- Infos utilisateur -->
             <label for="first_name">Prénom :</label>
-            <input type="text" name="first_name" id="first_name" value="<?= htmlspecialchars($user['first_name']) ?>" required>
+            <input type="text" name="first_name" id="first_name" value="<?= htmlspecialchars($user['first_name'] ?? "") ?>" required>
 
             <label for="last_name">Nom :</label>
-            <input type="text" name="last_name" id="last_name" value="<?= htmlspecialchars($user['last_name']) ?>" required>
+            <input type="text" name="last_name" id="last_name" value="<?= htmlspecialchars($user['last_name'] ?? "") ?>" required>
 
             <label for="email">Email :</label>
-            <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email']) ?>" required>
+            <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? "") ?>" required>
 
             <label for="birth_date">Date de naissance :</label>
-            <input type="date" name="birth_date" id="birth_date" value="<?= htmlspecialchars($user['birth_date']) ?>">
+            <input type="date" name="birth_date" id="birth_date" value="<?= htmlspecialchars($user['birth_date'] ?? "") ?>">
 
             <label for="address">Adresse :</label>
-            <textarea name="address" id="address"><?= htmlspecialchars($user['address']) ?></textarea>
+            <textarea name="address" id="address"><?= htmlspecialchars($user['address'] ?? "") ?></textarea>
 
             <label for="phone">Téléphone :</label>
-            <input type="text" name="phone" id="phone" value="<?= htmlspecialchars($user['phone']) ?>">
+            <input type="text" name="phone" id="phone" value="<?= htmlspecialchars($user['phone'] ?? "") ?>">
 
             <!-- Section pour changer le mot de passe -->
             <h2>Changer le mot de passe</h2>
