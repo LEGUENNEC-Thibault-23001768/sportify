@@ -22,17 +22,16 @@ class PaymentController
             exit;
         }
 
-        $DOMAIN = 'http://localhost:8888';
 
         $session = Session::create([
             'payment_method_types' => ['card'],
             'line_items' => [[
-                'price' => 'price_1Q80V201Olm6yDgOR1TVO9zG',
+                'price' => 'price_1QBAtU01Olm6yDgOPUmJnGEf',
                 'quantity' => 1,
             ]],
             'mode' => 'subscription',
-            'success_url' => $DOMAIN . '/success?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => $DOMAIN . '/dashboard',
+            'success_url' => Config::get("server_url") . '/success?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => Config::get("server_url") . '/dashboard',
         ]);
 
         header("Location: " . $session->url);
