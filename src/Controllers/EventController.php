@@ -10,6 +10,7 @@ use Models\EventRegistration;
 
 class EventController
 {
+    private $view;
     public function __construct()
     {
         $this->view = new View();
@@ -20,7 +21,7 @@ class EventController
         $currentUserId = $_SESSION['user_id'];
         $eventModel = new Event();
         $memberModel = new User();
-        $member = $memberModel->find($currentUserId);
+        $member = $memberModel->getUserById($currentUserId);
 
 
         $events = $eventModel->getAllEvents();
@@ -34,7 +35,7 @@ class EventController
     {
         $currentUserId = $_SESSION['user_id'];
         $memberModel = new User();
-        $currentUser = $memberModel->find($currentUserId);
+        $currentUser = $memberModel->getUserById($currentUserId);
         
 
 
@@ -50,7 +51,7 @@ class EventController
     {
         $currentUserId = $_SESSION['user_id'];
         $memberModel = new User();
-        $currentUser = $memberModel->find($currentUserId);
+        $currentUser = $memberModel->getUserById($currentUserId);
 
 
         if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
@@ -108,7 +109,7 @@ class EventController
         $eventModel = new Event();
         $currentUserId = $_SESSION['user_id'];
         $memberModel = new User();
-        $member = $memberModel->find($currentUserId);
+        $member = $memberModel->getUserById($currentUserId);
     
         $event = $eventModel->find($eventId);
     

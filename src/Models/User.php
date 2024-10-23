@@ -167,9 +167,9 @@ class User
             'password' => $password,
             'first_name' => $userData['first_name'],
             'last_name' => $userData['last_name'],
-            'birth_date' => $userData['birth_date'],
-            'address' => $userData['address'],
-            'phone' => $userData['phone'],
+            'birth_date' => $userData['birth_date'] ?? "",
+            'address' => $userData['address'] ?? "",
+            'phone' => $userData['phone'] ?? "",
             'verification_token' => $verificationToken
         ]);
 

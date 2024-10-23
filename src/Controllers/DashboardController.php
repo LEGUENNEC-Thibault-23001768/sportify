@@ -35,8 +35,23 @@ class DashboardController
         $subscriptionModel = new Subscription();
     
         $hasActiveSubscription = $subscriptionModel->hasActiveSubscription($userId);
+        $subscriptionInfo = null;
 
-        echo $this->view->render('dashboard/index', ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription]);
+        if ($hasActiveSubscription) {
+            $subscriptionInfo = $subscriptionModel->getStripeSubscriptionId($userId);
+        }
+
+        $hasActiveSubscription = $subscriptionInfo["status"] ?? "Aucun";
+
+
+        echo $this->view->render('dashboard/index', ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription, 'subscription' => [
+            'plan_name' =>  $subscriptionInfo["subscription_type"] ?? "Aucun",
+            'start_date' =>$subscriptionInfo["start_date"] ?? "Aucun",
+            'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
+            'amount' => $subscriptionInfo["amount"] ?? 0,
+            'currency' => $subscriptionInfo["currency"] ?? '€',
+            'status' => $subscriptionInfo["status"] ?? "Aucun"
+        ]]);
     }
 
     public function showProfile() 

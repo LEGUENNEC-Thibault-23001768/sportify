@@ -51,7 +51,7 @@ class AuthController
             if ($user) {
                 $_SESSION['user_id'] = $user['member_id'];
                 $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-                
+                $_SESSION['user_email'] = $user['email'];
                 header('Location: /dashboard');
                 exit;
             } else {

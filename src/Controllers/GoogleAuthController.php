@@ -90,6 +90,7 @@ class GoogleAuthController
                 'email' => $email
             ];
             $_SESSION['user_id'] = $user['member_id'];
+            $_SESSION['user_email'] = $email;
 
             header('Location: /dashboard');
             exit();
