@@ -3,22 +3,16 @@
 namespace Controllers;
 
 use Core\View;
+use Models\User;
 use Models\Team;
 use Models\TeamParticipant;
 
 class TeamController
 {
-    private $view;
-
-    public function __construct()
-    {
-        $this->view = new View();
-    }
-
     public function create($event_id)
     {
         $members = User::getAll();
-        $this->view->render('teams/create', ['event_id' => $event_id, 'members' => $members]);
+        echo View::render('teams/create', ['event_id' => $event_id, 'members' => $members]);
     }
 
    
@@ -27,12 +21,10 @@ class TeamController
         $teamName = $_POST['team_name'];
         $selectedMembers = $_POST['members'];
 
-        $team = new Team();
-        $team_id = $team->create($event_id, $teamName);
+        $team_id = Team::create($event_id, $teamName);
 
         foreach ($selectedMembers as $member_id) {
-            $teamParticipant = new TeamParticipant();
-            $teamParticipant->addParticipant($team_id, $member_id);
+            TeamParticipant::addParticipant($team_id, $member_id);
         }
 
         header('Location: /events/' . $event_id); 
@@ -45,7 +37,7 @@ class TeamController
         $membersInTeam = TeamParticipant::getMembersByTeam($team_id);
         $allMembers = User::getAll(); 
 
-        $this->view->render('teams/edit', [
+        echo View::render('teams/edit', [
             'team' => $team,
             'membersInTeam' => $membersInTeam,
             'allMembers' => $allMembers
@@ -57,8 +49,7 @@ class TeamController
         $teamName = $_POST['team_name'];
         $selectedMembers = $_POST['members'];
 
-        $team = new Team();
-        $team->update($team_id, $teamName);
+        Team::update($team_id, $teamName);
 
         TeamParticipant::deleteParticipantsByTeam($team_id);
 

@@ -3,12 +3,15 @@ require_once dirname(__DIR__) . '/Autoloader.php';
 
 use Core\Config;
 use Core\Router;
+use Core\View;
 
 Config::load(dirname(__DIR__) . '/config.php');
+View::init();
 
 session_start();
 
 $router = new Router();
+
 $router->get('/', 'HomeController@index');
 $router->get('/404', 'HomeController@notfound');
 
@@ -29,10 +32,10 @@ $router->get( '/dashboard/events/{event_id}', 'EventController@show');
 $router->post( '/dashboard/events/{event_id}/join', 'EventController@join');
 
 
-$router->addRoute('GET', '/dashboard/admin/users', 'Controllers\DashboardController', 'manageUsers');
-$router->addRoute('GET', '/dashboard/admin/users/delete', 'Controllers\DashboardController', 'deleteUser');
-$router->addRoute('GET', '/dashboard/admin/users/edit', 'Controllers\DashboardController', 'editUserProfile');
-$router->addRoute('POST', '/dashboard/admin/users/edit', 'Controllers\DashboardController', 'editUserProfile');
+$router->get( '/dashboard/admin/users', 'DashboardController@manageUsers');
+$router->get( '/dashboard/admin/users/delete', 'DashboardController@deleteUser');
+$router->get( '/dashboard/admin/users/edit', 'DashboardController@editUserProfile');
+$router->post( '/dashboard/admin/users/edit', 'DashboardController@editUserProfile');
 
 
 

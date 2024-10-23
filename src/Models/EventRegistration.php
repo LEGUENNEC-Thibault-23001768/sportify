@@ -7,30 +7,27 @@ use Models\User;
 use PDO;
 
 class EventRegistration {
-    private $db;
-
-    public function __construct() {
-        $this->db = Database::getInstance()->getConnection();
+    public static function isUserRegistered($eventId, $userId) {
+        $sql = "SELECT * FROM EVENT_REGISTRATION WHERE event_id = :eventId AND member_id = :userId";
+        $params = [
+            ':eventId' => $eventId,
+            ':userId' => $userId
+        ];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
     }
 
-
-    public function isUserRegistered($eventId, $userId) {
-        $stmt = $this->db->prepare("SELECT * FROM EVENT_REGISTRATION WHERE event_id = ? AND member_id = ?");
-        $stmt->execute([$eventId, $userId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+    public static function registerUserToEvent($eventId, $userId) {
+        $sql = "INSERT INTO EVENT_REGISTRATION (event_id, member_id) VALUES (:eventId, :userId)";
+        $params = [
+            ':eventId' => $eventId,
+            ':userId' => $userId
+        ];
+        return Database::query($sql, $params)->rowCount() > 0;
     }
 
-    public function registerUserToEvent($eventId, $userId) {
-        $stmt = $this->db->prepare("INSERT INTO EVENT_REGISTRATION (event_id, member_id) VALUES (?, ?)");
-        return $stmt->execute([$eventId, $userId]);
-    }
-
-    public function getParticipantsByEvent($eventId) {
-        $stmt = $this->db->prepare("SELECT * FROM EVENT_REGISTRATION WHERE event_id = ?");
-        $stmt->execute([$eventId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    public static function getParticipantsByEvent($eventId) {
+        $sql = "SELECT * FROM EVENT_REGISTRATION WHERE event_id = :eventId";
+        $params = [':eventId' => $eventId];
+        return Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-    
-
-

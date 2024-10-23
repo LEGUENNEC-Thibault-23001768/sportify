@@ -33,8 +33,6 @@ class PaymentController
             'query' => "email:'$userEmail'",
         ]);
 
-
-
         if (!empty($existingCustomers->data)) {
             $customerId = $existingCustomers->data[0]->id;
         } else {
@@ -61,7 +59,6 @@ class PaymentController
         exit();
     }
 
-
     public function success()
     {
         if (!isset($_SESSION['user_id'])) {
@@ -86,11 +83,10 @@ class PaymentController
             $endDate = date('Y-m-d', $subscription->current_period_end);
             $amount = $subscription->plan->amount / 100;
 
-            $subscriptionModel = new Subscription();
-            $existingSubscription = $subscriptionModel->getActiveSubscription($memberId);
+            $existingSubscription = Subscription::getActiveSubscription($memberId);
 
             if ($existingSubscription) {
-                $subscriptionModel->updateSubscription(
+                Subscription::updateSubscription(
                     $memberId,
                     $subscription->id,
                     $subscription->plan->nickname,
@@ -100,7 +96,7 @@ class PaymentController
                 );
                 $_SESSION['message'] = "Votre abonnement a été mis à jour avec succès.";
             } else {
-                $subscriptionModel->createSubscription(
+                Subscription::createSubscription(
                     $memberId,
                     $subscription->id,
                     $subscription->plan->nickname,
@@ -118,7 +114,6 @@ class PaymentController
         exit();
     }
 
-
     public function listInvoices() 
     {
         if (!isset($_SESSION['user_id'])) {
@@ -126,18 +121,16 @@ class PaymentController
             exit;
         }
         try {
-            $subscriptionModel = new Subscription();
-            $activeSubscription = $subscriptionModel->getStripeSubscriptionId($_SESSION['user_id']);
+            $activeSubscription = Subscription::getStripeSubscriptionId($_SESSION['user_id']);
             
             if (!$activeSubscription) {
                 $_SESSION['error'] = "Aucun abonnement actif trouvé.";
-                echo "pas d'aboonnement the fuck?";
+                echo "pas d'abonnement the fuck?";
                 exit;
             }
 
             $stripeSubscription = $this->stripe->subscriptions->retrieve($activeSubscription['stripe_subscription_id']);
             $invoices = $this->stripe->invoices->all([
-                //'subscription' => $activeSubscription['stripe_subscription_id'],
                 'customer' => $stripeSubscription->customer,
                 'limit' => 10,
                 'expand' => ['data.payment_intent']
@@ -167,13 +160,9 @@ class PaymentController
                 ];
             }
 
-            $view = new View();
-
-            echo $view->render('dashboard/invoices', ['invoices' => $formattedInvoices]);
+            echo View::render('dashboard/invoices', ['invoices' => $formattedInvoices]);
         } catch (\Exception $e) {
-            echo "erreur lors de recupération: " . $e->getMessage();
-            //$_SESSION['error'] = "Une erreur est survenue lors de la récupération des factures : " . $e->getMessage();
-            //header('Location: /dashboard');
+            echo "erreur lors de récupération: " . $e->getMessage();
             exit;
         }
     }
@@ -186,14 +175,11 @@ class PaymentController
         }
 
         try {
-            $subscriptionModel = new Subscription();
-            $activeSubscription = $subscriptionModel->getActiveSubscription($_SESSION['user_id']);
+            $activeSubscription = Subscription::getActiveSubscription($_SESSION['user_id']);
 
             if (!$activeSubscription) {
-                echo "pas d'aboonnement the fuck?";
-                //$_SESSION['error'] = "Aucun abonnement actif trouvé.";
-                //header('Location: /dashboard');
-                //exit;
+                echo "pas d'abonnement the fuck?";
+                exit;
             }
 
             $stripeSubscription = $this->stripe->subscriptions->update(
@@ -201,7 +187,7 @@ class PaymentController
                 ['cancel_at_period_end' => true]
             );
 
-            $subscriptionModel->updateSubscriptionStatus($activeSubscription['stripe_subscription_id'], 'Cancelling');
+            Subscription::updateSubscriptionStatus($activeSubscription['stripe_subscription_id'], 'Cancelling');
 
             $_SESSION['message'] = "Votre abonnement sera annulé à la fin de la période de facturation en cours.";
         } catch (\Exception $e) {
@@ -211,5 +197,4 @@ class PaymentController
         header('Location: /dashboard');
         exit;
     }
-
 }
