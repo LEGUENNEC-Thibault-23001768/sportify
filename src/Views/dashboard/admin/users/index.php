@@ -5,12 +5,26 @@ if (!isset($_SESSION['user_id']) || $membre['status'] !== 'admin') {
     exit;
 }
 
-
 $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 $users = isset($users) ? $users : [];
 
 ?>
+
+<?php if (isset($_SESSION['success_message'])): ?>
+    <div class="alert alert-success">
+        <?= $_SESSION['success_message'] ?>
+    </div>
+    <?php unset($_SESSION['success_message']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['error_message'])): ?>
+    <div class="alert alert-danger">
+        <?= $_SESSION['error_message'] ?>
+    </div>
+    <?php unset($_SESSION['error_message']); ?>
+<?php endif; ?>
+
 
 <div class="container">
     <h1 class="mt-5">Gestion des Utilisateurs</h1>
@@ -46,7 +60,6 @@ $users = isset($users) ? $users : [];
                         <td><?= htmlspecialchars($user['email']) ?></td>
                         <td><?= htmlspecialchars($user['status']) ?></td>
                         <td>
-                            <a href="/dashboard/admin/users/view?id=<?= $user['member_id'] ?>" class="btn btn-info btn-sm">Voir</a>
                             <a href="/dashboard/admin/users/edit?id=<?= $user['member_id'] ?>" class="btn btn-warning btn-sm">Modifier</a>
                             <a href="/dashboard/admin/users/delete?id=<?= $user['member_id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">Supprimer</a>
                         </td>

@@ -30,6 +30,9 @@ $router->addRoute('POST', '/dashboard/events/{event_id}/join', 'Controllers\Even
 
 
 $router->addRoute('GET', '/dashboard/admin/users', 'Controllers\DashboardController', 'manageUsers');
+$router->addRoute('GET', '/dashboard/admin/users/delete', 'Controllers\DashboardController', 'deleteUser');
+$router->addRoute('GET', '/dashboard/admin/users/edit', 'Controllers\DashboardController', 'editUserProfile');
+$router->addRoute('POST', '/dashboard/admin/users/edit', 'Controllers\DashboardController', 'editUserProfile');
 
 
 

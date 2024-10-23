@@ -67,29 +67,32 @@ class User
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function updateUser($memberId, $data)
+    public function updateUser($userId, $data)
     {
-        $db = self::getDb();
-        $allowedFields = ['last_name', 'first_name', 'email', 'birth_date', 'address', 'phone'];
-        $setFields = [];
-        $params = ['memberId' => $memberId];
+        $sql = "UPDATE MEMBER 
+                SET first_name = :first_name, 
+                    last_name = :last_name, 
+                    email = :email, 
+                    birth_date = :birth_date, 
+                    address = :address, 
+                    phone = :phone, 
+                    status = :status
+                WHERE member_id = :member_id";
 
-        foreach ($data as $key => $value) {
-            if (in_array($key, $allowedFields)) {
-                $setFields[] = "$key = :$key";
-                $params[$key] = $value;
-            }
-        }
+        $stmt = $this->db->prepare($sql);
 
-        if (empty($setFields)) {
-            return false;
-        }
+        $stmt->bindValue(':first_name', $data['first_name'], PDO::PARAM_STR);
+        $stmt->bindValue(':last_name', $data['last_name'], PDO::PARAM_STR);
+        $stmt->bindValue(':email', $data['email'], PDO::PARAM_STR);
+        $stmt->bindValue(':birth_date', $data['birth_date'], PDO::PARAM_STR);
+        $stmt->bindValue(':address', $data['address'], PDO::PARAM_STR);
+        $stmt->bindValue(':phone', $data['phone'], PDO::PARAM_STR);
+        $stmt->bindValue(':role', $data['status'], PDO::PARAM_STR); 
+        $stmt->bindValue(':member_id', $userId, PDO::PARAM_INT);
 
-        $setClause = implode(', ', $setFields);
-        $query = "UPDATE MEMBER SET $setClause WHERE member_id = :memberId";
-        $stmt = $db->prepare($query);
-        return $stmt->execute($params);
+        return $stmt->execute();
     }
+
 
     public static function deleteUser($memberId)
     {
@@ -122,6 +125,23 @@ class User
             'amount' => $amount
         ]);
     }
+
+    public function searchUsers($searchTerm)
+    {
+        $db = self::getDb();
+        $stmt = $db->prepare("SELECT first_name, last_name, email, status FROM MEMBER
+                        WHERE first_name LIKE :searchTerm1
+                        OR last_name LIKE :searchTerm2
+                        OR email LIKE :searchTerm3");
+
+        $stmt->execute([
+            'searchTerm1' => '%' . $searchTerm . '%',
+            'searchTerm2' => '%' . $searchTerm . '%',
+            'searchTerm3' => '%' . $searchTerm . '%'
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 
     public static function findByEmail($email)
     {
@@ -205,46 +225,62 @@ class User
     }
 
 
-    // Méthode pour mettre à jour le profil utilisateur
     public static function updateUserProfile($userId, $data)
-    {
-        $db = self::getDb();
+{
+    $db = self::getDb();
 
-        // Champs autorisés à être mis à jour
-        $allowedFields = ['first_name', 'last_name', 'email', 'birth_date', 'address', 'phone'];
-        $setFields = [];
-        $params = ['userId' => $userId];
+    $currentUser = self::getUserById($userId);
 
-        // Ajouter les champs autorisés à la requête SQL
-        foreach ($data as $key => $value) {
-            if (in_array($key, $allowedFields)) {
-                $setFields[] = "$key = :$key";
-                $params[$key] = $value;
-            }
-        }
-
-        // Si un nouveau mot de passe est renseigné
-        if (!empty($data['new_password'])) {
-            $setFields[] = "password = :password";
-            $params['password'] = password_hash($data['new_password'], PASSWORD_BCRYPT);
-        }
-
-        // Si aucun champ n'est renseigné (cas improbable)
-        if (empty($setFields)) {
-            return false;
-        }
-
-        // Préparation de la requête SQL pour la mise à jour
-        $setClause = implode(', ', $setFields);
-        $query = "UPDATE MEMBER SET $setClause WHERE member_id = :userId";
-        $stmt = $db->prepare($query);
-
-        // Exécution de la requête
-        return $stmt->execute($params);
+    if (!$currentUser) {
+        throw new \Exception("Utilisateur non trouvé.");
     }
 
+    $allowedFields = ['first_name', 'last_name', 'email', 'birth_date', 'address', 'phone', 'status'];
+    $setFields = [];
+    $params = ['userId' => $userId];
 
-    // Méthode pour vérifier le mot de passe actuel de l'utilisateur
+    if (!empty($data['email']) && $data['email'] !== $currentUser['email']) {
+        $query = "SELECT * FROM MEMBER WHERE email = :email AND member_id != :userId";
+        $stmt = $db->prepare($query);
+        $stmt->execute(['email' => $data['email'], 'userId' => $userId]);
+        $existingUser = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existingUser) {
+            error_log("L'adresse e-mail est déjà utilisée par un autre utilisateur.");
+        } else {
+            $setFields[] = "email = :email";
+            $params['email'] = $data['email'];
+        }
+    }
+
+    foreach ($data as $key => $value) {
+        if (in_array($key, $allowedFields) && $key !== 'email' && $value !== $currentUser[$key]) {
+            $setFields[] = "$key = :$key";
+            $params[$key] = $value;
+        }
+    }
+
+    if (!empty($data['new_password'])) {
+        $setFields[] = "password = :password";
+        $params['password'] = password_hash($data['new_password'], PASSWORD_BCRYPT);
+    }
+
+    if (empty($setFields)) {
+        return false;
+    }
+
+    $setClause = implode(', ', $setFields);
+    $query = "UPDATE MEMBER SET $setClause WHERE member_id = :userId";
+    $stmt = $db->prepare($query);
+
+    return $stmt->execute($params);
+}
+
+
+
+
+
+
     public static function verifyCurrentPassword($userId, $currentPassword)
     {
         $db = self::getDb();
