@@ -1,0 +1,132 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'League Spartan', sans-serif;
+    background-color: #000000;
+    color: #fff;
+}
+
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background-color: #000000;
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.sidebar .logo {
+    text-align: center;
+    margin-bottom: 100px;
+    margin-top: 10px;
+}
+
+.sidebar .logo img {
+    max-width: 120px;
+}
+
+.sidebar ul {
+    margin-top: -60px; /* Réduit davantage l'espace entre le logo et les onglets */
+    list-style: none;
+    padding-left: 0px;
+}
+
+.sidebar ul li {
+    margin-bottom: 20px;
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 18px;
+    display: flex; /* Utilisation de Flexbox pour aligner icônes et texte */
+    align-items: center;
+    padding: 10px 10px; /* Diminue légèrement le padding gauche pour décaler vers la gauche */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-radius: 8px; /* Bordure arrondie */
+}
+
+.sidebar ul li a i {
+    width: 30px; /* Ajoute une largeur fixe pour aligner toutes les icônes */
+    margin-right: 20px; /* Garde l'espace entre l'icône et le texte */
+    text-align: center; /* Centre l'icône dans l'espace alloué */
+}
+
+
+
+.sidebar ul li a i {
+    margin-right: 20px; /* Espace entre icône et texte */
+}
+
+.sidebar ul li a.active {
+    background-color: #333;
+    color: #ffffff;
+}
+
+.sidebar ul li a:hover {
+    background-color: #333;
+    color: #ffffff;
+}
+
+/* Gestion section, maintenant positionné sous Événements */
+.sidebar .management {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 18px;
+    display: flex; /* Utilisation de Flexbox pour aligner icônes et texte */
+    align-items: center;
+    padding: 10px 20px;
+    transition: color 0.3s ease;
+    border-radius: 8px;
+    padding-left: 12px;
+}
+
+.sidebar .management i {
+    margin-right: 20px; /* Espace entre icône et texte */
+}
+
+.sidebar .management:hover {
+    color: #ffffff;
+    background-color: #333;
+}
+
+.settings-section {
+    margin-top: 160px;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-section a {
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 18px;
+    display: flex; /* Utilisation de Flexbox pour "Paramètres" et "Se déconnecter" */
+    align-items: center;
+    padding: 10px 20px;
+    transition: color 0.3s ease;
+    border-radius: 8px;
+}
+
+.settings-section a i {
+    margin-right: 15px; /* Espace entre icône et texte */
+}
+
+.settings-section a:hover {
+    color: #ffffff;
+    background-color: #333;
+}
+
+.settings-section .logout {
+    color: #C1FF72;
+    margin-top: 20px;
+}
+
+.settings-section .logout:hover {
+    color: #C1FF72;
+}

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion / Inscription</title>
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/login.css">
+</head>
+<body>
+
+  <div class="login-register-container">
+    <div class="form-container">
+      <h1 id="form-title">Rejoignez <span>Sportify</span></h1>
+      <form id="login-form" action="#">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="Entrez votre email" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" placeholder="Entrez votre mot de passe" required>
+        </div>
+
+        <div class="forgot-password">
+          <a href="#">Mot de passe oublié ?</a>
+        </div>
+
+        <button type="submit" class="login-btn">Connexion</button>
+
+        <div class="divider">
+          <span>OU</span>
+        </div>
+
+        <button class="google-btn">
+          <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google Logo">
+          Se connecter avec Google
+        </button>
+        
+        <p id="toggle-form">Vous n'avez pas de compte ? <a href="#" onclick="toggleForm()">Inscrivez-vous</a></p>
+      </form>
+
+      <form id="register-form" action="#" style="display:none;">
+        <div class="form-group">
+          <label for="register-email">Email</label>
+          <input type="email" id="register-email" placeholder="Entrez votre email" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="register-password">Mot de passe</label>
+          <input type="password" id="register-password" placeholder="Entrez votre mot de passe" required>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password">Confirmez le mot de passe</label>
+          <input type="password" id="confirm-password" placeholder="Confirmez votre mot de passe" required>
+        </div>
+
+        <button type="submit" class="login-btn">S'inscrire</button>
+
+        <div class="divider">
+          <span>OU</span>
+        </div>
+
+        <button class="google-btn">
+          <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google Logo">
+          S'inscrire avec Google
+        </button>
+        
+        <p id="toggle-form-back">Vous avez déjà un compte ? <a href="#" onclick="toggleForm()">Connectez-vous</a></p>
+      </form>
+    </div>
+
+    <div class="image-container">
+      <img src="https://i.postimg.cc/YS5WypdJ/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.png" alt="Image de fond" class="background-img">
+    </div>
+  </div>
+
+  <script src="/public/js/login.js"></script>
+</body>
+</html>

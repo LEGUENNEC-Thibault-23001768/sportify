@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page d'Accueil</title>
+    <link rel="stylesheet" href="/public/css/name.css">
+</head>
+<body>
+    <div class="input-container" id="input-container">
+        <input type="text" id="prenom" placeholder="Prénom" maxlength="20">
+        <input type="text" id="nom" placeholder="Nom" maxlength="20">
+        
+        <div class="gender-selection">
+            <label>
+                <input type="radio" name="sexe" value="Homme">
+                Homme
+            </label>
+            <label>
+                <input type="radio" name="sexe" value="Femme">
+                Femme
+            </label>
+            <label>
+                <input type="radio" name="sexe" value="Autre">
+                Autre
+            </label>
+        </div>
+
+        <button class="submit-btn" id="submit-btn">Envoyer</button>
+        <p id="error-message"></p>
+    </div>
+    
+    <div class="welcome-message" id="welcome-message">
+        <h1 id="welcome-text"><span id="bienvenue">Bienvenue,</span> <span id="nom-text"></span></h1>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('input-container').classList.add('show');
+        });
+    
+        document.getElementById('submit-btn').addEventListener('click', function() {
+            const prenom = document.getElementById('prenom').value;
+            const nom = document.getElementById('nom').value;
+            const errorMessage = document.getElementById('error-message');
+
+            if (!prenom || !nom) {
+                errorMessage.textContent = 'Veuillez entrer un prénom et un nom.';
+                errorMessage.style.display = 'block';
+            } else if (prenom.length > 20 || nom.length > 20) {
+                errorMessage.textContent = 'Le prénom et le nom ne doivent pas dépasser 20 caractères.';
+                errorMessage.style.display = 'block';
+            } else {
+                errorMessage.style.display = 'none';
+                const message = `${prenom} ${nom}`;
+                document.getElementById('nom-text').textContent = message;
+                document.getElementById('input-container').style.opacity = '0';
+                
+                setTimeout(() => {
+                    document.getElementById('input-container').style.display = 'none';
+                    document.getElementById('welcome-message').style.display = 'flex';
+                    document.getElementById('welcome-message').style.opacity = '1';
+                    document.getElementById('welcome-message').classList.add('show');
+                    
+                    setTimeout(() => {
+                        document.getElementById('welcome-message').classList.add('cinema-effect');
+                    }, 1000);
+
+                    setTimeout(() => {
+                        document.getElementById('welcome-message').classList.add('fade-out');
+                    }, 4000);
+
+                    setTimeout(() => {
+                        window.location.href = 'home.html'; 
+                    }, 5000);
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
