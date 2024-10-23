@@ -3,6 +3,7 @@
 namespace Models;
 
 use Core\Database;
+use Models\User;
 use PDO;
 
 class Event {
@@ -36,7 +37,7 @@ class Event {
     
     
 
-    public function find($eventId) {
+    public function findEvents($eventId) {
         $stmt = $this->db->prepare("SELECT * FROM EVENTS WHERE event_id = ?");
         $stmt->execute([$eventId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);

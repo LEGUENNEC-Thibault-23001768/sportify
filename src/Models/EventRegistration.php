@@ -3,6 +3,7 @@
 namespace Models;
 
 use Core\Database;
+use Models\User;
 use PDO;
 
 class EventRegistration {

@@ -85,7 +85,8 @@
         <?php endif; ?>
 
         <form action="" method="POST">
-            <!-- Infos utilisateur -->
+            <input type="hidden" name="user_id" value="<?= htmlspecialchars($user['member_id'] ?? "") ?>">
+
             <label for="first_name">Prénom :</label>
             <input type="text" name="first_name" id="first_name" value="<?= htmlspecialchars($user['first_name'] ?? "") ?>" required>
 
@@ -104,7 +105,17 @@
             <label for="phone">Téléphone :</label>
             <input type="text" name="phone" id="phone" value="<?= htmlspecialchars($user['phone'] ?? "") ?>">
 
-            <!-- Section pour changer le mot de passe -->
+            <?php if ($ifAdminuser['status'] === 'admin'): ?>
+                <label for="status">Rôle :</label>
+                <select name="status" id="status">
+                    <option value="membre" <?= $user['status'] === 'user' ? 'selected' : '' ?>>Membre</option>
+                    <option value="coach" <?= $user['status'] === 'coach' ? 'selected' : '' ?>>Coach</option>
+                    <option value="admin" <?= $user['status'] === 'admin' ? 'selected' : '' ?>>Admin</option>
+
+                </select>
+            <?php endif; ?>
+
+
             <h2>Changer le mot de passe</h2>
 
             <label for="current_password">Mot de passe actuel :</label>

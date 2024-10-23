@@ -5,7 +5,7 @@ namespace Controllers;
 use Core\View;
 use Models\Event;
 use Models\Team;
-use Models\Member;
+use Models\User;
 use Models\EventRegistration;
 
 class EventController
@@ -19,7 +19,7 @@ class EventController
     {
         $currentUserId = $_SESSION['user_id'];
         $eventModel = new Event();
-        $memberModel = new Member();
+        $memberModel = new User();
         $member = $memberModel->find($currentUserId);
 
 
@@ -33,7 +33,7 @@ class EventController
     public function create()
     {
         $currentUserId = $_SESSION['user_id'];
-        $memberModel = new Member();
+        $memberModel = new User();
         $currentUser = $memberModel->find($currentUserId);
         
 
@@ -49,7 +49,7 @@ class EventController
     public function store()
     {
         $currentUserId = $_SESSION['user_id'];
-        $memberModel = new Member();
+        $memberModel = new User();
         $currentUser = $memberModel->find($currentUserId);
 
 
@@ -107,7 +107,7 @@ class EventController
     public function delete($eventId) {
         $eventModel = new Event();
         $currentUserId = $_SESSION['user_id'];
-        $memberModel = new Member();
+        $memberModel = new User();
         $member = $memberModel->find($currentUserId);
     
         $event = $eventModel->find($eventId);
@@ -117,7 +117,7 @@ class EventController
             return $this->view->render('/dashboard/events/index', ['error' => 'Event not found']);
         }
         //                                                                                                    
-        if ($event['created_by'] != $currentUserId && $memberStatus !== "coach" && $memberStatus !== "admin") {
+        if ($event['created_by'] != $currentUserId && $member['status'] !== "coach" && $member['status'] !== "admin") {
             echo "2";
 
             return $this->view->render('/dashboard/events/index', ['error' => 'You are not authorized to delete this event']);
