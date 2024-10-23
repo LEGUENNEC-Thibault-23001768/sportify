@@ -5,7 +5,6 @@ namespace Controllers;
 use Core\View;
 use Models\Team;
 use Models\TeamParticipant;
-use Models\Member;
 
 class TeamController
 {
@@ -18,7 +17,7 @@ class TeamController
 
     public function create($event_id)
     {
-        $members = Member::getAll();
+        $members = User::getAll();
         $this->view->render('teams/create', ['event_id' => $event_id, 'members' => $members]);
     }
 
@@ -44,7 +43,7 @@ class TeamController
     {
         $team = Team::findById($team_id);
         $membersInTeam = TeamParticipant::getMembersByTeam($team_id);
-        $allMembers = Member::getAll(); 
+        $allMembers = User::getAll(); 
 
         $this->view->render('teams/edit', [
             'team' => $team,
