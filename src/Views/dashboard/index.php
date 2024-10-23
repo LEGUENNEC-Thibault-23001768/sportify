@@ -135,21 +135,23 @@
 
         <div class="subscription-info">
             <h2>Informations sur l'abonnement</h2>
-            <?php if (!$hasActiveSubscription): ?>
+            <?php if ($hasActiveSubscription == 'Aucun'): ?>
                 <p>Vous n'avez pas d'abonnement actif.</p>
                 <form action="/create-checkout-session" method="POST">
                     <button type="submit" class="btn">S'abonner</button>
                 </form>    
             <?php else: ?>
-                <p>Votre abonnement est actif</p>
+                <?php $__msg = $subscription['status'] == 'Cancelling' ? 'en train de prendre fin' : 'en cours' ?>
+                <p>Votre abonnement est <?= $__msg ?></p>
                 <p>Plan : <?= htmlspecialchars($subscription['plan_name']) ?></p>
                 <p>Date de début : <?= htmlspecialchars($subscription['start_date']) ?></p>
                 <p>Date de fin : <?= htmlspecialchars($subscription['end_date']) ?></p>
-                <p>Montant : <?= htmlspecialchars($subscription['amount']) ?> <?= htmlspecialchars($subscription['currency'] ?? '€') ?></p>
-                
+                <p>Montant : <?= htmlspecialchars($subscription['amount']) ?> <?= htmlspecialchars($subscription['currency']) ?></p>
+                <?php if ($subscription['status'] != "Cancelling"): ?>
                 <form action="/cancel-subscription" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler votre abonnement ?');">
                     <button type="submit" class="btn btn-danger">Annuler l'abonnement</button>
                 </form>
+                <?php endif; ?>
             <?php endif; ?>
             
             <a href="/invoices" class="btn">Voir mes factures</a>

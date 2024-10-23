@@ -32,15 +32,19 @@ class DashboardController
         $subscriptionInfo = null;
 
         if ($hasActiveSubscription) {
-            $subscriptionInfo = $subscriptionModel->getActiveSubscription($userId);
+            $subscriptionInfo = $subscriptionModel->getStripeSubscriptionId($userId);
         }
+
+        $hasActiveSubscription = $subscriptionInfo["status"] ?? "Aucun";
 
 
         echo $this->view->render('dashboard/index', ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription, 'subscription' => [
             'plan_name' =>  $subscriptionInfo["subscription_type"] ?? "Aucun",
-            'start_date' =>$subscriptionInfo["start_date"],
-            'end_date' => $subscriptionInfo["end_date"],
-            'amount' => $subscriptionInfo["amount"]
+            'start_date' =>$subscriptionInfo["start_date"] ?? "Aucun",
+            'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
+            'amount' => $subscriptionInfo["amount"] ?? 0,
+            'currency' => $subscriptionInfo["currency"] ?? '€',
+            'status' => $subscriptionInfo["status"] ?? "Aucun"
         ]]);
     }
 

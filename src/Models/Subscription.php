@@ -17,7 +17,7 @@ class Subscription
 
     public function syncSubscriptionWithStripe($memberId)
     {
-        $localSubscription = $this->getActiveSubscription($memberId);
+        $localSubscription = $this->getStripeSubscriptionId($memberId);
         if (!$localSubscription) {
             return false;
         }
@@ -54,7 +54,7 @@ class Subscription
     public function hasActiveSubscription($memberId)
     {
         $this->syncSubscriptionWithStripe($memberId);
-        $stmt = $this->db->prepare("SELECT COUNT(*) FROM SUBSCRIPTION WHERE member_id = ? AND status = 'Active'");
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM SUBSCRIPTION WHERE member_id = ? AND status = 'Active' OR status = 'Cancelling'");
         $stmt->execute([$memberId]);
         return $stmt->fetchColumn() > 0;
     }
@@ -65,6 +65,16 @@ class Subscription
         $stmt->execute([$memberId]);
         return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
+
+
+    public function getStripeSubscriptionId($userId)
+    {   
+        $stmt = $this->db->prepare("SELECT * FROM SUBSCRIPTION WHERE member_id = :user_id ORDER BY start_date DESC LIMIT 1");
+        $stmt->execute(['user_id' => $userId]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $result ? $result : null;
+    }
+
     public function getStripeSubscription($stripeSubscriptionId)
     {
         try {

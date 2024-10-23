@@ -127,7 +127,7 @@ class PaymentController
         }
         try {
             $subscriptionModel = new Subscription();
-            $activeSubscription = $subscriptionModel->getActiveSubscription($_SESSION['user_id']);
+            $activeSubscription = $subscriptionModel->getStripeSubscriptionId($_SESSION['user_id']);
             
             if (!$activeSubscription) {
                 $_SESSION['error'] = "Aucun abonnement actif trouvé.";
@@ -137,7 +137,8 @@ class PaymentController
 
             $stripeSubscription = $this->stripe->subscriptions->retrieve($activeSubscription['stripe_subscription_id']);
             $invoices = $this->stripe->invoices->all([
-                'subscription' => $activeSubscription['stripe_subscription_id'],
+                //'subscription' => $activeSubscription['stripe_subscription_id'],
+                'customer' => $stripeSubscription->customer,
                 'limit' => 10,
                 'expand' => ['data.payment_intent']
             ]);
