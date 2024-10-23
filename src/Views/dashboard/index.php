@@ -77,6 +77,41 @@
             border: 1px solid #c3e6cb;
             border-radius: 5px;
         }
+
+
+        .subscription-info {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px 0;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #bd2130;
+        }
+
+
     </style>
 </head>
 <body>
@@ -98,13 +133,27 @@
         <p class="profile-name">Nom : <?= htmlspecialchars($user['first_name']) . ' ' . htmlspecialchars($user['last_name']) ?></p>
         <p>Email : <?= htmlspecialchars($user['email']) ?></p>
 
-        <?php if (!$hasActiveSubscription): ?>
-            <form action="/create-checkout-session" method="POST">
-                <button type="submit">S'abonner</button>
-            </form>    
-        <?php else: ?>
-            <p>Votre abonnement est actif</p>
-        <?php endif; ?>
+        <div class="subscription-info">
+            <h2>Informations sur l'abonnement</h2>
+            <?php if (!$hasActiveSubscription): ?>
+                <p>Vous n'avez pas d'abonnement actif.</p>
+                <form action="/create-checkout-session" method="POST">
+                    <button type="submit" class="btn">S'abonner</button>
+                </form>    
+            <?php else: ?>
+                <p>Votre abonnement est actif</p>
+                <p>Plan : <?= htmlspecialchars($subscription['plan_name']) ?></p>
+                <p>Date de début : <?= htmlspecialchars($subscription['start_date']) ?></p>
+                <p>Date de fin : <?= htmlspecialchars($subscription['end_date']) ?></p>
+                <p>Montant : <?= htmlspecialchars($subscription['amount']) ?> <?= htmlspecialchars($subscription['currency'] ?? '€') ?></p>
+                
+                <form action="/cancel-subscription" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler votre abonnement ?');">
+                    <button type="submit" class="btn btn-danger">Annuler l'abonnement</button>
+                </form>
+            <?php endif; ?>
+            
+            <a href="/invoices" class="btn">Voir mes factures</a>
+        </div>
     </div>
 
     <?php

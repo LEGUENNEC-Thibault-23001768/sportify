@@ -6,20 +6,24 @@ class Router
 {
     private $routes = [];
 
-    public function addRoute($method, $url, $controller, $action)
+    public function get($url, $handler)
     {
-        $this->routes[$method][$url] = ['controller' => $controller, 'action' => $action];
+        $this->addRoute('GET', $url, $handler);
     }
 
-    public function getRoutes() {
-        return $this->routes;
+    public function post($url, $handler)
+    {
+        $this->addRoute('POST', $url, $handler);
+    }
+
+    private function addRoute($method, $url, $handler)
+    {
+        $this->routes[$method][$url] = $handler;
     }
 
     public function dispatch($url)
     {
         $method = $_SERVER['REQUEST_METHOD'];
-
-        // Remove query string from URL for matching
         $urlPath = parse_url($url, PHP_URL_PATH);
 
         if (!isset($this->routes[$method])) {
@@ -29,28 +33,25 @@ class Router
         foreach ($this->routes[$method] as $route => $handler) {
             $params = [];
             if ($this->matchRoute($route, $urlPath, $params)) {
-                $controller = $handler['controller'];
-                $action = $handler['action'];
+                if (is_string($handler)) {
+                    list($controller, $action) = explode('@', $handler);
+                    $controller = "Controllers\\$controller";
+                    
+                    if (!class_exists($controller)) {
+                        throw new \Exception("Controller not found: $controller");
+                    }
 
-                if (!class_exists($controller)) {
-                    throw new \Exception("Controller not found: $controller");
-                }
-
-                try {
                     $controllerInstance = new $controller();
-                } catch (\Throwable $e) {
-                    throw new \Exception("Error creating controller instance: " . $e->getMessage());
-                }
 
-                if (!method_exists($controllerInstance, $action)) {
-                    throw new \Exception("Action: $action not found in controller: $controller");
-                }
+                    if (!method_exists($controllerInstance, $action)) {
+                        throw new \Exception("Action: $action not found in controller: $controller");
+                    }
 
-                // Call the controller method with parameters
-                try {
-                    return $controllerInstance->$action(...$params); // Spread parameters as arguments
-                } catch (\Throwable $e) {
-                    throw new \Exception("Error executing action '$action': " . $e->getMessage());
+                    return $controllerInstance->$action(...$params);
+                } elseif (is_callable($handler)) {
+                    return $handler(...$params);
+                } else {
+                    throw new \Exception("Invalid route handler");
                 }
             }
         }
@@ -64,8 +65,8 @@ class Router
         $pattern = '#^' . $pattern . '$#';
 
         if (preg_match($pattern, $url, $matches)) {
-            array_shift($matches); // Remove the full match
-            $params = $matches; // Assign remaining matches to params
+            array_shift($matches);
+            $params = $matches;
             return true;
         }
         return false;

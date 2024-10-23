@@ -9,47 +9,46 @@ Config::load(dirname(__DIR__) . '/config.php');
 session_start();
 
 $router = new Router();
-$router->addRoute('GET','/', 'Controllers\HomeController', 'index');
-$router->addRoute('GET','/404', 'Controllers\HomeController', 'notfound');
+$router->get('/', 'HomeController@index');
+$router->get('/404', 'HomeController@notfound');
 
-$router->addRoute('GET', '/login', 'Controllers\AuthController', 'showLoginForm');
-$router->addRoute('POST', '/login', 'Controllers\AuthController', 'login');
-$router->addRoute('GET', '/verify-email', 'Controllers\AuthController', 'verifyEmail');
-$router->addRoute('GET', '/register', 'Controllers\AuthController', 'showRegisterForm');
-$router->addRoute('POST', '/register', 'Controllers\AuthController', 'register');
-$router->addRoute('GET', '/logout', 'Controllers\AuthController', 'logout');
+$router->get( '/login', 'AuthController@showLoginForm');
+$router->post( '/login', 'AuthController@login');
+$router->get( '/verify-email', 'AuthController@verifyEmail');
+$router->get( '/register', 'AuthController@showRegisterForm');
+$router->post( '/register', 'AuthController@register');
+$router->get( '/logout', 'AuthController@logout');
 
-$router->addRoute('GET', '/dashboard/events', 'Controllers\EventController', 'index');
-$router->addRoute('GET', '/dashboard/events/show', 'Controllers\EventController', 'show');
-$router->addRoute('GET', '/dashboard/events/create', 'Controllers\EventController', 'create');
-$router->addRoute('POST', '/dashboard/events/{event_id}/delete', 'Controllers\EventController', 'delete');
-$router->addRoute('POST', '/dashboard/events/store', 'Controllers\EventController', 'store');
-$router->addRoute('POST', '/dashboard/events/{event_id}/delete', 'Controllers\EventController', 'delete');
-$router->addRoute('GET', '/dashboard/events/{event_id}', 'Controllers\EventController', 'show');
-$router->addRoute('POST', '/dashboard/events/{event_id}/join', 'Controllers\EventController', 'join');
-
-
-
-$router->addRoute('POST', '/teams/{team_id}/add-member', 'Controllers\TeamController', 'addParticipant');
-$router->addRoute('POST', '/teams/{team_id}/remove-member', 'Controllers\TeamController', 'removeParticipant');
-
-$router->addRoute('GET', '/dashboard', 'Controllers\DashboardController', 'showDashboard');
-$router->addRoute('GET', '/dashboard/profile', 'Controllers\DashboardController', 'showProfile');
-$router->addRoute('POST', '/dashboard/profile', 'Controllers\DashboardController', 'updateUserProfile');
+$router->get( '/dashboard/events', 'EventController@index');
+$router->get( '/dashboard/events/show', 'EventController@show');
+$router->get( '/dashboard/events/create', 'EventController@create');
+$router->post( '/dashboard/events/{event_id}/delete', 'EventController@ðelete');
+$router->post( '/dashboard/events/store', 'EventController@store');
+$router->post( '/dashboard/events/{event_id}/delete', 'EventController@delete');
+$router->get( '/dashboard/events/{event_id}', 'EventController@show');
+$router->post( '/dashboard/events/{event_id}/join', 'EventController@join');
 
 
-$router->addRoute('GET', '/google', 'Controllers\GoogleAuthController' , 'login');
-$router->addRoute('GET', '/callback', 'Controllers\GoogleAuthController', 'callback');
 
+$router->post( '/teams/{team_id}/add-member', 'TeamController@addParticipant');
+$router->post( '/teams/{team_id}/remove-member', 'TeamController@removeParticipant');
 
-$router->addRoute('POST', '/create-checkout-session', 'Controllers\PaymentController', 'createCheckoutSession');
-$router->addRoute('GET', '/success', 'Controllers\PaymentController', 'success');
+$router->get( '/dashboard', 'DashboardController@showDashboard');
+$router->get( '/dashboard/profile', 'DashboardController@showProfile');
+$router->post( '/dashboard/profile', 'DashboardController@updateUserProfile');
 
+$router->get( '/google', 'GoogleAuthController@login' );
+$router->get( '/callback', 'GoogleAuthController@callback');
 
-$router->addRoute('GET', '/forgot-password', 'Controllers\AuthController', 'showForgotPasswordForm');
-$router->addRoute('POST', '/forgot-password', 'Controllers\AuthController', 'sendResetLink');
-$router->addRoute('GET', '/reset-password', 'Controllers\AuthController', 'showResetPasswordForm');
-$router->addRoute('POST', '/reset-password', 'Controllers\AuthController', 'resetPassword');
+$router->post( '/create-checkout-session', 'PaymentController@createCheckoutSession');
+$router->get( '/success', 'PaymentController@success');
+$router->get( '/invoices', 'PaymentController@listInvoices');
+$router->post('/cancel-subscription', 'PaymentController@cancelSubscription');
+
+$router->get( '/forgot-password', 'AuthController@showForgotPasswordForm');
+$router->post( '/forgot-password', 'AuthController@sendResetLink');
+$router->get( '/reset-password', 'AuthController@showResetPasswordForm');
+$router->post( '/reset-password', 'AuthController@resetPassword');
 
 
 
@@ -57,8 +56,8 @@ $url = $_SERVER['REQUEST_URI'];
 try {
     $router->dispatch($url);
 } catch (Exception $e) {
-    http_response_code(404);
-    header("Location: /404");
-    exit();
-    //echo "Page not found: " . $e->getMessage();
+    //http_response_code(404);
+    //header("Location: /404");
+    //exit();
+    echo "Page not found: " . $e->getMessage();
 }
