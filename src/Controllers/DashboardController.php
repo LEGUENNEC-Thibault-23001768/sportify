@@ -9,14 +9,6 @@ use Models\Subscription;
 
 class DashboardController
 {
-    private $view;
-    private $userModel;
-
-    public function __construct()
-    {
-        $this->view = new View();
-        $this->userModel = new User();
-    }
 
     public function showDashboard()
     {
@@ -25,26 +17,26 @@ class DashboardController
             exit;
         }
 
+
+        $userId = $_SESSION['user_id'];
+        $user = User::getUserById($userId);
+
+
         if ($user) {
             $memberId = $user['member_id']; // Récupération de member_id
         }
-
-        $userId = $_SESSION['user_id'];
-        $user = $this->userModel->getUserById($userId);
-
-        $subscriptionModel = new Subscription();
     
-        $hasActiveSubscription = $subscriptionModel->hasActiveSubscription($userId);
+        $hasActiveSubscription = Subscription::hasActiveSubscription($userId);
         $subscriptionInfo = null;
 
         if ($hasActiveSubscription) {
-            $subscriptionInfo = $subscriptionModel->getStripeSubscriptionId($userId);
+            $subscriptionInfo = Subscription::getStripeSubscriptionId($userId);
         }
 
         $hasActiveSubscription = $subscriptionInfo["status"] ?? "Aucun";
 
 
-        echo $this->view->render('dashboard/index', ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription, 'subscription' => [
+        echo View::render('dashboard/index', ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription, 'subscription' => [
             'plan_name' =>  $subscriptionInfo["subscription_type"] ?? "Aucun",
             'start_date' =>$subscriptionInfo["start_date"] ?? "Aucun",
             'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
@@ -62,11 +54,11 @@ class DashboardController
         }
 
         $userId = $_SESSION['user_id'];
-        $user = $this->userModel->getUserById($userId);
+        $user = User::getUserById($userId);
 
         //echo $userId;
 
-        echo $this->view->render('dashboard/profile/index', ['user' => $user]);
+        echo View::render('dashboard/profile/index', ['user' => $user]);
     }
 
     public function updateUserProfile()
@@ -87,8 +79,8 @@ class DashboardController
 
             if (empty($firstName) || empty($lastName) || empty($email)) {
                 $error = 'Les champs nom, prénom et email sont obligatoires.';
-                $user = $this->userModel->getUserById($userId);
-                echo $this->view->render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
+                $user = User::getUserById($userId);
+                echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
                 return;
             }
 
@@ -102,7 +94,7 @@ class DashboardController
             ];
 
             if (!empty($_POST['current_password']) && !empty($_POST['new_password']) && !empty($_POST['confirm_password'])) {
-                if (!$this->userModel->verifyCurrentPassword($userId, $_POST['current_password'])) {
+                if (!User::verifyCurrentPassword($userId, $_POST['current_password'])) {
                     $_SESSION['error'] = 'Le mot de passe actuel est incorrect.';
                     header('Location: /dashboard/profile');
                     return;
@@ -117,14 +109,14 @@ class DashboardController
                 $data['new_password'] = $_POST['new_password'];
             }
 
-            if ($this->userModel->updateUserProfile($userId, $data)) {
+            if (User::updateUserProfile($userId, $data)) {
                 $_SESSION['success_message'] = 'Profil mis à jour avec succès.';
                 header('Location: /dashboard/profile');
                 exit();
             } else {
                 $error = 'Échec de la mise à jour du profil.';
-                $user = $this->userModel->getUserById($userId);
-                echo $this->view->render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
+                $user = User::getUserById($userId);
+                echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
             }
         } else {
             header('Location: /dashboard/profile');
@@ -138,8 +130,8 @@ class DashboardController
 
         $user_id = $_SESSION['user_id'];
 
-        $membreModel = new User();
-        $membre = $membreModel->find($user_id);
+
+        $membre = User::getUserById($user_id);
 
         if ($membre['status'] !== 'admin') {
             header("Location: /dashboard");
@@ -147,14 +139,12 @@ class DashboardController
         }
     
         $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
-
-        $userModel = new User();
         if (!empty($searchTerm)) {
-            $users = $userModel->searchUsers($searchTerm);
+            $users = User::searchUsers($searchTerm);
         } else {
-            $users = $userModel->getAllUsers();
+            $users = User::getAllUsers();
         }
-        echo $this->view->render('dashboard/admin/users/index', ['users' => $users, 'membre' => $membre]);
+        echo View::render('dashboard/admin/users/index', ['users' => $users, 'membre' => $membre]);
     }
     
 
@@ -167,8 +157,7 @@ class DashboardController
 
         $user_id = $_SESSION['user_id'];
 
-        $userModel = new User();
-        $admin = $userModel->find($user_id);
+        $admin = User::getUserById($user_id);
 
         if ($admin['status'] !== 'admin') {
             header('Location: /dashboard');
@@ -178,7 +167,7 @@ class DashboardController
         if (isset($_GET['id'])) {
             $memberId = $_GET['id'];
 
-            if ($userModel->deleteUser($memberId)) {
+            if (User::deleteUser($memberId)) {
                 $_SESSION['success_message'] = 'Utilisateur supprimé avec succès.';
             } else {
                 $_SESSION['error_message'] = 'Erreur lors de la suppression de l\'utilisateur.';
@@ -197,7 +186,7 @@ class DashboardController
     }
 
     $currentUserId = $_SESSION['user_id'];
-    $currentUser = $this->userModel->getUserById($currentUserId);
+    $currentUser = User::getUserById($currentUserId);
     if ($currentUser['status'] !== 'admin') {
         header('Location: /dashboard');
         exit;
@@ -211,7 +200,7 @@ class DashboardController
 
     $userId = $_GET['id'];
 
-    $user = $this->userModel->getUserById($userId);
+    $user = User::getUserById($userId);
 
     if (!$user) {
         $_SESSION['error'] = 'Utilisateur introuvable.';
@@ -230,7 +219,7 @@ class DashboardController
 
         if (empty($firstName) || empty($lastName) || empty($email)) {
             $error = 'Les champs prénom, nom et email sont obligatoires.';
-            echo $this->view->render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
+            echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
             return;
         }
 
@@ -244,7 +233,7 @@ class DashboardController
             'status' => $status, 
         ];
 
-        $result = $this->userModel->updateUserProfile($userId, $data);
+        $result = User::updateUserProfile($userId, $data);
 
         if ($result) {
             $_SESSION['success_message'] = 'Le profil a été mis à jour avec succès.';
@@ -252,12 +241,11 @@ class DashboardController
             exit;
         } else {
             $error = 'Une erreur est survenue lors de la mise à jour des informations.';
-            echo $this->view->render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
+            echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
         }
     } else {
-        echo $this->view->render('dashboard/profile/index', ['user' => $user, 'ifAdminuser' => $currentUser]);
+        echo View::render('dashboard/profile/index', ['user' => $user, 'ifAdminuser' => $currentUser]);
     }
 }
-
 
 }
