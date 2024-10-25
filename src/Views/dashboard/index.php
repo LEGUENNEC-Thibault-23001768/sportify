@@ -59,15 +59,15 @@
              <h3 class="title rapport-activite">📊 Rapport d'activité</h3>
              <ul>
                 <li>Nombre total de réservations cette semaine : 30 </li>
-                <li><button id="openReportModalBtn">Créer ou Modifier un Rapport</button></li>
+                <li><a disabled class="btn">Créer ou Modifier un Rapport</a></li>
             </ul>
         </div>
 
         <div class="card">
              <h3 class="title prochaines-reservations">🏋️ Prochaines réservations</h3>
              <ul>
-                 <li>Entraînement avec [Nom de l'entraîneur] le 15 octobre 2024 à 10h00</li>
-                 <li><button id="openCoachModalBtn">Créer ou Modifier un Entraîneur</button></li>
+                 <li>Prochaine réservation: La salle tennis est reservé de 16h à 18h</li>
+                 <li><a class="btn" href="/dashboard/booking">Voir les prochaines réservations</a></li>
              </ul>
         </div>
         <div class="card-row">

@@ -8,7 +8,7 @@ use Models\User;
 use Models\Subscription;
 
 class DashboardController
-
+{
 
     public function showDashboard()
     {
