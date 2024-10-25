@@ -6,9 +6,9 @@ class View
 {
     private $viewPath;
 
-    public function __construct($viewPath = '../src/Views/')
+    public function __construct()
     {
-        $this->viewPath = rtrim($viewPath, '/') . '/';
+        $this->viewPath = Config::get("view_path", '../src/Views/');
     }
 
     public function render($view, $data = [])

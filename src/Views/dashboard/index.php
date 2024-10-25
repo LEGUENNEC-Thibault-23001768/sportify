@@ -3,94 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        .navbar {
-            background-color: #333;
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navbar .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .navbar .profile-icon {
-            position: relative;
-        }
-
-        .navbar .profile-icon img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .navbar .dropdown {
-            display: none;
-            position: absolute;
-            top: 60px;
-            right: 0;
-            background-color: white;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .navbar .dropdown a {
-            display: block;
-            padding: 10px 20px;
-            text-decoration: none;
-            color: black;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .navbar .dropdown a:hover {
-            background-color: #f4f4f4;
-        }
-
-        .dashboard-content {
-            padding: 20px;
-        }
-
-        .profile-name {
-            margin: 20px 0;
-        }
-    </style>
+    <link rel="stylesheet" href="_assets/css/admin.css">  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> 
 </head>
 <body>
-
+    <div class="sidebar">
+        <div class="logo">
+            <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify">
+        </div>
+        <ul>
+            <li><a href="#"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="#"><i class="fas fa-chart-line"></i> Suivi </a></li>
+            <li><a href="#"><i class="fas fa-futbol"></i> Terrains</a></li>
+            <li><a href="#"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
+            <li><a href="#"><i class="fas fa-trophy"></i> Événements</a></li>
+            <li><a href="#" class="management"><i class="fas fa-tasks"></i> Gestion</a></li> 
+        </ul>
+        <div class="settings-section">
+            <a href="#" class="settings"> Paramètres</a>
+            <a href="#" class="logout"> Se déconnecter</a>
+        </div>
+    </div>
     <div class="navbar">
-        <div class="logo">Dashboard</div>
-        
+        <div class="logo"></div>
+        <p class="profile-name"><?= htmlspecialchars($user['first_name']) . ' ' . htmlspecialchars($user['last_name']) ?></p>
         <div class="profile-icon">
-            <img src="https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg" alt="Profil" id="profile-icon">
+            <img src="<?= isset($user['profile_pic']) ? htmlspecialchars($user['profile_pic']) : 'https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg'; ?>" alt="Profil" id="profile-icon">
             <div class="dropdown" id="dropdown">
                 <a href="/dashboard/profile">Mon profil</a>
-                <a href="/login">Déconnexion</a>
+                <a href="/logout">Déconnexion</a> 
             </div>
         </div>
     </div>
+    
 
     <div class="dashboard-content">
         <h1>Bienvenue sur votre tableau de bord, <?= htmlspecialchars($user['first_name']) ?> !</h1>
-        <p class="profile-name">Nom : <?= htmlspecialchars($user['first_name']) . ' ' . htmlspecialchars($user['last_name']) ?></p>
-        <p>Email : <?= htmlspecialchars($user['email']) ?></p>
+    
+        <?php if ($user['status'] === 'coach' || $user['status'] === 'admin'): ?>
+            <div class="coach-panel">
+                <h2> 📅 Gestion événements</h2>
+                <p>Vous pouvez créer et gérer des événements pour les membres.</p>
+                <a href="/dashboard/events" class="btn">Gérer les événements</a>
+            </div>
+        <?php endif; ?>
 
-        <!-- Ajoutez ici d'autres sections ou fonctionnalités du tableau de bord -->
-    </div>
+        <?php if ($user['status'] === 'admin'): ?>
+            <div class="admin-panel">
+                <h2> 👥 Gestion utilisateurs</h2>
+                <p>Vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
+                <a href="/dashboard/admin/users" class="btn btn-danger">Gérer les utilisateurs</a>
+            </div>
+        <?php endif; ?>
+
+        <div class="card">
+             <h3 class="title rapport-activite">📊 Rapport d'activité</h3>
+             <ul>
+                <li>Nombre total de réservations cette semaine : 30 </li>
+                <li><button id="openReportModalBtn">Créer ou Modifier un Rapport</button></li>
+            </ul>
+        </div>
+
+        <div class="card">
+             <h3 class="title prochaines-reservations">🏋️ Prochaines réservations</h3>
+             <ul>
+                 <li>Entraînement avec [Nom de l'entraîneur] le 15 octobre 2024 à 10h00</li>
+                 <li><button id="openCoachModalBtn">Créer ou Modifier un Entraîneur</button></li>
+             </ul>
+        </div>
+        <div class="card-row">
+             <div class="small-card">
+                 <div class="card-title"><span class="emoji">👥</span> Utilisateurs actifs</div>
+                 <div class="card-value">120 utilisateurs actifs actuellement</div>
+             </div>
+                 <div class="small-card">
+                 <div class="card-title"><span class="emoji">📈</span> Nouvelles inscriptions</div>
+             <div class="card-value">5 nouvelles inscriptions ont été faites récemment à Sportify !</div>
+        </div>
+</div>
+
+
+
+    <?php
+    if (isset($_SESSION['message'])) {
+        echo "<div class='alert alert-success'>" . htmlspecialchars($_SESSION['message']) . "</div>";
+        unset($_SESSION['message']);
+    }
+    ?>
 
     <script>
         document.getElementById('profile-icon').addEventListener('click', function() {
@@ -102,7 +101,6 @@
             }
         });
 
-        // Fermer le menu déroulant si l'utilisateur clique en dehors
         window.onclick = function(event) {
             if (!event.target.matches('#profile-icon')) {
                 const dropdown = document.getElementById('dropdown');
