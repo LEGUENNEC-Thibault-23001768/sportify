@@ -29,15 +29,15 @@ class AuthController
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                error_log(print_r("on est là bizarrement", true));
                 $_SESSION['error_message'] = "Format d'email invalide.";
                 header('Location: /login');
                 exit;
             }
+
             
             $password = $_POST['password'] ?? '';
-
             $user = User::login($email, $password);
 
             if ($user) {
