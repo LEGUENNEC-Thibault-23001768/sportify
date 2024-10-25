@@ -32,6 +32,11 @@ $router->get( '/dashboard/events/{event_id}', 'EventController@show');
 $router->post( '/dashboard/events/{event_id}/join', 'EventController@join');
 
 
+$router->get('/dashboard/booking', 'BookingController@index');
+$router->get('/dashboard/booking/create', 'BookingController@create');
+$router->post('/dashboard/booking/store', 'BookingController@store');
+
+
 $router->get( '/dashboard/admin/users', 'DashboardController@manageUsers');
 $router->get( '/dashboard/admin/users/delete', 'DashboardController@deleteUser');
 $router->get( '/dashboard/admin/users/edit', 'DashboardController@editUserProfile');
