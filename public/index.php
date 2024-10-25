@@ -29,6 +29,12 @@ $router->addRoute('GET', '/dashboard/events/{event_id}', 'Controllers\EventContr
 $router->addRoute('POST', '/dashboard/events/{event_id}/join', 'Controllers\EventController', 'join');
 
 
+$router->addRoute('GET', '/dashboard/booking', 'Controllers\BookingController', 'index');
+$router->addRoute('GET', '/dashboard/booking/create', 'Controllers\BookingController', 'create');
+$router->addRoute('POST', '/dashboard/booking/store', 'Controllers\BookingController', 'store');
+
+
+
 $router->addRoute('GET', '/dashboard/admin/users', 'Controllers\DashboardController', 'manageUsers');
 $router->addRoute('GET', '/dashboard/admin/users/delete', 'Controllers\DashboardController', 'deleteUser');
 $router->addRoute('GET', '/dashboard/admin/users/edit', 'Controllers\DashboardController', 'editUserProfile');

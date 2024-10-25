@@ -8,7 +8,8 @@ use Models\User;
 use Models\Subscription;
 
 class DashboardController
-{
+{    // Enregistrer une nouvelle réservation
+
     private $view;
     private $userModel;
 

@@ -113,22 +113,22 @@ class EventController
         $event = $eventModel->find($eventId);
     
         if (!$event) {
-            echo "1";
-            return $this->view->render('/dashboard/events/index', ['error' => 'Event not found']);
+            //echo "1";
+            echo $this->view->render('/dashboard/events/index', ['error' => 'Event not found']);
         }
         //                                                                                                    
         if ($event['created_by'] != $currentUserId && $member['status'] !== "coach" && $member['status'] !== "admin") {
-            echo "2";
+            //echo "2";
 
-            return $this->view->render('/dashboard/events/index', ['error' => 'You are not authorized to delete this event']);
+            echo $this->view->render('/dashboard/events/index', ['error' => 'You are not authorized to delete this event']);
         }
     
         if ($eventModel->deleteEvent($eventId)) {
-            echo "3";
+            //echo "3";
 
             header('Location: /dashboard/events');
         } else {
-            return $this->view->render('/dashboard/events/index', ['error' => 'Failed to delete event']);
+            echo $this->view->render('/dashboard/events/index', ['error' => 'Failed to delete event']);
         }
     }
     
