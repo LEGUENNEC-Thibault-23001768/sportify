@@ -5,24 +5,15 @@ namespace Controllers;
 use Google\Auth\OAuth2;
 use GuzzleHttp\Client;
 use Core\View;
-use core\Config;
+use Core\Config;
 use Models\User;
 
 class GoogleAuthController
 {
-    private $view;
     private $oauth;
 
     public function __construct()
     {
-        $this->view = new View();
-
-        /*clientId = '857873046046355-3bigof3avgr1rgqq0ng703587g7nh4dn.apps.googleusercontent.com';
-        $clientSecret = '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';
-        $redirectUri = 'http://localhost:8888/callback';
-        
-        $clientSecrets = json_decode(file_get_contents(__DIR__ . '/../../client_secret.json'), true)['web'];
-*/
         $this->oauth = new OAuth2([
             'clientId' => Config::get("google")["clientId"],
             'clientSecret' => Config::get("google")["clientSecret"],
@@ -31,7 +22,6 @@ class GoogleAuthController
             'redirectUri' => Config::get("google")["redirectUri"],
             'scope' => ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
         ]);
-    
     }
 
     public function login()
@@ -54,7 +44,6 @@ class GoogleAuthController
         }
 
         try {
-            
             $this->oauth->setCode($_GET['code']);
             
             $token = $this->oauth->fetchAuthToken();
@@ -80,8 +69,9 @@ class GoogleAuthController
                     'password' => null, 
                 ];
 
-                $userModel = new User();
-                $userModel->create($userData);
+                User::create($userData);
+                // Assuming create() is a static method in User model
+                // If not, instantiate User and call create on the instance
             }
 
             $_SESSION['user'] = [
@@ -89,12 +79,13 @@ class GoogleAuthController
                 'last_name' => $lastName,
                 'email' => $email
             ];
-            $_SESSION['user_id'] = $user['member_id'];
+            
+            $_SESSION['user_id'] = isset($user['member_id']) ? $user['member_id'] : null;
+            $_SESSION['user_email'] = $email;
 
             header('Location: /dashboard');
             exit();
-        } catch (Exception $e) {
-            // Gérer l'erreur, par exemple en redirigeant vers une page d'erreur
+        } catch (\Exception $e) {
             header('Location: /error?message=' . urlencode($e->getMessage()));
             exit();
         }

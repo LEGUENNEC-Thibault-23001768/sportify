@@ -4,17 +4,16 @@ namespace Core;
 
 class View
 {
-    private $viewPath;
+    private static $viewPath;
 
-    public function __construct()
+    public static function init()
     {
-        $this->viewPath = Config::get("view_path", '../src/Views/');
+        self::$viewPath = Config::get("view_path", '../src/Views/');
     }
 
-    public function render($view, $data = [])
+    public static function render($view, $data = [])
     {
-        $filePath = $this->viewPath . str_replace('.', '/', $view) . '.php';
-
+        $filePath = self::$viewPath . str_replace('.', '/', $view) . '.php';
 
         if (!file_exists($filePath)) {
             throw new \Exception("View file not found: $filePath");
@@ -31,9 +30,9 @@ class View
         return $content;
     }
 
-    public function renderWithLayout($view, $layout, $data = [])
+    public static function renderWithLayout($view, $layout, $data = [])
     {
-        $content = $this->render($view, $data);
-        return $this->render($layout, array_merge($data, ['content' => $content]));
+        $content = self::render($view, $data);
+        return self::render($layout, array_merge($data, ['content' => $content]));
     }
 }

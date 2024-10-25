@@ -7,15 +7,8 @@ use Models\User;
 use PDO;
 
 class Event {
-    private $db;
-
-    public function __construct() {
-        $this->db = Database::getInstance()->getConnection();
-    }
-
-
-    public function getAllEvents() {
-        $stmt = $this->db->query("
+    public static function getAllEvents() {
+        $sql = "
             SELECT 
                 e.event_id, 
                 e.event_name, 
@@ -30,40 +23,39 @@ class Event {
             LEFT JOIN EVENT_REGISTRATION er ON e.event_id = er.event_id 
             JOIN MEMBER m ON e.created_by = m.member_id
             GROUP BY e.event_id
-        ");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    
-    
-    
-
-    public function findEvents($eventId) {
-        $stmt = $this->db->prepare("SELECT * FROM EVENTS WHERE event_id = ?");
-        $stmt->execute([$eventId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        ";
+        return Database::query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    
+    public static function findEvents($eventId) {
+        $sql = "SELECT * FROM EVENTS WHERE event_id = :eventId";
+        $params = [':eventId' => $eventId];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
 
-    public function createEvent($data) {
-        $stmt = $this->db->prepare("INSERT INTO EVENTS (event_name, event_date, start_time, end_time, description, max_participants, location, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    public static function createEvent($data) {
+        $sql = "INSERT INTO EVENTS (event_name, event_date, start_time, end_time, description, max_participants, location, created_by) 
+                VALUES (:event_name, :event_date, :start_time, :end_time, :description, :max_participants, :location, :created_by)";
         
         $currentUserId = $_SESSION['user_id'];
         
-        return $stmt->execute([
-            $data['event_name'], 
-            $data['event_date'], 
-            $data['start_time'], 
-            $data['end_time'], 
-            $data['description'], 
-            $data['max_participants'],
-            $data['location'],
-            $currentUserId
-        ]);
+        $params = [
+            ':event_name' => $data['event_name'],
+            ':event_date' => $data['event_date'],
+            ':start_time' => $data['start_time'],
+            ':end_time' => $data['end_time'],
+            ':description' => $data['description'],
+            ':max_participants' => $data['max_participants'],
+            ':location' => $data['location'],
+            ':created_by' => $currentUserId
+        ];
+
+        return Database::query($sql, $params)->rowCount() > 0;
     }
 
-    public function deleteEvent($eventId) {
-        $stmt = $this->db->prepare("DELETE FROM EVENTS WHERE event_id = ?");
-        return $stmt->execute([$eventId]);
+    public static function deleteEvent($eventId) {
+        $sql = "DELETE FROM EVENTS WHERE event_id = :eventId";
+        $params = [':eventId' => $eventId];
+        return Database::query($sql, $params)->rowCount() > 0;
     }
 }
