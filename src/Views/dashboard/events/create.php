@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create New Event</title>
-    <link rel="stylesheet" href="/path/to/bootstrap.css"> 
     <style>
         .form-container {
             max-width: 600px;
@@ -72,6 +71,5 @@
         </div>
     </div>
 
-    <script src="/path/to/bootstrap.js"></script>
 </body>
 </html>

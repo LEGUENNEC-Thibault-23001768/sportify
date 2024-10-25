@@ -16,9 +16,10 @@ $router->get('/', 'HomeController@index');
 $router->get('/404', 'HomeController@notfound');
 
 $router->get( '/login', 'AuthController@showLoginForm');
+$router->get( '/register', 'AuthController@showLoginForm'); // on fait un hack.
+
 $router->post( '/login', 'AuthController@login');
 $router->get( '/verify-email', 'AuthController@verifyEmail');
-$router->get( '/register', 'AuthController@showRegisterForm');
 $router->post( '/register', 'AuthController@register');
 $router->get( '/logout', 'AuthController@logout');
 

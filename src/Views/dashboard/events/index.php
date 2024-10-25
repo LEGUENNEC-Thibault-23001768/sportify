@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events List</title>
-    <link rel="stylesheet" href="/path/to/bootstrap.css">
     <style>
         .event-table {
             width: 100%;
@@ -80,6 +79,5 @@
         <?php endif; ?>
     </div>
 
-    <script src="/path/to/bootstrap.js"></script>
 </body>
 </html>

@@ -29,15 +29,15 @@ class AuthController
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                error_log(print_r("on est là bizarrement", true));
                 $_SESSION['error_message'] = "Format d'email invalide.";
                 header('Location: /login');
                 exit;
             }
+
             
             $password = $_POST['password'] ?? '';
-
             $user = User::login($email, $password);
 
             if ($user) {
@@ -85,33 +85,31 @@ class AuthController
 
             if (empty($email) || empty($password) || empty($confirmPassword)) {
                 $error = 'Tous les champs sont obligatoires.';
-                echo View::render('auth/register', ['error' => $error]);
+                echo View::render('auth/login', ['error' => $error]);
                 return;
             }
 
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $error = 'Veuillez entrer un email valide.';
-                echo View::render('auth/register', ['error' => $error]);
+                echo View::render('auth/login', ['error' => $error]);
                 return;
             }
 
             if ($password !== $confirmPassword) {
                 $error = 'Les mots de passe ne correspondent pas.';
-                echo View::render('auth/register', ['error' => $error]);
+                echo View::render('auth/login', ['error' => $error]);
                 return;
             }
 
             if (User::findByEmail($email)) {
                 $error = 'Cet email est déjà utilisé.';
-                echo View::render('auth/register', ['error' => $error]);
+                echo View::render('auth/login', ['error' => $error]);
                 return;
             }
 
-            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-
             $newUser = [
                 'email' => $email,
-                'password' => $hashedPassword,
+                'password' => $password,
                 'first_name' => 'DefaultFirst', 
                 'last_name' => 'DefaultLast',   
                 'birth_date' => null,           
@@ -122,10 +120,10 @@ class AuthController
             if (User::create($newUser)) {
                 $message = "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception.";
                 error_log($message);
-                echo View::render('auth/register', ['message' => $message]);
+                echo View::render('auth/login', ['message' => $message]);
             } else {
                 $error = "Erreur lors de l'inscription. Veuillez réessayer.";
-                echo View::render('auth/register', ['error' => $error]);
+                echo View::render('auth/login', ['error' => $error]);
             }
         }
     }
@@ -138,7 +136,7 @@ class AuthController
         } else {
             $message = "Le lien de vérification est invalide ou a expiré.";
         }
-        View::render('auth/register', ['message' => $message]);
+        View::render('auth/login', ['message' => $message]);
     }
 
     public function sendResetLink()

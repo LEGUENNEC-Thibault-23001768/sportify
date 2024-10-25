@@ -90,7 +90,6 @@ class EventController
     
         if (!$event) {
             echo View::render('/dashboard/events/index', ['error' => 'Event not found']);
-
         }
         if ($event['created_by'] != $currentUserId && $member['status'] !== "coach" && $member['status'] !== "admin") {
             echo View::render('/dashboard/events/index', ['error' => 'You are not authorized to delete this event']);
