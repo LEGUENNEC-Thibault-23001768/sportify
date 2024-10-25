@@ -9,7 +9,7 @@
 </head>
 <body>
 <?php
-  $errorMessage = isset($_SESSION['error_message']) ? $_SESSION['error_message'] : '';
+  $errorMessage = isset($_SESSION['error_message']) ? $_SESSION['error_message'] : $error ?? "";
   $successMessage = isset($message) ? $message : '';
   ?>
   <div class="login-register-container">
@@ -50,7 +50,7 @@
           Se connecter avec Google
         </button>
         
-        <p id="toggle-form">Vous n'avez pas de compte ? <a href="#" onclick="toggleForm()">Inscrivez-vous</a></p>
+        <p id="toggle-form">Vous n'avez pas de compte ? <a onclick="toggleForm()">Inscrivez-vous</a></p>
       </form>
 
       <form id="register-form" action="/register" method="POST" style="display:none;">
@@ -66,7 +66,7 @@
 
         <div class="form-group">
           <label for="confirm-password">Confirmez le mot de passe</label>
-          <input type="password" id="confirm-password" placeholder="Confirmez votre mot de passe" required>
+          <input type="password" id="confirm-password" name="confirm_password" placeholder="Confirmez votre mot de passe" required>
         </div>
 
         <button type="submit" class="login-btn">S'inscrire</button>
@@ -80,7 +80,7 @@
           S'inscrire avec Google
         </button>
         
-        <p id="toggle-form-back">Vous avez déjà un compte ? <a href="#" onclick="toggleForm()">Connectez-vous</a></p>
+        <p id="toggle-form-back">Vous avez déjà un compte ? <a onclick="toggleForm()">Connectez-vous</a></p>
       </form>
     </div>
 

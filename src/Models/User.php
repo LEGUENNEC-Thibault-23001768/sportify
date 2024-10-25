@@ -32,7 +32,8 @@ class User
         $params = [':email' => $email];
         $user = Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
 
-        if ($user && password_verify($password, $user['password'])) {
+        if (is_array($user) && password_verify($password, $user['password'])) {
+            error_log(print_r($user,true));
             return $user;
         }
         return false;
@@ -141,14 +142,17 @@ class User
             ':password' => $hashedPassword,
             ':first_name' => $userData['first_name'],
             ':last_name' => $userData['last_name'],
-            ':birth_date' => $userData['birth_date'] ?? "",
-            ':address' => $userData['address'] ?? "",
-            ':phone' => $userData['phone'] ?? "",
+            ':birth_date' => $userData['birth_date'],
+            ':address' => $userData['address'],
+            ':phone' => $userData['phone'],
             ':verification_token' => $verificationToken
         ];
         
         $result = Database::query($sql, $params);
         
+        error_log(print_r($params,true));
+        error_log(print_r($userData,true));
+
         if ($result->rowCount() > 0) {
             self::sendVerificationEmail($userData['email'], $verificationToken);
             return Database::getConnection()->lastInsertId();

@@ -3,132 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        .navbar {
-            background-color: #333;
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navbar .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .navbar .profile-icon {
-            position: relative;
-        }
-
-        .navbar .profile-icon img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .navbar .dropdown {
-            display: none;
-            position: absolute;
-            top: 60px;
-            right: 0;
-            background-color: white;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .navbar .dropdown a {
-            display: block;
-            padding: 10px 20px;
-            text-decoration: none;
-            color: black;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .navbar .dropdown a:hover {
-            background-color: #f4f4f4;
-        }
-
-        .dashboard-content {
-            padding: 20px;
-        }
-
-        .profile-name {
-            margin: 20px 0;
-        }
-
-        .alert-success {
-            padding: 10px;
-            margin: 20px 0;
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            border-radius: 5px;
-        }
-
-
-        .subscription-info {
-            background-color: #fff;
-            border-radius: 5px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 10px 0;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #0056b3;
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-        }
-
-        .btn-danger:hover {
-            background-color: #bd2130;
-        }
-
-
-        .admin-panel, .coach-panel {
-            margin-top: 20px;
-            background-color: #e9ecef;
-            padding: 20px;
-            border-radius: 5px;
-        }
-
-        .admin-panel h2, .coach-panel h2 {
-            margin-top: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="_assets/css/admin.css">  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> 
 </head>
 <body>
-
+    <div class="sidebar">
+        <div class="logo">
+            <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify">
+        </div>
+        <ul>
+            <li><a href="#"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="#"><i class="fas fa-chart-line"></i> Suivi </a></li>
+            <li><a href="#"><i class="fas fa-futbol"></i> Terrains</a></li>
+            <li><a href="#"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
+            <li><a href="#"><i class="fas fa-trophy"></i> Événements</a></li>
+            <li><a href="#" class="management"><i class="fas fa-tasks"></i> Gestion</a></li> 
+        </ul>
+        <div class="settings-section">
+            <a href="/dashboard/profile" class="settings"> Paramètres</a>
+            <a href="/logout" class="logout"> Se déconnecter</a>
+        </div>
+    </div>
     <div class="navbar">
-        <div class="logo">Dashboard</div>
-        
+        <div class="logo"></div>
+        <p class="profile-name"><?= htmlspecialchars($user['first_name']) . ' ' . htmlspecialchars($user['last_name']) ?></p>
         <div class="profile-icon">
             <img src="<?= isset($user['profile_pic']) ? htmlspecialchars($user['profile_pic']) : 'https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg'; ?>" alt="Profil" id="profile-icon">
             <div class="dropdown" id="dropdown">
@@ -137,51 +35,54 @@
             </div>
         </div>
     </div>
+    
 
     <div class="dashboard-content">
         <h1>Bienvenue sur votre tableau de bord, <?= htmlspecialchars($user['first_name']) ?> !</h1>
-        <p class="profile-name">Nom : <?= htmlspecialchars($user['first_name']) . ' ' . htmlspecialchars($user['last_name']) ?></p>
-        <p>Email : <?= htmlspecialchars($user['email']) ?></p>
-
-        <div class="subscription-info">
-            <h2>Informations sur l'abonnement</h2>
-            <?php if ($hasActiveSubscription == 'Aucun'): ?>
-                <p>Vous n'avez pas d'abonnement actif.</p>
-                <form action="/create-checkout-session" method="POST">
-                    <button type="submit" class="btn">S'abonner</button>
-                </form>    
-            <?php else: ?>
-                <?php $__msg = $subscription['status'] == 'Cancelling' ? 'en train de prendre fin' : 'en cours' ?>
-                <p>Votre abonnement est <?= $__msg ?></p>
-                <p>Plan : <?= htmlspecialchars($subscription['plan_name']) ?></p>
-                <p>Date de début : <?= htmlspecialchars($subscription['start_date']) ?></p>
-                <p>Date de fin : <?= htmlspecialchars($subscription['end_date']) ?></p>
-                <p>Montant : <?= htmlspecialchars($subscription['amount']) ?> <?= htmlspecialchars($subscription['currency']) ?></p>
-                <?php if ($subscription['status'] != "Cancelling"): ?>
-                <form action="/cancel-subscription" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler votre abonnement ?');">
-                    <button type="submit" class="btn btn-danger">Annuler l'abonnement</button>
-                </form>
-                <?php endif; ?>
-            <?php endif; ?>
-            
-            <a href="/invoices" class="btn">Voir mes factures</a>
-        </div>
+    
         <?php if ($user['status'] === 'coach' || $user['status'] === 'admin'): ?>
             <div class="coach-panel">
-                <h2>Gérer les événements</h2>
-                <p>En tant que coach, vous pouvez créer et gérer des événements pour les membres.</p>
-                <a href="/dashboard/events" class="btn">Créer un événement</a>
+                <h2> 📅 Gestion événements</h2>
+                <p>Vous pouvez créer et gérer des événements pour les membres.</p>
+                <a href="/dashboard/events" class="btn">Gérer les événements</a>
             </div>
         <?php endif; ?>
 
         <?php if ($user['status'] === 'admin'): ?>
             <div class="admin-panel">
-                <h2>Panneau d'administration</h2>
-                <p>En tant qu'administrateur, vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
+                <h2> 👥 Gestion utilisateurs</h2>
+                <p>Vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
                 <a href="/dashboard/admin/users" class="btn btn-danger">Gérer les utilisateurs</a>
             </div>
+
+        <div class="card">
+             <h3 class="title rapport-activite">📊 Rapport d'activité</h3>
+             <ul>
+                <li>Nombre total de réservations cette semaine : 30 </li>
+                <li><button id="openReportModalBtn">Créer ou Modifier un Rapport</button></li>
+            </ul>
+        </div>
+
+        <div class="card">
+             <h3 class="title prochaines-reservations">🏋️ Prochaines réservations</h3>
+             <ul>
+                 <li>Entraînement avec [Nom de l'entraîneur] le 15 octobre 2024 à 10h00</li>
+                 <li><button id="openCoachModalBtn">Créer ou Modifier un Entraîneur</button></li>
+             </ul>
+        </div>
+        <div class="card-row">
+             <div class="small-card">
+                 <div class="card-title"><span class="emoji">👥</span> Utilisateurs actifs</div>
+                 <div class="card-value">120 utilisateurs actifs actuellement</div>
+             </div>
+                 <div class="small-card">
+                 <div class="card-title"><span class="emoji">📈</span> Nouvelles inscriptions</div>
+             <div class="card-value">5 nouvelles inscriptions ont été faites récemment à Sportify !</div>
+        </div>
         <?php endif; ?>
-    </div>
+</div>
+
+
 
     <?php
     if (isset($_SESSION['message'])) {

@@ -89,17 +89,17 @@ class EventController
         $event = Event::findEvents($eventId);
     
         if (!$event) {
-            return View::render('/dashboard/events/index', ['error' => 'Event not found']);
+            echo View::render('/dashboard/events/index', ['error' => 'Event not found']);
         }
     
         if ($event['created_by'] != $currentUserId && $member['status'] !== "coach" && $member['status'] !== "admin") {
-            return View::render('/dashboard/events/index', ['error' => 'You are not authorized to delete this event']);
+            echo View::render('/dashboard/events/index', ['error' => 'You are not authorized to delete this event']);
         }
     
         if (Event::deleteEvent($eventId)) {
             header('Location: /dashboard/events');
         } else {
-            return View::render('/dashboard/events/index', ['error' => 'Failed to delete event']);
+            echo View::render('/dashboard/events/index', ['error' => 'Failed to delete event']);
         }
     }
 }

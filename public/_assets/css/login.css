@@ -113,6 +113,10 @@ body {
     text-align: right;
     margin-top: -10px;
   }
+
+  a {
+    cursor: pointer;
+  }
   
   .forgot-password a {
     color: #c2ff72;
