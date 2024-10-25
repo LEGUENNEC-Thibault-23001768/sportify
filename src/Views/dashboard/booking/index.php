@@ -10,6 +10,18 @@
 
     <h2>Carte de la Salle de Sport</h2>
 
+    <?php if (!empty($_SESSION['success'])): ?>
+        <div style="color: green; background-color: #e6ffe6; padding: 10px; margin-bottom: 10px;">
+            <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!empty($_SESSION['error'])): ?>
+        <div style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 10px;">
+            <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+        </div>
+    <?php endif; ?>
+
     <div class="gym-map">
         <img src="../_assets/img/Map_sportify.png" alt="Carte de la salle de sport" class="gym-image">
         <div class="room tennis" data-room="Tennis" data-court-id="6" onclick="openReservationForm(this)">Tennis</div>
@@ -22,10 +34,6 @@
 
     <div id="reservation-container" style="display: none;">
         <h3>Réserver une salle</h3>
-        <?php if (!empty($error)) : ?>
-            <p style="color:red;"><?php echo $error; ?></p>
-        <?php endif; ?>
-
         <form action="/dashboard/booking/store" method="POST" id="form">
             <label for="member_name">Votre Nom:</label>
             <input type="hidden" id="court_id" name="court_id">
@@ -49,27 +57,30 @@
     <div id="reservations">
         <h3>Historique des Réservations</h3>
         <ul id="reservation-list">
-            <?php foreach ($bookings as $booking): ?>
-                <li>
-                    <?= $booking['reservation_date'] ?> - <?= $booking['start_time'] ?> à <?= $booking['end_time'] ?> - 
-                    <?= $booking['court_name'] ?> (Réservé par <?= $booking['member_name'] ?>)
+        <?php foreach ($bookings as $booking): ?>
+            <li>
+                <?= $booking['reservation_date'] ?> - <?= $booking['start_time'] ?> à <?= $booking['end_time'] ?> - 
+                <?= $booking['court_name'] ?> (Réservé par <?= $booking['member_name'] ?>)
+                <?php if ($booking['member_id'] == $user['member_id'] || $user['status'] === 'admin'): ?>
+                    <a href="/dashboard/booking/<?= $booking['reservation_id'] ?>/edit">Modifier</a>
                     <form action="/dashboard/booking/<?= $booking['reservation_id'] ?>/delete" method="POST" style="display:inline;">
                         <button type="submit">Supprimer</button>
                     </form>
-                </li>
-            <?php endforeach; ?>
+                <?php endif; ?>
+            </li>
+
+        <?php endforeach; ?>
+
         </ul>
     </div>
 
     <script>
-        // Open reservation form with selected court_id
         function openReservationForm(roomElement) {
-            const courtId = roomElement.getAttribute('data-court-id');  // Get the data-court-id
-            document.getElementById('court_id').value = courtId;       // Set the court_id in hidden input
-            document.getElementById('reservation-container').style.display = 'block'; // Show the form
+            const courtId = roomElement.getAttribute('data-court-id');
+            document.getElementById('court_id').value = courtId;
+            document.getElementById('reservation-container').style.display = 'block';
         }
 
-        // Close reservation form
         function closeReservationForm() {
             document.getElementById('reservation-container').style.display = 'none';
             document.getElementById('form').reset();

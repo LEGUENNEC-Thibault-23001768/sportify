@@ -36,6 +36,9 @@ $router->post( '/dashboard/events/{event_id}/join', 'EventController@join');
 $router->get('/dashboard/booking', 'BookingController@index');
 $router->get('/dashboard/booking/create', 'BookingController@create');
 $router->post('/dashboard/booking/store', 'BookingController@store');
+$router->post( '/dashboard/booking/{reservation_id}/delete', 'BookingController@delete');
+$router->get('/dashboard/booking/{reservation_id}/edit', 'BookingController@edit');
+$router->post('/dashboard/booking/{reservation_id}/update', 'BookingController@update');
 
 
 $router->get( '/dashboard/admin/users', 'DashboardController@manageUsers');

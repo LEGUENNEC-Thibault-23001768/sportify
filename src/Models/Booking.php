@@ -63,5 +63,18 @@ class Booking {
         $params = [':reservation_id' => $reservation_id];
         return Database::query($sql, $params)->rowCount() > 0;
     }
+
+    public function getReservationById($reservation_id) {
+        $sql = "SELECT * FROM COURT_RESERVATION WHERE reservation_id = :reservation_id";
+        $params = ['reservation_id' => $reservation_id];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);    
+    }
+
+    public function updateReservation($reservation_id, $reservation_date, $start_time, $end_time) {
+        $sql = "UPDATE COURT_RESERVATION SET reservation_date = ?, start_time = ?, end_time = ? WHERE reservation_id = ?";
+        $params = [$reservation_date, $start_time, $end_time, $reservation_id];
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+    
 }
 ?>

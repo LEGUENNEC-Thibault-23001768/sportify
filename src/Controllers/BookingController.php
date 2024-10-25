@@ -67,10 +67,106 @@ class BookingController {
     
     
     public function delete($reservation_id) {
-        $bookingModel = new Booking();
-        $bookingModel->deleteReservation($reservation_id);
-
+        session_start();
+        $currentUserId = $_SESSION['user_id'];
+    
+        if (!$currentUserId) {
+            header('Location: /login');
+            exit();
+        }
+    
+        $user = $this->userModel->getUserById($currentUserId);
+        $reservation = $this->bookingModel->getReservationById($reservation_id);
+    
+        if (!$reservation) {
+            $_SESSION['error'] = 'Réservation introuvable.';
+            header('Location: /dashboard/booking');
+            exit();
+        }
+    
+        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+            $_SESSION['error'] = 'Vous n\'avez pas les droits pour supprimer cette réservation.';
+            header('Location: /dashboard/booking');
+            exit();
+        }
+    
+        $this->bookingModel->deleteReservation($reservation_id);
+        $_SESSION['success'] = 'Réservation supprimée avec succès.';
         header('Location: /dashboard/booking');
         exit();
     }
+
+    public function edit($reservation_id) {
+        session_start();
+        $currentUserId = $_SESSION['user_id'];
+    
+        if (!$currentUserId) {
+            header('Location: /login');
+            exit();
+        }
+    
+        $reservation = $this->bookingModel->getReservationById($reservation_id);
+        $user = $this->userModel->getUserById($currentUserId);
+    
+        //var_dump($reservation);
+
+        if (!$reservation) {
+            $_SESSION['error'] = 'Réservation introuvable.';
+            header('Location: /dashboard/booking');
+            exit();
+        }
+    
+        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+            $_SESSION['error'] = 'Vous n\'avez pas les droits pour modifier cette réservation.';
+            header('Location: /dashboard/booking');
+            exit();
+        }
+        
+   
+        echo $this->view->render('dashboard/booking/edit', ['reservation' => $reservation,'user' => $user]);
+    }
+    
+    public function update($reservation_id) {
+        session_start();
+        $currentUserId = $_SESSION['user_id'];
+    
+        if (!$currentUserId) {
+            header('Location: /login');
+            exit();
+        }
+    
+        $reservation = $this->bookingModel->getReservationById($reservation_id);
+    
+        if (!$reservation) {
+            $_SESSION['error'] = 'Réservation introuvable.';
+            header('Location: /dashboard/booking');
+            exit();
+        }
+    
+        $user = $this->userModel->getUserById($currentUserId);
+        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+            $_SESSION['error'] = 'Vous n\'avez pas les droits pour modifier cette réservation.';
+            header('Location: /dashboard/booking');
+            exit();
+        }
+    
+        $reservation_date = $_POST['reservation_date'];
+        $start_time = $_POST['start_time'];
+        $end_time = $_POST['end_time'];
+    
+        if (empty($reservation_date) || empty($start_time) || empty($end_time)) {
+            $_SESSION['error'] = 'Tous les champs sont requis.';
+            header("Location: /dashboard/booking/{$reservation_id}/edit");
+            exit();
+        }
+    
+        $this->bookingModel->updateReservation($reservation_id, $reservation_date, $start_time, $end_time);
+        $_SESSION['success'] = 'Réservation mise à jour avec succès.';
+        header('Location: /dashboard/booking');
+        exit();
+    }
+    
+    
+    
+
 }
