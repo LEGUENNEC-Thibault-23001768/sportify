@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de bord - Accueil</title>
     <link rel="stylesheet" href="/public/css/home.css">
+    <link rel="stylesheet" href="/public/css/calendar-css/root.css">
+<link rel="stylesheet" href="/public/css/calendar-css/monthview.css">
+<link rel="stylesheet" href="/public/css/calendar-css/weekview.css">
+<link rel="stylesheet" href="/public/css/calendar-css/dayview.css">
+<link rel="stylesheet" href="/public/css/calendar-css/yearview.css">
+<link rel="stylesheet" href="/public/css/calendar-css/sbdatepicker.css">
+
 </head>
 <body>
     <div class="dashboard">
@@ -52,72 +59,80 @@
                 </div>
             </div>
 
+            <div class="calendar-controls">
+                <label for="view-select">Afficher par : </label>
+                <select id="view-select">
+                    <option value="day">Jour</option>
+                    <option value="week">Semaine</option>
+                </select>
+            </div>
+            
+
             <div class="calendar-container">
-              <div class="calendar-header">
-                  <h2>Planning de la semaine</h2>
-              </div>
-          
-              <!-- Conteneur principal -->
-              <div class="calendar-main">
-                  <!-- Colonne des heures -->
-                  <div class="hours-column">
-                      <div class="hour-label">6h</div>
-                      <div class="hour-label">7h</div>
-                      <div class="hour-label">8h</div>
-                      <div class="hour-label">9h</div>
-                      <div class="hour-label">10h</div>
-                      <div class="hour-label">11h</div>
-                      <div class="hour-label">12h</div>
-                      <div class="hour-label">13h</div>
-                      <div class="hour-label">14h</div>
-                      <div class="hour-label">15h</div>
-                      <div class="hour-label">16h</div>
-                      <div class="hour-label">17h</div>
-                      <div class="hour-label">18h</div>
-                      <div class="hour-label">19h</div>
-                      <div class="hour-label">20h</div>
-                      <div class="hour-label">21h</div>
-                      <div class="hour-label">22h</div>
-                      <div class="hour-label">23h</div>
-                  </div>
-          
-                  <!-- Conteneur pour le tableau avec scroll -->
-                  <div class="calendar-table-container">
-                      <table class="calendar-table">
-                          <thead>
-                              <tr>
-                                  <th>Lundi</th>
-                                  <th>Mardi</th>
-                                  <th>Mercredi</th>
-                                  <th>Jeudi</th>
-                                  <th>Vendredi</th>
-                                  <th>Samedi</th>
-                                  <th>Dimanche</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                              <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                              <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                              <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-                              <!-- Continue pour les autres lignes jusqu'à 23h -->
-                          </tbody>
-                      </table>
-                  </div>
-              </div>          
-          </div>
-          
+                <div class="calendar-header">
+                    <h2>Planning de la semaine</h2>
+                </div>
+                <div id="planning" class="calendar__dayview">
+                    <div class="dayview--main-grid"></div>
+                </div>
+            </div>
         </main>
     </div>
+
+    <script src="/public/js/dayview_minified.js"></script>
     <script>
-        // Utiliser fetch pour charger le contenu de la sidebar
-        fetch('sidebar.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('sidebar').innerHTML = data;
-            })
-            .catch(error => console.error('Erreur lors du chargement de la sidebar:', error));
+        document.addEventListener('DOMContentLoaded', function() {
+            const context = {
+                getDate: () => new Date() // Retourne la date actuelle
+            };
+    
+            const store = {
+                getEntriesForDate: (date) => [
+                    {
+                        startHour: 9, // 9h du matin
+                        endHour: 11, // 11h
+                        title: "Séance de sport"
+                    },
+                    {
+                        startHour: 14, // 14h
+                        endHour: 15, // 15h
+                        title: "Cours de yoga"
+                    },
+                    {
+                        startHour: 16,
+                        endHour: 18,
+                        title: "Réunion d'équipe"
+                    },
+                    {
+                        startHour: 19,
+                        endHour: 20,
+                        title: "Dîner avec des amis"
+                    }
+                ]
+            };
+    
+            const viewSelect = document.getElementById('view-select');
+    
+            // Fonction pour afficher la vue sélectionnée
+            function updateView() {
+                const selectedView = viewSelect.value; // Récupère la vue sélectionnée
+                setDayView(context, store, selectedView); // Affiche la vue choisie
+            }
+    
+            // Initialise le calendrier avec la vue par défaut (jour)
+            setDayView(context, store, 'day');
+    
+            // Écoute le changement de vue
+            viewSelect.addEventListener('change', updateView);
+        });
     </script>
-    <script src="/public/js/test.js"></script>
+    <script src="/public/js/calendar-js/index.js"></script>
+    <script src="/public/js/calendar-js/dayview.js"></script>
+    <script src="/public/js/calendar-js/weekview.js"></script>
+    <script src="/public/js/calendar-js/monthview.js"></script>
+    <script src="/public/js/calendar-js/yearview.js"></script>
+    <script src="/public/js/calendar-js/datepicker.js"></script>
+    
+    
 </body>
 </html>
