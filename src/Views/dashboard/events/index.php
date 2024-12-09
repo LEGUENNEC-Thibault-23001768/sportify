@@ -32,13 +32,12 @@
     <div class="container">
         <div class="event-actions">
             <h1>Events List</h1>
-            
+
             <?php if ($member['status'] === 'coach' || $member['status'] === 'admin'): ?>
                 <a href="/dashboard/events/create" class="btn btn-primary">Create New Event</a>
             <?php endif; ?>
         </div>
 
-        <!-- Vérifier s'il y a des événements -->
         <?php if (!empty($events)): ?>
             <table class="table table-striped event-table">
                 <thead>
@@ -64,6 +63,7 @@
                             <td>
                                 <a href="/dashboard/events/<?php echo $event['event_id']; ?>" class="btn btn-info">View</a>
                                 <?php if ((int)$_SESSION['user_id'] == (int)$event['created_by'] || $member['status'] === 'coach' || $member['status'] === 'admin'): ?>
+                                    <a href="/dashboard/events/<?php echo $event['event_id']; ?>/invite" class="btn btn-success">Invite</a>
                                     <form action="/dashboard/events/<?php echo $event['event_id']; ?>/delete" method="POST" style="display:inline-block;">
                                         <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this event?');">Delete</button>
                                     </form>
@@ -74,7 +74,6 @@
                 </tbody>
             </table>
         <?php else: ?>
-            <!-- Message si aucun événement n'est trouvé -->
             <p>No events found.</p>
         <?php endif; ?>
     </div>
