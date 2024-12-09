@@ -1,3 +1,4 @@
+/* Global */
 * {
     margin: 0;
     padding: 0;
@@ -10,6 +11,25 @@ body {
     color: #fff;
 }
 
+/* Photo de profil */
+.profile-header {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: white;
+}
+
+.profile-header img {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+}
+
+/* Sidebar */
 .sidebar {
     width: 220px;
     height: 100vh;
@@ -31,7 +51,7 @@ body {
 }
 
 .sidebar ul {
-    margin-top: -60px; /* Réduit davantage l'espace entre le logo et les onglets */
+    margin-top: -60px;
     list-style: none;
     padding-left: 0px;
 }
@@ -44,23 +64,17 @@ body {
     text-decoration: none;
     color: #ffffff;
     font-size: 18px;
-    display: flex; /* Utilisation de Flexbox pour aligner icônes et texte */
+    display: flex;
     align-items: center;
-    padding: 10px 10px; /* Diminue légèrement le padding gauche pour décaler vers la gauche */
+    padding: 10px 10px;
     transition: background-color 0.3s ease, color 0.3s ease;
-    border-radius: 8px; /* Bordure arrondie */
+    border-radius: 8px;
 }
 
 .sidebar ul li a i {
-    width: 30px; /* Ajoute une largeur fixe pour aligner toutes les icônes */
-    margin-right: 20px; /* Garde l'espace entre l'icône et le texte */
-    text-align: center; /* Centre l'icône dans l'espace alloué */
-}
-
-
-
-.sidebar ul li a i {
-    margin-right: 20px; /* Espace entre icône et texte */
+    width: 30px;
+    margin-right: 20px;
+    text-align: center;
 }
 
 .sidebar ul li a.active {
@@ -73,28 +87,7 @@ body {
     color: #ffffff;
 }
 
-/* Gestion section, maintenant positionné sous Événements */
-.sidebar .management {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 18px;
-    display: flex; /* Utilisation de Flexbox pour aligner icônes et texte */
-    align-items: center;
-    padding: 10px 20px;
-    transition: color 0.3s ease;
-    border-radius: 8px;
-    padding-left: 12px;
-}
-
-.sidebar .management i {
-    margin-right: 20px; /* Espace entre icône et texte */
-}
-
-.sidebar .management:hover {
-    color: #ffffff;
-    background-color: #333;
-}
-
+/* Section des paramètres */
 .settings-section {
     margin-top: 160px;
     padding-top: 20px;
@@ -106,7 +99,7 @@ body {
     text-decoration: none;
     color: #ffffff;
     font-size: 18px;
-    display: flex; /* Utilisation de Flexbox pour "Paramètres" et "Se déconnecter" */
+    display: flex;
     align-items: center;
     padding: 10px 20px;
     transition: color 0.3s ease;
@@ -114,7 +107,7 @@ body {
 }
 
 .settings-section a i {
-    margin-right: 15px; /* Espace entre icône et texte */
+    margin-right: 15px;
 }
 
 .settings-section a:hover {
