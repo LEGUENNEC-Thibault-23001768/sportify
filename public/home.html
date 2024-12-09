@@ -5,174 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de bord - Accueil</title>
     <link rel="stylesheet" href="/public/css/home.css">
-    <link rel="stylesheet" href="/public/css/calendar-css/root.css">
-    <link rel="stylesheet" href="/public/css/calendar-css/monthview.css">
-    <link rel="stylesheet" href="/public/css/calendar-css/weekview.css">
-    <link rel="stylesheet" href="/public/css/calendar-css/dayview.css">
-    <link rel="stylesheet" href="/public/css/calendar-css/yearview.css">
-    <link rel="stylesheet" href="/public/css/calendar-css/sbdatepicker.css">
     <link rel="stylesheet" href="css/mobiscroll.javascript.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Inclure Chart.js -->
-    <style>
-        /* Style personnalisé pour le formulaire d'événements */
-        #event-form {
-            display: none;
-            position: absolute;
-            background-color: #333;
-            padding: 15px;
-            border-radius: 8px;
-            color: white;
-            z-index: 1000;
-            width: 200px;
-        }
-        #color-options {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-        .color-option {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
-        .color-option.selected {
-            border: 2px solid white;
-        }
-
-        /* Mise en gras et couleur blanche pour le mois et les jours */
-        .mbsc-calendar-header, .mbsc-eventcalendar-header, .mbsc-schedule-header {
-            background-color: #000 !important; /* Fond noir */
-            color: white !important; /* Texte blanc */
-        }
-        .mbsc-calendar-month-label {
-            font-weight: bold;
-            color: white;
-        }
-        .mbsc-calendar-day, .mbsc-calendar-day-label {
-            color: white !important; /* Jours en blanc */
-        }
-
-        /* Fond noir pour les cellules du calendrier */
-        .mbsc-calendar-cell {
-            background-color: #000 !important; /* Fond noir */
-            color: white;
-        }
-        .mbsc-schedule-event {
-            background-color: #333 !important;
-        }
-
-        /* Masquer la ligne horizontale sous les jours */
-        .mbsc-schedule-header,
-        .mbsc-schedule-header .mbsc-calendar-table-header,
-        .mbsc-calendar-header {
-            border-bottom: none !important;
-            box-shadow: none !important;
-        }
-
-        /* Styles pour le carré du graphique circulaire */
-        .task-completion-card {
-            background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 15px;
-            padding: 20px;
-            width: 280px;
-            height: 180px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .legend {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            font-size: 14px;
-            color: #fff;
-        }
-
-        .legend-color {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-
-        .legend-color.complete {
-            background-color: #00bfff; /* Couleur bleue pour "Complet" */
-        }
-
-        .legend-color.missed {
-            background-color: #555; /* Couleur grise pour "Manqué" */
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="dashboard">
         <div id="sidebar"></div>
-
         <main class="main-content">
             <div class="report-header">
-    <h2>Suivi des performances</h2>
-</div>
-
-<div class="main-section">
-    <!-- Partie gauche : les trois cartes de performances avec les contrôles -->
-    <div class="left-section">
-        <div class="report-controls">
-            <select name="week" id="week-select">
-                <option value="current">Semaine actuelle</option>
-                <option value="previous">Semaine précédente</option>
-            </select>
-            <select name="compare" id="compare-select">
-                <option value="last-week">Comparer avec : Semaine dernière</option>
-                <option value="two-weeks">Comparer avec : Il y a deux semaines</option>
-                <option value="month">Comparer avec : Mois précédent</option>
-            </select>
-        </div>
-        
-        <div class="report-section">
-            <div class="report-card performance-card">
-                <div class="report-title">Dernières performances</div>
-                <div class="report-percentage">+5%</div>
-                <div class="report-value">Squat : 120kg</div>
-                <div class="report-previous">Semaine dernière : 115kg</div>
+                <h2>Suivi des performances</h2>
+                <div class="profile-container">
+                    <div class="profile-icon">
+                        <img src="https://via.placeholder.com/40" alt="Photo de profil">
+                    </div>
+                    <div class="profile-name">Kylian Mbappé</div>
+                </div>
             </div>
-            <div class="report-card game-time-card">
-                <div class="report-title">Temps de jeu</div>
-                <div class="report-percentage">+10%</div>
-                <div class="report-value">15 heures</div>
-                <div class="report-previous">Semaine dernière : 13 heures</div>
+            <div class="main-section">
+                <div class="left-section">
+                    <div class="report-controls">
+                        <select name="week" id="week-select">
+                            <option value="current">Semaine actuelle</option>
+                            <option value="previous">Semaine précédente</option>
+                        </select>
+                        <select name="compare" id="compare-select">
+                            <option value="last-week">Comparer avec : Semaine dernière</option>
+                            <option value="two-weeks">Comparer avec : Il y a deux semaines</option>
+                            <option value="month">Comparer avec : Mois précédent</option>
+                        </select>
+                    </div>
+                    <div class="report-section">
+                        <div class="report-card performance-card">
+                            <div class="report-title">Dernières performances</div>
+                            <div class="report-percentage">+5%</div>
+                            <div class="report-value">Squat : 120kg</div>
+                            <div class="report-previous">Semaine dernière : 115kg</div>
+                        </div>
+                        <div class="report-card game-time-card">
+                            <div class="report-title">Temps de jeu</div>
+                            <div class="report-percentage">+10%</div>
+                            <div class="report-value">15 heures</div>
+                            <div class="report-previous">Semaine dernière : 13 heures</div>
+                        </div>
+                        <div class="report-card calories-card">
+                            <div class="report-title">Calories brûlées</div>
+                            <div class="report-percentage">+20%</div>
+                            <div class="report-value">650 Kcal</div>
+                            <div class="report-subtitle">Objectif : 1500 Kcal</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="progression-section">
+                    <div class="task-completion-card">
+                        <div class="progression-title">Progression</div>
+                        <div class="circle-container">
+                            <canvas id="taskCompletionChart"></canvas>
+                            <div id="chart-center-text">71%</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="report-card calories-card">
-                <div class="report-title">Calories brûlées</div>
-                <div class="report-percentage">+20%</div>
-                <div class="report-value">650 Kcal</div>
-                <div class="report-subtitle">Objectif : 1500 Kcal</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Partie droite : carte de progression -->
-    <div class="progression-section">
-        <div class="task-completion-card">
-            <div class="report-title">Progression</div>
-            <div class="circle-container">
-                <canvas id="taskCompletionChart"></canvas>
-                <div id="chart-center-text">71%</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-            
-            
-
             <div mbsc-page class="demo-mobile-day-view">
                 <div style="height:1%">
                     <div id="demo-mobile-day-view"></div>
@@ -181,10 +73,8 @@
         </main>
     </div>
     <div id="event-form">
-        <label>Nom de l'événement :</label>
-        <input type="text" id="event-title">
-        
-        <label>Couleur de l'événement :</label>
+        <label for="event-title">Nom</label>
+        <input type="text" id="event-title" placeholder="">
         <div id="color-options">
             <div class="color-option" data-color="#4981d6" style="background-color: #4981d6;"></div>
             <div class="color-option" data-color="#C1FF72" style="background-color: #C1FF72;"></div>
@@ -192,7 +82,6 @@
             <div class="color-option" data-color="#ffa726" style="background-color: #ffa726;"></div>
         </div>
     </div>
-
     <script src="js/mobiscroll.javascript.min.js"></script>
     <script>
         mobiscroll.setOptions({
@@ -245,30 +134,10 @@
                 });
             },
             data: [
-                {
-                    color: '#4981d6',
-                    start: '2024-11-16T08:00',
-                    end: '2024-11-16T09:00',
-                    title: 'Entraînement cardio'
-                },
-                {
-                    color: '#C1FF72',
-                    start: '2024-11-16T12:00',
-                    end: '2024-11-16T13:30',
-                    title: 'Séance de musculation'
-                },
-                {
-                    color: '#ff5e57',
-                    start: '2024-11-16T15:00',
-                    end: '2024-11-16T16:00',
-                    title: 'Yoga'
-                },
-                {
-                    color: '#ffa726',
-                    start: '2024-11-16T18:00',
-                    end: '2024-11-16T19:00',
-                    title: 'Boxe'
-                }
+                { color: '#4981d6', start: '2024-11-16T08:00', end: '2024-11-16T09:00', title: 'Entraînement cardio' },
+                { color: '#C1FF72', start: '2024-11-16T12:00', end: '2024-11-16T13:30', title: 'Séance de musculation' },
+                { color: '#ff5e57', start: '2024-11-16T15:00', end: '2024-11-16T16:00', title: 'Yoga' },
+                { color: '#ffa726', start: '2024-11-16T18:00', end: '2024-11-16T19:00', title: 'Boxe' }
             ]
         });
 
@@ -278,42 +147,23 @@
                 form.style.display = 'none';
             }
         });
-    </script>
 
-    <script>
-        fetch('sidebar.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('sidebar').innerHTML = data;
-            })
-            .catch(error => console.error('Erreur lors du chargement de la sidebar:', error));
-    </script>
-
-    <script>
         document.addEventListener('DOMContentLoaded', function() {
             var ctx = document.getElementById('taskCompletionChart').getContext('2d');
-            var taskCompletionChart = new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Complet', 'Manqué'],
-                    datasets: [{
-                        data: [71, 29],
-                        backgroundColor: ['#00bfff', '#555'],
-                        borderWidth: 0
-                    }]
+                    datasets: [{ data: [71, 29], backgroundColor: ['#00bfff', '#555'], borderWidth: 0 }]
                 },
-                options: {
-                    responsive: true,
-                    cutout: '70%',
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
+                options: { responsive: true, cutout: '70%', plugins: { legend: { display: false } } }
             });
         });
-    </script>
 
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(data => { document.getElementById('sidebar').innerHTML = data; })
+            .catch(error => console.error('Erreur lors du chargement de la sidebar:', error));
+    </script>
 </body>
 </html>
