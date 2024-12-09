@@ -105,7 +105,7 @@
             <label for="phone">Téléphone :</label>
             <input type="text" name="phone" id="phone" value="<?= htmlspecialchars($user['phone'] ?? "") ?>">
 
-            <?php if ($ifAdminuser['status'] === 'admin'): ?>
+            <?php if ($ifAdminuser['status'] ?? false === 'admin' ): ?>
                 <label for="status">Rôle :</label>
                 <select name="status" id="status">
                     <option value="membre" <?= $user['status'] === 'user' ? 'selected' : '' ?>>Membre</option>
