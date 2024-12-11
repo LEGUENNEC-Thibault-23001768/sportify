@@ -79,6 +79,11 @@
                  <div class="card-title"><span class="emoji">📈</span> Nouvelles inscriptions</div>
              <div class="card-value">5 nouvelles inscriptions ont été faites récemment à Sportify !</div>
         </div>
+        <div class="card">
+        <h3 class="title personal-training">🎯 Entraînement personnalisé</h3>
+        <p>Recevez un plan d'entraînement adapté à votre profil.</p>
+        <a class="btn" href="/dashboard/training/start">Commencer</a>
+    </div>
         <?php endif; ?>
 </div>
 
