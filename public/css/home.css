@@ -142,6 +142,10 @@ body, html {
   color: #C1FF72;
 }
 
+.performance-card .report-title {
+  color: black; /* Spécifique à "Dernières performances" */
+}
+
 .report-percentage {
   position: absolute;
   top: 15px;
@@ -228,6 +232,13 @@ body, html {
   font-weight: bold;
   color: white;
   pointer-events: none;
+}
+
+/* Barre de progression rose vif avec arrondi au bout */
+#taskCompletionChart path[stroke="#00bfff"] {
+  stroke: #FF007F !important; /* Couleur rose vif */
+  stroke-linecap: round; /* Arrondi des bouts */
+  filter: drop-shadow(0px 0px 5px #FF33A8); /* Effet lumineux */
 }
 
 #event-form {
