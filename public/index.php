@@ -68,6 +68,15 @@ $router->post( '/forgot-password', 'AuthController@sendResetLink');
 $router->get( '/reset-password', 'AuthController@showResetPasswordForm');
 $router->post( '/reset-password', 'AuthController@resetPassword');
 
+$router->get('/dashboard/training/start', 'TrainingController@start');
+$router->get('/dashboard/training/step/{step}', 'TrainingController@step');
+$router->post('/dashboard/training/step/{step}', 'TrainingController@step');
+$router->get('/dashboard/training/generate', 'TrainingController@generate');
+$router->get('/dashboard/training', 'TrainingController@dashboard');
+$router->get('/dashboard/training/edit', 'TrainingController@edit');
+$router->post('/dashboard/training/edit', 'TrainingController@edit');
+
+
 
 
 $url = $_SERVER['REQUEST_URI'];
