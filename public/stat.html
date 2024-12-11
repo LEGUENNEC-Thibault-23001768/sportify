@@ -3,82 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistiques sportives</title>
-    <link rel="stylesheet" href="/public/css/stat.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Tableau de bord - Sports</title>
+    <link rel="stylesheet" href="/public/css/home.css">
 </head>
 <body>
     <div class="dashboard">
-        <aside class="sidebar">
-            <div class="logo">
-                <svg width="24"24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M9 22V12H15V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <nav>
-                <button class="nav-item active" aria-label="Statistiques">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                </button>
-            </nav>
-        </aside>
-
+        <div id="sidebar"></div>
         <main class="main-content">
-            <div class="grid">
-                <div class="left-column">
-                    <div class="section-header">
-                        <h2>Statistiques sportives</h2>
-                        <p>Résumé de vos performances par sport</p>
+            <div class="report-header">
+                <h2>Suivi des performances</h2>
+                <div class="profile-container">
+                    <div class="profile-icon">
+                        <img src="https://via.placeholder.com/40" alt="Photo de profil">
                     </div>
-
-                    <div class="card sport-selection-card">
-                        <h3 class="title">Sélectionner un sport</h3>
-                        <form>
-                            <label for="sport-select">Choisir un sport :</label>
-                            <select id="sport-select" name="sport" onchange="loadSportStats(this.value)">
+                    <div class="profile-name">Kylian Mbappé</div>
+                </div>
+            </div>
+            <div class="main-section">
+                <!-- Section gauche avec les carrés -->
+                <div class="left-section">
+                    <!-- Ligne 1 -->
+                    <div class="report-section">
+                        <div class="report-card performance-card">
+                            <div class="report-title">Choix du sport</div>
+                            <select id="sport-select" onchange="updateStats()" style="width: 100%; padding: 10px;">
                                 <option value="football">Football</option>
-                                <option value="natation">Natation</option>
-                                <option value="course">Course</option>
-                                <option value="basket">Basket</option>
+                                <option value="musculation">Musculation</option>
+                                <option value="rpm">RPM</option>
+                                <option value="boxe">Boxe</option>
+                                <option value="tennis">Tennis</option>
+                                <option value="basketball">Basketball</option>
                             </select>
-                        </form>
+                        </div>
+                        <div class="report-card game-time-card" id="stat-1">
+                            <div class="report-title">Buts marqués</div>
+                            <div class="report-value">--</div>
+                            <div class="report-subtitle">--</div>
+                        </div>
                     </div>
-
-                    <div class="card sport-stats-card">
-                        <h3 class="title">Statistiques pour <span id="selected-sport">Football</span></h3>
-                        <ul id="sport-stats">
-                            <li>Temps total : 10h 20m</li>
-                            <li>Meilleur score : 5 buts</li>
-                            <li>Records personnels : 12 matchs gagnés</li>
-                        </ul>
+                    <!-- Ligne 2 -->
+                    <div class="report-section">
+                        <div class="report-card calories-card" id="stat-2">
+                            <div class="report-title">Temps de jeu</div>
+                            <div class="report-value">--</div>
+                            <div class="report-subtitle">--</div>
+                        </div>
+                        <div class="report-card game-time-card" id="stat-3">
+                            <div class="report-title">Passes décisives</div>
+                            <div class="report-value">--</div>
+                            <div class="report-subtitle">--</div>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="card progress-chart-card">
-                        <h3 class="title">Progression par sport</h3>
-                        <canvas id="progressChart"></canvas>
+                <!-- Section droite pour les statistiques circulaires -->
+                <div class="right-section">
+                    <div class="stats-header">
+                        <h3>Statistiques du sport</h3>
+                        <div class="time-selector">Aujourd'hui ▼</div>
                     </div>
-
-                    <div class="card comparison-card">
-                        <h3 class="title">Comparaison avec vos objectifs</h3>
-                        <ul id="performance-comparison">
-                            <li>Objectif de matchs gagnés : 20 / 30</li>
-                            <li>Objectif de buts marqués : 18 / 25</li>
-                            <li>Temps total visé : 15h / 20h</li>
-                        </ul>
+                    <div class="stats-circle">
+                        <div class="circle-chart">
+                            <svg viewBox="0 0 36 36" class="circular-chart blue">
+                                <path class="circle-bg"
+                                    d="M18 2.0845
+                                       a 15.9155 15.9155 0 0 1 0 31.831
+                                       a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle"
+                                    stroke-dasharray="70, 100"
+                                    d="M18 2.0845
+                                       a 15.9155 15.9155 0 0 1 0 31.831
+                                       a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="circle-center">
+                                <p>+12%</p>
+                                <span>Performance</span>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="card history-card">
-                        <h3 class="title">Historique des activités</h3>
-                        <ul id="activity-history">
-                            <li>20 septembre 2024 : Match gagné 3-1</li>
-                            <li>15 septembre 2024 : Match perdu 1-2</li>
-                            <li>10 septembre 2024 : Match gagné 2-0</li>
-                        </ul>
+                    <div class="stats-list">
+                        <div class="stat-item">
+                            <span>Football</span>
+                            <span class="value">12 buts <span class="green">+3%</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Boxe</span>
+                            <span class="value">30 coups <span class="red">-5%</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Tennis</span>
+                            <span class="value">18 aces <span class="green">+8%</span></span>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-    <script src="/public/js/script.js"></script>
+    <script>
+        const statsData = {
+            football: ["10 buts", "90 minutes", "5 passes décisives"],
+            musculation: ["120kg au squat", "2 heures", "50 répétitions"],
+            rpm: ["30 km", "1h30", "5 sprints"],
+            boxe: ["150 coups portés", "3 rounds", "10 esquives"],
+            tennis: ["20 aces", "2 heures", "10 doubles fautes"],
+            basketball: ["30 points", "40 minutes", "10 rebonds"]
+        };
+
+        function updateStats() {
+            const selectedSport = document.getElementById('sport-select').value;
+            const stats = statsData[selectedSport];
+
+            const titles = {
+                football: ["Buts marqués", "Temps de jeu", "Passes décisives"],
+                musculation: ["Charge maximale", "Durée d'entraînement", "Répétitions totales"],
+                rpm: ["Distance parcourue", "Durée totale", "Sprints"],
+                boxe: ["Coups portés", "Nombre de rounds", "Esquives réussies"],
+                tennis: ["Aces", "Temps de jeu", "Fautes doubles"],
+                basketball: ["Points marqués", "Temps de jeu", "Rebonds"]
+            };
+
+            const statsTitles = titles[selectedSport];
+
+            document.getElementById('stat-1').querySelector('.report-title').textContent = statsTitles[0];
+            document.getElementById('stat-1').querySelector('.report-value').textContent = stats[0];
+
+            document.getElementById('stat-2').querySelector('.report-title').textContent = statsTitles[1];
+            document.getElementById('stat-2').querySelector('.report-value').textContent = stats[1];
+
+            document.getElementById('stat-3').querySelector('.report-title').textContent = statsTitles[2];
+            document.getElementById('stat-3').querySelector('.report-value').textContent = stats[2];
+        }
+
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(data => { document.getElementById('sidebar').innerHTML = data; })
+            .catch(error => console.error('Erreur lors du chargement de la sidebar:', error));
+    </script>
 </body>
 </html>
