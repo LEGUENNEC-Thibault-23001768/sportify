@@ -1,4 +1,3 @@
-/* Global */
 * {
     margin: 0;
     padding: 0;
@@ -9,27 +8,9 @@ body {
     font-family: 'League Spartan', sans-serif;
     background-color: #000000;
     color: #fff;
+    margin-top: 30px;
 }
 
-/* Photo de profil */
-.profile-header {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: white;
-}
-
-.profile-header img {
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-}
-
-/* Sidebar */
 .sidebar {
     width: 220px;
     height: 100vh;
@@ -43,7 +24,7 @@ body {
 .sidebar .logo {
     text-align: center;
     margin-bottom: 100px;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 
 .sidebar .logo img {
@@ -51,7 +32,7 @@ body {
 }
 
 .sidebar ul {
-    margin-top: -60px;
+    margin-top: -40px;
     list-style: none;
     padding-left: 0px;
 }
@@ -71,26 +52,21 @@ body {
     border-radius: 8px;
 }
 
+.sidebar ul li a.active,
+.sidebar ul li a:hover {
+    background-color: #333;
+    color: #ffffff;
+}
+
 .sidebar ul li a i {
     width: 30px;
     margin-right: 20px;
     text-align: center;
 }
 
-.sidebar ul li a.active {
-    background-color: #333;
-    color: #ffffff;
-}
-
-.sidebar ul li a:hover {
-    background-color: #333;
-    color: #ffffff;
-}
-
-/* Section des paramètres */
 .settings-section {
-    margin-top: 160px;
-    padding-top: 20px;
+    margin-top: 90px;
+    padding-top: 0px;
     display: flex;
     flex-direction: column;
 }
@@ -122,4 +98,57 @@ body {
 
 .settings-section .logout:hover {
     color: #C1FF72;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed; /* Fixe la partie haute */
+    top: 0; /* Toujours en haut */
+    left: 220px; /* Décalage correspondant à la largeur de la sidebar */
+    right: 0; /* Étend jusqu'à la droite */
+    z-index: 1000; /* S'assure qu'il est au-dessus des autres éléments */
+    background-color: #000; /* Fond noir pour uniformité */
+    padding: 20px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Ajoute une ombre */
+}
+
+.report-header h1 {
+    font-size: 20px;
+    color: white;
+    margin: 0;
+}
+
+.report-header p {
+    font-size: 14px;
+    color: #C1FF72;
+    margin-top: 5px;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: white;
+    white-space: nowrap;
+}
+
+.profile-header img {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+}
+
+.profile-header a {
+    text-decoration: none;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.profile-header a:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
 }

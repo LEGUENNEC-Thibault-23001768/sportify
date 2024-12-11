@@ -8,11 +8,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
-    <div class="profile-header">
-        <img src="https://via.placeholder.com/40/000000/FFFFFF?text=+" alt="Photo de profil">
-        <span>Nom utilisateur</span>
+    <!-- Partie haute -->
+    <div class="header-container">
+        <div class="report-header">
+            <h1>Suivi des performances</h1>
+            <p id="current-date"></p>
+        </div>
+        <div class="profile-header">
+            <a href="#" id="profile-link">
+                Kylian Mbappé
+            </a>
+            <img src="https://i.pinimg.com/736x/79/8f/bf/798fbf62ba74a844ceeef90b83c76e59.jpg" alt="Photo de profil">
+        </div>
     </div>
 
+    <!-- Sidebar -->
     <div class="sidebar">
         <div class="logo">
             <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify">
@@ -26,11 +36,30 @@
             <li><a href="#" class="management"><i class="fas fa-tasks"></i> Gestion</a></li> 
         </ul>
         <div class="settings-section">
-            <a href="#" class="settings"></i> Paramètres</a>
-            <a href="#" class="logout"></i> Se déconnecter</a>
+            <a href="#" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
+            <a href="#" class="logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
         </div>
     </div>
 
-    <script src="/public/js/sidebar.js"></script>
+    <script>
+        // Script pour afficher la date actuelle
+        const dateElement = document.getElementById("current-date");
+        const options = { weekday: 'long', day: 'numeric', month: 'long' };
+        const today = new Date();
+        dateElement.textContent = today.toLocaleDateString('fr-FR', options);
+
+        // Animation lors du clic sur le nom/prénom
+        const profileLink = document.getElementById("profile-link");
+        profileLink.addEventListener("click", function (e) {
+            e.preventDefault();
+            profileLink.style.transition = "transform 0.3s ease, opacity 0.3s ease";
+            profileLink.style.transform = "scale(0.95)";
+            profileLink.style.opacity = "0.5";
+            setTimeout(() => {
+                // Remplace "#" par le lien de la redirection
+                window.location.href = "profile.html";
+            }, 300);
+        });
+    </script>
 </body>
 </html>
