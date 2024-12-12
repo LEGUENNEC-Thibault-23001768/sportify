@@ -4,79 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events List</title>
-    <style>
-        .event-table {
-            width: 100%;
-            margin-bottom: 30px;
-            border: 1px solid #ddd;
-        }
-        .event-table th, .event-table td {
-            padding: 10px;
-            text-align: left;
-        }
-        .event-table th {
-            background-color: #f7f7f7;
-        }
-        .event-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .event-actions a {
-            margin-left: 10px;
-        }
-    </style>
+
+    <link rel="preconnect" href="https://code.jquery.com">
+    <link rel="dns-prefetch" href="https://code.jquery.com">
+    <link rel="stylesheet" href="../_assets/css/mobiscroll.min.css">
+    <link rel="preload" href="../_assets/css/event_style.css" as="style"> <link rel="stylesheet" href="../_assets/css/event_style.css">
+    <script src="../_assets/js/mobiscroll.min.js" defer></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
+    <script>
+        const currentUserId = <?php echo $member['member_id']; ?>;
+        const memberStatus = "<?php echo $member['status']; ?>";
+    </script>
+    <script src="../_assets/js/event_script.js" defer></script>
 </head>
 <body>
     <div class="container">
-        <div class="event-actions">
-            <h1>Events List</h1>
+        <div id="myCalendar"></div>
 
-            <?php if ($member['status'] === 'coach' || $member['status'] === 'admin'): ?>
-                <a href="/dashboard/events/create" class="btn btn-primary">Create New Event</a>
-            <?php endif; ?>
+        <div id="eventDetailsPopup" class="custom-popup">
+            <div class="popup-header">
+                <h2>Event Details</h2>
+                <span class="close-button" id="closeDetailsButton">×</span>
+            </div>
+            <div class="popup-content" id="eventDetailsContent"></div>
         </div>
 
-        <?php if (!empty($events)): ?>
-            <table class="table table-striped event-table">
-                <thead>
-                    <tr>
-                        <th>Event Name</th>
-                        <th>Event Date</th>
-                        <th>Location</th>
-                        <th>Max Participants</th>
-                        <th>Participants Registered</th>
-                        <th>Created By</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($events as $event): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($event['event_name']); ?></td>
-                            <td><?php echo htmlspecialchars($event['event_date']); ?></td>
-                            <td><?php echo htmlspecialchars($event['location']); ?></td>
-                            <td><?php echo htmlspecialchars($event['max_participants']); ?></td>
-                            <td><?php echo htmlspecialchars($event['participants_count']); ?></td>
-                            <td><?php echo htmlspecialchars($event['created_by_name']); ?></td>
-                            <td>
-                                <a href="/dashboard/events/<?php echo $event['event_id']; ?>" class="btn btn-info">View</a>
-                                <?php if ((int)$_SESSION['user_id'] == (int)$event['created_by'] || $member['status'] === 'coach' || $member['status'] === 'admin'): ?>
-                                    <a href="/dashboard/events/<?php echo $event['event_id']; ?>/invite" class="btn btn-success">Invite</a>
-                                    <form action="/dashboard/events/<?php echo $event['event_id']; ?>/delete" method="POST" style="display:inline-block;">
-                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this event?');">Delete</button>
-                                    </form>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p>No events found.</p>
-        <?php endif; ?>
+        <div id="createEventPopup" class="custom-popup">
+            <div class="popup-header">
+                <h2>Create Event</h2>
+                <span class="close-button" onclick="closeCreateEventPopup()">×</span>
+            </div>
+            <div class="popup-content">
+                <form id="eventForm">
+                    <div class="form-group">
+                        <label for="event_name">Event Name</label>
+                        <input type="text" id="event_name" name="event_name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="event_date">Event Date</label>
+                        <input type="text" id="event_date" name="event_date" class="form-control" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="start_time">Start Time</label>
+                        <input type="text" id="start_time" name="start_time" class="form-control" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="end_time">End Time</label>
+                        <input type="text" id="end_time" name="end_time" class="form-control" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" class="form-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="max_participants">Max Participants</label>
+                        <input type="number" id="max_participants" name="max_participants" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" name="location" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="invitations">Invite by Email (comma-separated)</label>
+                        <textarea id="invitations" name="invitations" class="form-control" placeholder="Enter email addresses separated by commas"></textarea>
+                    </div>
+                    <button id="saveEvent" type="button" class="btn btn-primary">Create Event</button>
+                    <button id="cancelEvent" type="button" class="btn btn-secondary">Cancel</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="overlay" id="popupOverlay"></div>
+        <div id="toast-container"></div>
     </div>
 
+   
 </body>
 </html>

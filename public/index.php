@@ -24,17 +24,15 @@ $router->post( '/register', 'AuthController@register');
 $router->get( '/logout', 'AuthController@logout');
 
 $router->get( '/dashboard/events', 'EventController@index');
-$router->get( '/dashboard/events/show', 'EventController@show');
-$router->get( '/dashboard/events/create', 'EventController@create');
-//$router->post( '/dashboard/events/{event_id}/delete', 'EventController@ðelete');
-$router->post( '/dashboard/events/store', 'EventController@store');
-$router->post( '/dashboard/events/{event_id}/delete', 'EventController@delete');
-$router->get( '/dashboard/events/{event_id}', 'EventController@show');
-//$router->post( '/dashboard/events/{event_id}/join', 'EventController@join'); // supprimer
-$router->get('/dashboard/events/{id}/invite', 'EventController@invite');
-$router->post('/dashboard/events/{id}/invite', 'EventController@sendInvite');
-$router->get('/event/invitation/{token}', 'EventController@acceptInvite');
-$router->post('/dashboard/invitations/{id}/delete', 'EventController@deleteInvitation');
+
+
+$router->get('/api/events', 'EventController@getEvents');
+$router->get('/api/events/{id}', 'EventController@show');
+$router->post('/api/events', 'EventController@storeApi');
+$router->post('/api/events/join/{id}', 'EventController@join');
+$router->post('/api/events/leave/{id}', 'EventController@leave');
+$router->delete('/api/events/{id}', 'EventController@deleteApi');
+$router->post('/api/events/{id}/invite', 'EventController@sendInviteApi');
 
 
 

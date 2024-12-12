@@ -25,6 +25,15 @@ class EventRegistration {
         return Database::query($sql, $params)->rowCount() > 0;
     }
 
+    public static function unregisterUserFromEvent($eventId, $userId) {
+        $sql = "DELETE FROM EVENT_REGISTRATION WHERE event_id = :eventId AND member_id = :userId";
+        $params = [
+            ':eventId' => $eventId,
+            ':userId' => $userId
+        ];
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
     public static function getParticipantsByEvent($eventId) {
         $sql = "SELECT * FROM EVENT_REGISTRATION WHERE event_id = :eventId";
         $params = [':eventId' => $eventId];

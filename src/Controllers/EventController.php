@@ -4,6 +4,7 @@ namespace Controllers;
 
 use Core\View;
 use Core\Config;
+use Core\APIResponse;
 use Models\Event;
 use Models\User;
 use Models\EventRegistration;
@@ -13,170 +14,187 @@ class EventController
 {
     public function index()
     {
-        $currentUserId = $_SESSION['user_id'];
-        
-        $member = User::getUserById($currentUserId);
-        $events = Event::getAllEvents();
-        
-        echo View::render('/dashboard/events/index', ['events' => $events, 'member' => $member]);
-    }
-
-    public function create()
-    {
-        $currentUserId = $_SESSION['user_id'];
-        $currentUser = User::getUserById($currentUserId);
-
-        if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
-            echo View::render('/dashboard/events/index', ['error' => 'You are not authorized to create events']);
-            return;
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login'); // Redirect to login if not logged in
+            exit;
         }
 
-        echo View::render('/dashboard/events/create');
+        $currentUserId = $_SESSION['user_id'];
+        $member = User::getUserById($currentUserId);
+
+        echo View::render('/dashboard/events/index', [
+            'member' => $member,
+            'currentUserId' => $currentUserId
+        ]);
     }
 
-    public function store()
+    public function getEvents()
     {
+        $currentUserId = $_SESSION['user_id'];
+        $member = User::getUserById($currentUserId);
+        $events = Event::getAllEvents();
+    
+        $mobiscrollEvents = [];
+        foreach ($events as $event) {
+            $participants = [];
+            // Check if the user is authorized to view participants
+            if ($member["status"] === 'coach' || $member['status'] === 'admin' || $event['created_by'] == $currentUserId) {
+                $registrations = EventRegistration::getParticipantsByEvent($event['event_id']);
+                foreach ($registrations as $registration) {
+                    $participants[] = User::getUserById($registration['member_id']);
+                }
+            }
+    
+            $mobiscrollEvents[] = [
+                'id' => $event['event_id'],
+                'title' => $event['event_name'],
+                'start' => $event['event_date'] . 'T' . $event['start_time'],
+                'end' => $event['event_date'] . 'T' . $event['end_time'],
+                'description' => $event['description'],
+                'location' => $event['location'],
+                'max_participants' => $event['max_participants'],
+                'created_by' => $event['created_by'],
+                'is_registered' => EventRegistration::isUserRegistered($event['event_id'], $currentUserId),
+                'participants' => $participants
+            ];
+        }
+    
+        $response = new APIResponse();
+        $response->setStatusCode(200)->setData($mobiscrollEvents)->send();
+    }
+    
+
+    public function storeApi()
+    {
+        $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
         $currentUser = User::getUserById($currentUserId);
 
         if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
-            echo View::render('/dashboard/events/index', ['error' => 'You are not authorized to create events']);
-            return;
+            return $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
         }
 
         $eventData = $_POST;
 
         if (empty($eventData['event_name']) || empty($eventData['event_date']) || empty($eventData['start_time']) || empty($eventData['end_time']) || empty($eventData['max_participants']) || empty($eventData['location'])) {
-            echo View::render('/dashboard/events/create', ['error' => 'All required fields must be filled']);
-            return;
+            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
         }
 
-        Event::createEvent($eventData);
+        $start = new \DateTime($eventData['event_date'] . 'T' . $eventData['start_time']);
+        $end = new \DateTime($eventData['event_date'] . 'T' . $eventData['end_time']);
+        $duration = $start->diff($end);
 
-        header('Location: /dashboard/events');
-        exit;
+        if ($duration->h >= 2) {
+            return $response->setStatusCode(400)->setData(['error' => 'Event duration cannot exceed 2 hours'])->send();
+        }
+
+        if (!is_numeric($eventData['max_participants']) || $eventData['max_participants'] < 5) {
+            return $response->setStatusCode(400)->setData(['error' => 'Maximum participants must be a number and at least 5'])->send();
+        }
+
+        $eventData['created_by'] = $currentUserId;
+        $eventId = Event::createEvent($eventData);
+
+        if (!empty($eventData['invitations'])) {
+            $emails = explode(',', $eventData['invitations']);
+            $emails = array_map('trim', $emails);
+            foreach ($emails as $email) {
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $token = EventInvitation::createInvitation($eventId, $email);
+                    $eventData['event_id'] = $eventId;
+                    $this->sendInvitationEmail($email, $token, $eventData);
+                }
+            }
+        }
+
+        if (!$eventId) {
+            return $response->setStatusCode(500)->setData(['error' => 'Failed to create event'])->send();
+        }
+
+        $mobiscrollEvent = [
+            'id' => $eventId,
+            'title' => $eventData['event_name'],
+            'start' => $eventData['event_date'] . 'T' . $eventData['start_time'],
+            'end' => $eventData['event_date'] . 'T' . $eventData['end_time'],
+            'description' => $eventData['description'],
+            'location' => $eventData['location'],
+            'max_participants' => $eventData['max_participants'],
+            'created_by' => $eventData['created_by'],
+            'is_registered' => false,
+        ];
+
+        return $response->setStatusCode(201)->setData($mobiscrollEvent)->send();
     }
 
-    public function join($eventId) {
-        
+    public function sendInviteApi($eventId) {
+        $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
-        
-        $event = Event::findEvents($eventId);
-        
-        if (!$event) {
-            echo View::render('/dashboard/events/index', ['error' => 'Event not found']);
-            return;
-        }
-    
-        if (EventRegistration::isUserRegistered($eventId, $currentUserId)) {
-            echo View::render('/dashboard/events/index', ['error' => 'You are already registered for this event']);
-            return;
-        }
-    
-        if ($event['participants_count'] >= $event['max_participants']) {
-            echo View::render('/dashboard/events/index', ['error' => 'The event is already full']);
-            return;
-        }
-    
-        EventRegistration::registerUserToEvent($eventId, $currentUserId);
-        
-        header('Location: /dashboard/events');
-        exit;
-    }
-
-    public function delete($eventId) {
-        $currentUserId = $_SESSION['user_id'];
-        $member = User::getUserById($currentUserId);
-    
+        $currentUser = User::getUserById($currentUserId);
         $event = Event::findEvents($eventId);
     
         if (!$event) {
-            echo View::render('/dashboard/events/index', ['error' => 'Event not found']);
-        }
-        if ($event['created_by'] != $currentUserId && $member['status'] !== "coach" && $member['status'] !== "admin") {
-            echo View::render('/dashboard/events/index', ['error' => 'You are not authorized to delete this event']);
+            $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+            return;
         }
     
-        if (Event::deleteEvent($eventId)) {
-            header('Location: /dashboard/events');
-        } else {
-            echo View::render('/dashboard/events/index', ['error' => 'Failed to delete event']);
-        }
-    }
-
-
-    public function invite($eventId)
-    {
-        $currentUserId = $_SESSION['user_id'];
-        $member = User::getUserById($currentUserId);
-        $event = Event::findEvents($eventId);
-
-        if (!$event) {
-            echo View::render('/dashboard/events/index', ['error' => 'Event not found']);
+        // Check if the user is authorized to send invitations
+        if ($event['created_by'] != $currentUserId && $currentUser['status'] !== "coach" && $currentUser['status'] !== "admin") {
+            $response->setStatusCode(403)->setData(['error' => 'You are not authorized to send invitations'])->send();
             return;
         }
-
-
-        // Check if the current user is authorized to invite
-        if ($event['created_by'] != $currentUserId && $member['status'] !== "coach" && $member['status'] !== "admin") {
-            echo View::render('/dashboard/events/index', ['error' => 'You are not authorized to invite users to this event']);
-            return;
-        }
-        $invitations = EventInvitation::findInvitationsByEventId($eventId);
-
-        echo View::render('/dashboard/events/invite', ['event' => $event, 'invitations' => $invitations]);
-    }
-
-    public function sendInvite($eventId)
-    {
-        $currentUserId = $_SESSION['user_id'];
-        $member = User::getUserById($currentUserId);
-        $event = Event::findEvents($eventId);
-
-        if (!$event) {
-            echo View::render('/dashboard/events/index', ['error' => 'Event not found']);
-            return;
-        }
-
-        if ($event['created_by'] != $currentUserId && $member['status'] !== "coach" && $member['status'] !== "admin") {
-            echo View::render('/dashboard/events/index', ['error' => 'You are not authorized to invite users to this event']);
-            return;
-        }
-
+    
         $email = $_POST['email'];
-
-        // Validate email (you might want to add more robust validation)
+    
+        // Validate email
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo View::render('/dashboard/events/invite', ['event' => $event, 'error' => 'Invalid email format']);
+            $response->setStatusCode(400)->setData(['error' => 'Invalid email format'])->send();
             return;
         }
-
+    
         // Check if the user is already registered or invited
-        if (EventRegistration::isUserRegistered($eventId, User::getUserByEmail($email)['member_id'])) {
-            echo View::render('/dashboard/events/invite', ['event' => $event, 'error' => 'User is already registered for this event']);
+        $user = User::getUserByEmail($email);
+        if ($user && EventRegistration::isUserRegistered($eventId, $user['member_id'])) {
+            $response->setStatusCode(400)->setData(['error' => 'User is already registered for this event'])->send();
             return;
         }
-
-        $invitation = EventInvitation::findInvitationsByEventIdAndEmail($eventId, $email);
-
-        if ($invitation) {
-            echo View::render('/dashboard/events/invite', ['event' => $event, 'error' => 'User is already invited to this event']);
+    
+        $existingInvitation = EventInvitation::findInvitationsByEventIdAndEmail($eventId, $email);
+        if ($existingInvitation) {
+            $response->setStatusCode(400)->setData(['error' => 'User is already invited to this event'])->send();
             return;
         }
-
-        // Create invitation
+    
         $token = EventInvitation::createInvitation($eventId, $email);
-
+    
         // Send invitation email
         if ($this->sendInvitationEmail($email, $token, $event)) {
-            echo View::render('/dashboard/events/invite', ['event' => $event, 'success' => 'Invitation sent successfully!']);
+            $response->setStatusCode(200)->setData(['message' => 'Invitation sent successfully'])->send();
         } else {
-            $invitation = EventInvitation::findInvitationByToken($token);
-            if ($invitation) {
-                EventInvitation::deleteInvitation($invitation['invitation_id']);
-            }
-    
-            echo View::render('/dashboard/events/invite', ['event' => $event, 'error' => 'Failed to send invitation email. Please try again.']);
+            $response->setStatusCode(500)->setData(['error' => 'Failed to send invitation'])->send();
+        }
+    }
+
+    public function deleteApi($eventId)
+    {
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+        $currentUser = User::getUserById($currentUserId);
+        $event = Event::findEvents($eventId);
+
+        if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
+            $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
+            return;
+        }
+
+        if (!$event) {
+            $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+            return;
+        }
+
+        if (Event::deleteEvent($eventId)) {
+            $response->setData(['message' => 'Event deleted successfully'])->send();
+        } else {
+            $response->setStatusCode(500)->setData(['error' => 'Failed to delete event'])->send();
         }
     }
 
@@ -185,105 +203,104 @@ class EventController
         $currentUserId = $_SESSION['user_id'];
         $member = User::getUserById($currentUserId);
         $event = Event::findEvents($eventId);
-
+    
         if (!$event) {
-            echo View::render('/dashboard/events/index', ['error' => 'Event not found']);
+            return (new APIResponse)->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
         }
-
-        // Check if the user has permission to view the event details (event creator, coach, admin, or registered user)
+    
         $isRegistered = EventRegistration::isUserRegistered($eventId, $currentUserId);
-        if ($event['created_by'] != $currentUserId && $member['status'] !== "coach" && $member['status'] !== "admin" && !$isRegistered) {
-            echo View::render('/dashboard/events/index', ['error' => 'You are not authorized to view this event']);
-        }
-
-        // Get registered users (participants)
-        $registrations = EventRegistration::getParticipantsByEvent($eventId);
+        $canViewParticipants = ($member['status'] === 'coach' || $member['status'] === 'admin' || $event['created_by'] == $currentUserId);
+    
         $participants = [];
-        foreach ($registrations as $registration) {
-            $participants[] = User::getUserById($registration['member_id']);
+        if ($canViewParticipants) {
+            $registrations = EventRegistration::getParticipantsByEvent($eventId);
+            foreach ($registrations as $registration) {
+                $participants[] = User::getUserById($registration['member_id']);
+            }
         }
-
-        // Get invited users
-        $invitations = EventInvitation::findInvitationsByEventId($eventId);
-
-        echo View::render('/dashboard/events/show', [
-            'event' => $event,
-            'member' => $member,
-            'participants' => $participants,
-            'invitations' => $invitations
-        ]);
+    
+        $eventData = [
+            'id' => $event['event_id'],
+            'event_name' => $event['event_name'],
+            'event_date' => $event['event_date'],
+            'start_time' => $event['start_time'],
+            'end_time' => $event['end_time'],
+            'description' => $event['description'],
+            'location' => $event['location'],
+            'max_participants' => $event['max_participants'],
+            'created_by' => $event['created_by'],
+            'participants' => $canViewParticipants ? $participants : [],
+            'is_registered' => $isRegistered
+        ];
+    
+        $response = new APIResponse();
+        $response->setStatusCode(200)->setData($eventData)->send();
     }
 
-    public function acceptInvite($token)
-    {
-        $invitation = EventInvitation::findInvitationByToken($token);
-
-        if (!$invitation) {
-            return View::render('/dashboard/events/index', ['error' => 'Invalid invitation token.']);
-        }
-
-        $eventId = $invitation['event_id'];
-        $event = Event::findEvents($eventId);
-
-        if (!$event) {
-            return View::render('/dashboard/events/index', ['error' => 'Event not found.']);
-        }
-
-        // Check if the user is logged in
-        if (!isset($_SESSION['user_id'])) {
-            // Store invitation token in session to use after login/registration
-            $_SESSION['invitation_token'] = $token;
-            // Redirect to login page with a message
-            return View::render('/auth/login', ['message' => 'Please login to accept the invitation.']);
-        }
-
-        $userId = $_SESSION['user_id'];
-
-        // Check if already registered
-        if (EventRegistration::isUserRegistered($eventId, $userId)) {
-            EventInvitation::deleteInvitation($invitation['invitation_id']);
-            return View::render('/dashboard/events/index', ['error' => 'You are already registered for this event.']);
-        }
-
-        // Register user for the event
-        EventRegistration::registerUserToEvent($eventId, $userId);
-
-        // Delete invitation
-        EventInvitation::deleteInvitation($invitation['invitation_id']);
-
-        // Remove invitation token from session if it exists
-        unset($_SESSION['invitation_token']);
-
-        return View::render('/dashboard/events/index', ['success' => 'You have successfully joined the event!']);
-    }
-
-    public function deleteInvitation($invitationId) {
+    public function join($eventId) {
+        $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
-        $member = User::getUserById($currentUserId);
-    
-        $invitation = EventInvitation::findInvitationById($invitationId);
-    
-        if (!$invitation) {
-            return View::render('/dashboard/events/index', ['error' => 'Invitation not found']);
-        }
-    
-        $event = Event::findEvents($invitation['event_id']);
+        $event = Event::findEvents($eventId);
     
         if (!$event) {
-            return View::render('/dashboard/events/index', ['error' => 'Event not found']);
+            return $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
         }
     
-        if ($event['created_by'] != $currentUserId && $member['status'] !== "coach" && $member['status'] !== "admin") {
-            return View::render('/dashboard/events/index', ['error' => 'You are not authorized to delete this invitation']);
+        if (EventRegistration::isUserRegistered($eventId, $currentUserId)) {
+            return $response->setStatusCode(400)->setData(['error' => 'You are already registered for this event'])->send();
         }
     
-        if (EventInvitation::deleteInvitation($invitationId)) {
-            // Redirect to the event's invite page with a success message
-            return View::render('/dashboard/events/invite/' . $event['event_id'],  ['event' => $event, 'success' => 'Invitation deleted successfully!']);
-        } else {
-            // Redirect with an error message if deletion fails
-            return View::render('/dashboard/events/invite/' . $event['event_id'],  ['event' => $event, 'error' => 'Failed to delete invitation']);
+        if ($event['participants_count'] >= $event['max_participants']) {
+            return $response->setStatusCode(400)->setData(['error' => 'The event is already full'])->send();
         }
+    
+        EventRegistration::registerUserToEvent($eventId, $currentUserId);
+    
+        $updatedEvent = Event::findEvents($eventId);
+        $updatedEventData = [
+            'id' => $updatedEvent['event_id'],
+            'title' => $updatedEvent['event_name'],
+            'start' => $updatedEvent['event_date'] . 'T' . $updatedEvent['start_time'],
+            'end' => $updatedEvent['event_date'] . 'T' . $updatedEvent['end_time'],
+            'description' => $updatedEvent['description'],
+            'location' => $updatedEvent['location'],
+            'max_participants' => $updatedEvent['max_participants'],
+            'created_by' => $updatedEvent['created_by'],
+            'is_registered' => true
+        ];
+    
+        return $response->setStatusCode(200)->setData(['message' => 'Successfully joined the event', 'event' => $updatedEventData])->send();
+    }
+
+    public function leave($eventId) {
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+        $event = Event::findEvents($eventId);
+    
+        if (!$event) {
+            return $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+        }
+    
+        if (!EventRegistration::isUserRegistered($eventId, $currentUserId)) {
+            return $response->setStatusCode(400)->setData(['error' => 'You are not registered for this event'])->send();
+        }
+    
+        EventRegistration::unregisterUserFromEvent($eventId, $currentUserId);
+    
+        $updatedEvent = Event::findEvents($eventId);
+        $updatedEventData = [
+            'id' => $updatedEvent['event_id'],
+            'title' => $updatedEvent['event_name'],
+            'start' => $updatedEvent['event_date'] . 'T' . $updatedEvent['start_time'],
+            'end' => $updatedEvent['event_date'] . 'T' . $updatedEvent['end_time'],
+            'description' => $updatedEvent['description'],
+            'location' => $updatedEvent['location'],
+            'max_participants' => $updatedEvent['max_participants'],
+            'created_by' => $updatedEvent['created_by'],
+            'is_registered' => false
+        ];
+    
+        return $response->setStatusCode(200)->setData(['message' => 'Successfully left the event', 'event' => $updatedEventData])->send();
     }
 
     private function sendInvitationEmail($email, $token, $event)
@@ -316,5 +333,4 @@ class EventController
             return false;
         }
     }
-
 }
