@@ -21,20 +21,21 @@ body, html {
 }
 
 .left-section {
-    flex: 2;
+    flex: 3;
     display: flex;
-    flex-direction: column;
-    gap: 20px; /* Espacement entre les lignes */
+    flex-direction: row;
+    gap: 30px;
 }
 
 .report-section {
+    flex: 2;
     display: flex;
-    gap: 20px; /* Espacement entre les colonnes */
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .report-card {
-    flex: 1; /* Chaque carte prend une largeur égale */
+    flex: 1;
     background: #1a1a1a;
     border-radius: 15px;
     padding: 20px;
@@ -48,8 +49,19 @@ body, html {
 }
 
 .performance-card {
-    background: #C1FF72; /* Couleur différente pour le choix du sport */
+    background: #C1FF72;
     color: black;
+}
+
+.radial-chart-section {
+    flex: 1;
+    background: #1a1a1a;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .report-title {
@@ -67,6 +79,42 @@ body, html {
 .report-subtitle {
     font-size: 14px;
     color: #888;
+}
+
+.custom-left-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #1a1a1a;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.activities-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.activities-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #444;
+    color: #C1FF72;
+}
+
+.activities-list li:last-child {
+    border-bottom: none;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #C1FF72;
+    margin-bottom: 10px;
 }
 
 .right-section {
