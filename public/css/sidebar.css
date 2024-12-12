@@ -1,154 +1,48 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar - Dashboard</title>
+    <link rel="stylesheet" href="/public/css/sidebar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="header-container">
+        <div class="report-header">
+            <h1>Suivi des performances</h1>
+            <p id="current-date"></p>
+        </div>
+        <div class="profile-header">
+           <div class="notification-container">
+                <i class="fas fa-bell" id="notification-icon"></i>
+                <div class="notification-dropdown" id="notification-dropdown">
+                </div>
+           </div>
+            <a href="#" id="profile-link">Kylian Mbappé</a>
+            <img src="https://i.pinimg.com/736x/79/8f/bf/798fbf62ba74a844ceeef90b83c76e59.jpg" alt="Photo de profil">
+        </div>
+    </div>
 
-body {
-    font-family: 'League Spartan', sans-serif;
-    background-color: #000000;
-    color: #fff;
-    margin-top: 30px;
-}
-
-.sidebar {
-    width: 220px;
-    height: 100vh;
-    background-color: #000000;
-    padding: 20px;
-    position: fixed;
-    top: 0;
-    left: 0;
-}
-
-.sidebar .logo {
-    text-align: center;
-    margin-bottom: 100px;
-    margin-top: 20px;
-}
-
-.sidebar .logo img {
-    max-width: 120px;
-}
-
-.sidebar ul {
-    margin-top: -40px;
-    list-style: none;
-    padding-left: 0px;
-}
-
-.sidebar ul li {
-    margin-bottom: 20px;
-}
-
-.sidebar ul li a {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    padding: 10px 10px;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    border-radius: 8px;
-}
-
-.sidebar ul li a.active,
-.sidebar ul li a:hover {
-    background-color: #333;
-    color: #ffffff;
-}
-
-.sidebar ul li a i {
-    width: 30px;
-    margin-right: 20px;
-    text-align: center;
-}
-
-.settings-section {
-    margin-top: 90px;
-    padding-top: 0px;
-    display: flex;
-    flex-direction: column;
-}
-
-.settings-section a {
-    text-decoration: none;
-    color: #ffffff;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    padding: 10px 20px;
-    transition: color 0.3s ease;
-    border-radius: 8px;
-}
-
-.settings-section a i {
-    margin-right: 15px;
-}
-
-.settings-section a:hover {
-    color: #ffffff;
-    background-color: #333;
-}
-
-.settings-section .logout {
-    color: #C1FF72;
-    margin-top: 20px;
-}
-
-.settings-section .logout:hover {
-    color: #C1FF72;
-}
-
-.header-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: fixed; /* Fixe la partie haute */
-    top: 0; /* Toujours en haut */
-    left: 220px; /* Décalage correspondant à la largeur de la sidebar */
-    right: 0; /* Étend jusqu'à la droite */
-    z-index: 1000; /* S'assure qu'il est au-dessus des autres éléments */
-    background-color: #000; /* Fond noir pour uniformité */
-    padding: 20px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Ajoute une ombre */
-}
-
-.report-header h1 {
-    font-size: 20px;
-    color: white;
-    margin: 0;
-}
-
-.report-header p {
-    font-size: 14px;
-    color: #C1FF72;
-    margin-top: 5px;
-}
-
-.profile-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: white;
-    white-space: nowrap;
-}
-
-.profile-header img {
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-}
-
-.profile-header a {
-    text-decoration: none;
-    color: white;
-    cursor: pointer;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.profile-header a:hover {
-    transform: scale(1.1);
-    opacity: 0.8;
-}
+    <div class="sidebar">
+        <div class="logo">
+            <a href="home.html">
+                <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify">
+            </a>
+        </div>
+        <ul>
+            <li><a href="#"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="#"><i class="fas fa-chart-line"></i> Suivi</a></li>
+            <li><a href="#"><i class="fas fa-futbol"></i> Terrains</a></li>
+            <li><a href="#"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
+            <li><a href="#"><i class="fas fa-trophy"></i> Événements</a></li>
+            <li><a href="#" class="management"><i class="fas fa-tasks"></i> Gestion</a></li>
+        </ul>
+        <div class="settings-section">
+            <a href="#" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
+            <a href="#" class="logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+        </div>
+    </div>
+  <script src="/js/sidebar.js"></script>
+</body>
+</html>
