@@ -143,7 +143,39 @@ class TrainingController {
     }
     
     
+    public function train() {
+        session_start();
+        $memberId = $_SESSION['user_id'] ?? null;
     
+        if (!$memberId) {
+            header('Location: /login');
+            exit();
+        }
+    
+        $existingPlan = Training::getExistingTrainingPlan($memberId);
+    
+        if (!$existingPlan) {
+            header('Location: /dashboard/training/start');
+            exit();
+        }
+    
+        $planContent = $existingPlan['plan_content'] ?? '';
+    
+        // Récupérer le jour actuel depuis les paramètres ou par défaut le jour 1
+        $currentDay = $_GET['day'] ?? '1';
+    
+        // Regex pour capturer précisément le contenu du jour demandé
+        $pattern = "/\*\*Jour $currentDay :\*\*(.*?)(?=\*\*Jour \d+:|\z)/s";
+        preg_match($pattern, $planContent, $matches);
+    
+        // Si rien n'est trouvé, $matches[1] sera vide
+        $dayContent = trim($matches[1] ?? '');
+    
+        // Envoyer le contenu extrait à la vue
+        echo View::render('dashboard/training/train', [
+            'dayContent' => $dayContent, // Seulement les exercices du jour
+        ]);
+    }
     
     
     
