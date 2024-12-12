@@ -4,7 +4,7 @@ $(document).ready(function() {
         themeVariant: 'dark'
     });
 
-
+    var eventsData = JSON.parse(getCachedEvents());
     var calendar = mobiscroll.eventcalendar('#myCalendar', {
         view: {
             schedule: { 
@@ -124,10 +124,7 @@ $(document).ready(function() {
 
 
     let eventDetailsCache = {}
-    //eventsData = getCachedEvents();
-    for (const event of eventsData) {
-        console.log(event)
-    }
+    eventsData = JSON.parse(getCachedEvents());
 
     // Function to show event details
     function showEventDetails(event) {
@@ -194,9 +191,9 @@ $(document).ready(function() {
             <p><strong>Max Participants:</strong> ${eventData.max_participants}</p>
             ${canInvite ? '<p><strong>Participants:</strong></p>' : ''}
             ${canInvite ? participantsList : ''}
+            ${inviteForm}
             ${joinLeaveButton}
             ${deleteButton}
-            ${inviteForm}
         `;
 
         $('#eventDetailsContent').html(eventContent);
@@ -300,7 +297,7 @@ $(document).ready(function() {
     });
 
     // Function to delete an event
-    function deleteEvent(eventId) {
+    window.deleteEvent = function(eventId) {
         if (!confirm('Are you sure you want to delete this event?')) {
             return;
         }
@@ -322,7 +319,7 @@ $(document).ready(function() {
     }
 
     // Function to send an invitation
-    function sendInvite(eventId) {
+    window.sendInvite = function(eventId) {
         var email = $('#invite_email').val();
         if (email) {
             $.ajax({

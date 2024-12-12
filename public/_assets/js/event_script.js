@@ -125,9 +125,6 @@ $(document).ready(function() {
 
     let eventDetailsCache = {}
     eventsData = JSON.parse(getCachedEvents());
-    for (const event of eventsData) {
-        console.log(event)
-    }
 
     // Function to show event details
     function showEventDetails(event) {
