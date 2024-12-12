@@ -16,6 +16,10 @@ class Router
         $this->addRoute('POST', $url, $handler);
     }
 
+    public function delete($url, $handler) {
+        $this->addRoute('DELETE',$url,$handler);
+    }
+
     private function addRoute($method, $url, $handler)
     {
         $this->routes[$method][$url] = $handler;
