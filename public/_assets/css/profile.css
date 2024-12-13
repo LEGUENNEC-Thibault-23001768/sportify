@@ -1,0 +1,196 @@
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap');
+
+body {
+    font-family: 'League Spartan', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    color: #fff;
+}
+
+.container {
+    width: 80%;
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 30px;
+    background-color: rgba(128, 128, 128, 0.5);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 40px;
+    font-weight: bold;
+    background: linear-gradient(to right, #ffffff, #000000);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 30px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+.top-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.left-section {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.right-section {
+    width: 150px;
+}
+
+.bottom-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.bottom-section label {
+    margin-top: 15px;
+    color: #fff;
+    font-size: 18px;
+}
+
+/* Style pour les champs à partir de "Date de naissance" */
+.bottom-section input[type="date"],
+.bottom-section textarea,
+.bottom-section input[type="text"],
+.bottom-section input[type="password"],
+.bottom-section select {
+    width: 50%; /* Réduit la largeur à 50% */
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+    font-family: 'League Spartan', sans-serif;
+    font-size: 16px;
+}
+
+/* Styles pour les labels et inputs de la section de gauche */
+.left-section label {
+    margin-top: 15px;
+    color: #fff;
+    font-size: 18px;
+}
+
+.left-section input[type="text"],
+.left-section input[type="email"] {
+    width: 95%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+    font-family: 'League Spartan', sans-serif;
+    font-size: 16px;
+}
+
+.profile-picture-container {
+    margin: 0;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.profile-picture {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.profile-picture-container:hover .overlay {
+    opacity: 1;
+}
+
+.overlay i {
+    font-size: 24px;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.overlay span {
+    color: white;
+    font-size: 14px;
+}
+
+.profile-update-btn {
+    background-color: #C1FF72;
+    color: #111;
+    padding: 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 15px rgba(103, 255, 103, 0.5);
+    margin-top: 20px;
+}
+
+.profile-update-btn:hover {
+    background-color: #a1db60;
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
+}
+
+.success,
+.error {
+    color: white;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-size: 18px;
+}
+
+.success {
+    background-color: #C1FF72;
+    color: #111;
+}
+
+.error {
+    background-color: #ff4d4d;
+}
+
+h2 {
+    margin-top: 30px;
+    font-size: 24px;
+    color: #fff;
+}
+
+.bottom-section button[type="submit"] {
+    width: 50%; 
+    align-self: flex-start; 
+}

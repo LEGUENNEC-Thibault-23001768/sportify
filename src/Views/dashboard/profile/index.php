@@ -3,73 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../_assets/css/profile.css">
     <title>Mon Profil</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        .container {
-            width: 80%;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-            margin-top: 30px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            margin-top: 10px;
-        }
-
-        input[type="text"], input[type="email"], input[type="date"], input[type="password"], textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .success, .error {
-            color: white;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-
-        .success {
-            background-color: green;
-        }
-
-        .error {
-            background-color: red;
-        }
-
-        .profile-update-btn {
-            background-color: #333;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .profile-update-btn:hover {
-            background-color: #555;
-        }
-    </style>
 </head>
 <body>
 
@@ -84,52 +19,90 @@
             <p class="success"><?= $_SESSION['success_message']; unset($_SESSION['success_message']); ?></p>
         <?php endif; ?>
 
-        <form action="" method="POST">
-            <input type="hidden" name="user_id" value="<?= htmlspecialchars($user['member_id'] ?? "") ?>">
+        <form action="" method="POST" enctype="multipart/form-data">
+            <div class="top-section">
+                <div class="left-section">
+                    <label for="first_name">Prénom :</label>
+                    <input type="text" name="first_name" id="first_name" value="<?= htmlspecialchars($user['first_name'] ?? "") ?>" required>
 
-            <label for="first_name">Prénom :</label>
-            <input type="text" name="first_name" id="first_name" value="<?= htmlspecialchars($user['first_name'] ?? "") ?>" required>
+                    <label for="last_name">Nom :</label>
+                    <input type="text" name="last_name" id="last_name" value="<?= htmlspecialchars($user['last_name'] ?? "") ?>" required>
 
-            <label for="last_name">Nom :</label>
-            <input type="text" name="last_name" id="last_name" value="<?= htmlspecialchars($user['last_name'] ?? "") ?>" required>
+                    <label for="email">Email :</label>
+                    <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? "") ?>" required>
+                </div>
+                
+                <div class="right-section">
+                    <div class="profile-picture-container">
+                        <label for="profile_picture">
+                            <img src="/uploads/profile_pictures/<?= !empty($user['profile_picture']) ? htmlspecialchars(basename($user['profile_picture'])) : 'https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg'; ?>" alt="Photo de profil" class="profile-picture">
+                            <div class="overlay">
+                                <i class="fas fa-camera"></i>
+                                <span>Changer la photo</span>
+                            </div>
+                        </label>
+                        <input type="file" name="profile_picture" id="profile_picture" accept="image/*" style="display: none;">
+                    </div>
+                    <input type="hidden" name="current_profile_picture" value="<?= htmlspecialchars($user['profile_picture'] ?? "") ?>">
+                    <input type="hidden" name="user_id" value="<?= htmlspecialchars($user['member_id'] ?? "") ?>">
+                </div>
+            </div>
 
-            <label for="email">Email :</label>
-            <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? "") ?>" required>
+            <div class="bottom-section">
+                <label for="birth_date">Date de naissance :</label>
+                <input type="date" name="birth_date" id="birth_date" value="<?= htmlspecialchars($user['birth_date'] ?? "") ?>">
 
-            <label for="birth_date">Date de naissance :</label>
-            <input type="date" name="birth_date" id="birth_date" value="<?= htmlspecialchars($user['birth_date'] ?? "") ?>">
+                <label for="address">Adresse :</label>
+                <textarea name="address" id="address"><?= htmlspecialchars($user['address'] ?? "") ?></textarea>
 
-            <label for="address">Adresse :</label>
-            <textarea name="address" id="address"><?= htmlspecialchars($user['address'] ?? "") ?></textarea>
+                <label for="phone">Téléphone :</label>
+                <input type="text" name="phone" id="phone" value="<?= htmlspecialchars($user['phone'] ?? "") ?>">
 
-            <label for="phone">Téléphone :</label>
-            <input type="text" name="phone" id="phone" value="<?= htmlspecialchars($user['phone'] ?? "") ?>">
+                <?php if ($ifAdminuser['status'] ?? false === 'admin' ): ?>
+                    <label for="status">Rôle :</label>
+                    <select name="status" id="status">
+                        <option value="membre" <?= $user['status'] === 'user' ? 'selected' : '' ?>>Membre</option>
+                        <option value="coach" <?= $user['status'] === 'coach' ? 'selected' : '' ?>>Coach</option>
+                        <option value="admin" <?= $user['status'] === 'admin' ? 'selected' : '' ?>>Admin</option>
+                    </select>
+                <?php endif; ?>
 
-            <?php if ($ifAdminuser['status'] ?? false === 'admin' ): ?>
-                <label for="status">Rôle :</label>
-                <select name="status" id="status">
-                    <option value="membre" <?= $user['status'] === 'user' ? 'selected' : '' ?>>Membre</option>
-                    <option value="coach" <?= $user['status'] === 'coach' ? 'selected' : '' ?>>Coach</option>
-                    <option value="admin" <?= $user['status'] === 'admin' ? 'selected' : '' ?>>Admin</option>
+                <h2>Changer le mot de passe</h2>
 
-                </select>
-            <?php endif; ?>
+                <label for="current_password">Mot de passe actuel :</label>
+                <input type="password" name="current_password" id="current_password">
 
+                <label for="new_password">Nouveau mot de passe :</label>
+                <input type="password" name="new_password" id="new_password">
 
-            <h2>Changer le mot de passe</h2>
+                <label for="confirm_password">Confirmer le nouveau mot de passe :</label>
+                <input type="password" name="confirm_password" id="confirm_password">
 
-            <label for="current_password">Mot de passe actuel :</label>
-            <input type="password" name="current_password" id="current_password">
-
-            <label for="new_password">Nouveau mot de passe :</label>
-            <input type="password" name="new_password" id="new_password">
-
-            <label for="confirm_password">Confirmer le nouveau mot de passe :</label>
-            <input type="password" name="confirm_password" id="confirm_password">
-
-            <button type="submit" class="profile-update-btn">Mettre à jour</button>
+                <button type="submit" class="profile-update-btn">Mettre à jour</button>
+            </div>
         </form>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const profilePictureInput = document.getElementById('profile_picture');
+            const profilePicture = document.querySelector('.profile-picture');
+
+            profilePicture.addEventListener('click', function() {
+                profilePictureInput.click();
+            });
+
+            profilePictureInput.addEventListener('change', function(event) {
+                if (event.target.files && event.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        profilePicture.src = e.target.result;
+                    }
+                    reader.readAsDataURL(event.target.files[0]);
+                }
+            });
+        });
+    </script>
 
 </body>
 </html>
