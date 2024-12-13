@@ -53,7 +53,12 @@ class Event {
             ':created_by' => $currentUserId
         ];
 
-        return Database::query($sql, $params)->rowCount() > 0;
+        $db_resp = Database::query($sql, $params);
+        if ($db_resp->rowCount() > 0) {
+            return Database::getConnection()->lastInsertId();
+        }
+
+        return false;
     }
 
     public static function deleteEvent($eventId) {

@@ -4,5 +4,13 @@
         "stripe/stripe-php": "^16.1",
         "google/auth": "^1.42",
         "guzzlehttp/guzzle": "^7.9"
+    },
+    "require": {
+        "google-gemini-php/client": "^1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
     }
 }

@@ -17,6 +17,7 @@ return [
     'redirect_dashboard' => '/dashboard',
     'redirect_register' => '/register',
     'stripe_key' => 'sk_test_51Q80Nv01Olm6yDgOjM3A9yXbw0WgaWxqmrh4Xfjnfh2kwTmFlAyzplOz5jIfnzUm9y3iGrCZqrsgfBwn81ofPb9X00hLSncyxX',
+    'gemini_key' => 'AIzaSyA1ddcTD8aE14BeSwgd0ceJUQtyH93YCH4',
     'server_url' => SERVER_URL,
     'mail_parts' => [
         'mail_head' => "<html>\r\n<head>\r\n\r\n<meta charset='utf-8'>\r\n\r\n<title>",
