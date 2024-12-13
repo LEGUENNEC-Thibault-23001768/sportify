@@ -58,141 +58,203 @@
             </div>
         </main>
     </div>
-    <div id="event-form">
-        <label for="event-title">Nom</label>
-        <input type="text" id="event-title" placeholder="">
-        <div id="color-options">
-            <div class="color-option" data-color="#4981d6" style="background-color: #4981d6;"></div>
-            <div class="color-option" data-color="#C1FF72" style="background-color: #C1FF72;"></div>
-            <div class="color-option" data-color="#ff5e57" style="background-color: #ff5e57;"></div>
-            <div class="color-option" data-color="#ffa726" style="background-color: #ffa726;"></div>
-        </div>
+<div id="event-form">
+    <label for="event-title">Nom</label>
+    <input type="text" id="event-title" placeholder="Nom de l'événement">
+    <label for="event-description">Description</label>
+    <textarea id="event-description" placeholder="Description de l'événement"></textarea>
+    
+    <div id="color-options">
+        <div class="color-option" data-color="#4981d6" style="background-color: #4981d6;"></div>
+        <div class="color-option" data-color="#C1FF72" style="background-color: #C1FF72;"></div>
+        <div class="color-option" data-color="#ff5e57" style="background-color: #ff5e57;"></div>
+        <div class="color-option" data-color="#ffa726" style="background-color: #ffa726;"></div>
     </div>
+</div>
+
     <script src="js/mobiscroll.javascript.min.js"></script>
     <script>
+        mobiscroll.setOptions({
+            locale: mobiscroll.localeFr,
+            theme: 'ios',
+            themeVariant: 'dark'
+        });
     
-    mobiscroll.setOptions({
-        locale: mobiscroll.localeFr,
-        theme: 'ios',
-        themeVariant: 'dark'
-    });
-    
-    // Initialisation du calendrier
-    var inst = mobiscroll.eventcalendar('#demo-mobile-day-view', {
-        view: {
-            schedule: {
-                type: 'week',
-                startTime: '06:00',
-                endTime: '24:00',
-                allDay: false
-            }
-        },
-        scrollable: false, // Désactive le scroll pour le calendrier
-        dragToCreate: true,
-        dragToMove: true,
-        dragToResize: true,
-        onEventClick: function (args) {
-            var form = document.getElementById('event-form');
-            form.style.display = 'block'; // Affiche le formulaire
-            form.style.left = args.domEvent.clientX + 'px';
-            form.style.top = args.domEvent.clientY + 'px';
-    
-            document.getElementById('event-title').value = args.event.title;
-    
-            document.querySelectorAll('.color-option').forEach(option => {
-                if (option.getAttribute('data-color') === args.event.color) {
-                    option.classList.add('selected');
-                } else {
-                    option.classList.remove('selected');
+        var inst = mobiscroll.eventcalendar('#demo-mobile-day-view', {
+            view: {
+                schedule: {
+                    type: 'week',
+                    startTime: '06:00',
+                    endTime: '24:00',
+                    allDay: false
                 }
-            });
-    
-            document.getElementById('event-title').oninput = function () {
-                args.event.title = this.value;
-                inst.updateEvent(args.event);
-            };
-    
-            document.querySelectorAll('.color-option').forEach(option => {
-                option.onclick = function () {
-                    document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
-                    this.classList.add('selected');
-    
-                    args.event.color = this.getAttribute('data-color');
-                    inst.updateEvent(args.event);
-                };
-            });
-        },
-        data: [
-            { color: '#4981d6', start: '2024-11-16T08:00', end: '2024-11-16T09:00', title: 'Entraînement cardio' },
-            { color: '#C1FF72', start: '2024-11-16T12:00', end: '2024-11-16T13:30', title: 'Séance de musculation' },
-            { color: '#ff5e57', start: '2024-11-16T15:00', end: '2024-11-16T16:00', title: 'Yoga' },
-            { color: '#ffa726', start: '2024-11-16T18:00', end: '2024-11-16T19:00', title: 'Boxe' }
-        ]
-    });
-    
-    // Masquer le formulaire au chargement de la page
-    document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('event-form').style.display = 'none';
-    
-        // Barre de progression
-        var ctx = document.getElementById('taskCompletionChart').getContext('2d');
-    
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Complet', 'Manqué'],
-                datasets: [
-                    {
-                        data: [71, 29], // 71% pour le rose, 29% restant pour le gris
-                        backgroundColor: [
-                            'rgba(255, 105, 180, 0.8)', // Rose moins vif
-                            '#666' // Gris plus doux et arrondi
-                        ],
-                        borderWidth: 0 // Pas de bordure entre les sections
-                    }
-                ]
             },
-            options: {
-                responsive: true,
-                cutout: '70%', // Taille du cercle intérieur
-                plugins: {
-                    legend: {
-                        display: false // Désactive la légende
-                    }
-                },
-                elements: {
-                    arc: {
-                        borderRadius: 20 // Arrondi pour les deux parties
-                    }
-                },
-                animation: {
-                    animateRotate: true,
-                    animateScale: true
+            scrollable: false,
+            dragToCreate: true,
+            dragToMove: true,
+            dragToResize: true,
+            renderEvent: function (event) {
+                // Personnalisation de l'affichage des événements
+                return {
+                    html: `
+                        <div>
+                            <div class="mbsc-event-title">${event.title}</div>
+                            ${event.description ? `<div class="mbsc-event-desc">${event.description}</div>` : ''}
+                        </div>
+                    `
+                };
+            },
+            onEventClick: function (args) {
+                var form = document.getElementById('event-form');
+                var calendarBounds = document.getElementById('demo-mobile-day-view').getBoundingClientRect();
+                var popupWidth = form.offsetWidth;
+                var popupHeight = form.offsetHeight;
+    
+                let popupX = args.domEvent.clientX;
+                let popupY = args.domEvent.clientY;
+    
+                if (popupX + popupWidth > calendarBounds.right) {
+                    popupX = args.domEvent.clientX - popupWidth - 10;
                 }
+    
+                if (popupY + popupHeight > calendarBounds.bottom) {
+                    popupY = args.domEvent.clientY - popupHeight - 10;
+                }
+    
+                popupX = Math.max(calendarBounds.left + 10, Math.min(popupX, calendarBounds.right - popupWidth - 10));
+                popupY = Math.max(calendarBounds.top + 10, Math.min(popupY, calendarBounds.bottom - popupHeight - 10));
+    
+                form.style.display = 'block';
+                form.style.left = popupX + 'px';
+                form.style.top = popupY + 'px';
+    
+                var titleInput = document.getElementById('event-title');
+                var descriptionInput = document.getElementById('event-description');
+    
+                titleInput.value = args.event.title || '';
+                descriptionInput.value = args.event.description || '';
+    
+                titleInput.oninput = function () {
+                    args.event.title = this.value;
+                };
+    
+                descriptionInput.oninput = function () {
+                    args.event.description = this.value;
+                };
+    
+                // Sauvegarde et mise à jour quand on appuie sur Entrée
+                titleInput.onkeydown = descriptionInput.onkeydown = function (e) {
+                    if (e.key === 'Enter') {
+                        args.event.title = titleInput.value;
+                        args.event.description = descriptionInput.value;
+                        inst.updateEvent(args.event);
+                        form.style.display = 'none'; // Fermer le popup après sauvegarde
+                    }
+                };
+    
+                // Mise à jour des couleurs
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.onclick = function () {
+                        document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+                        this.classList.add('selected');
+                        args.event.color = this.getAttribute('data-color');
+                        inst.updateEvent(args.event);
+                    };
+                    option.classList.toggle('selected', option.getAttribute('data-color') === args.event.color);
+                });
+    
+                form.onmousedown = function (e) {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.closest('.color-option')) {
+                        e.preventDefault();
+                        var offsetX = e.offsetX;
+                        var offsetY = e.offsetY;
+    
+                        function moveAt(pageX, pageY) {
+                            form.style.left = Math.max(calendarBounds.left, Math.min(pageX - offsetX, calendarBounds.right - popupWidth)) + 'px';
+                            form.style.top = Math.max(calendarBounds.top, Math.min(pageY - offsetY, calendarBounds.bottom - popupHeight)) + 'px';
+                        }
+    
+                        function onMouseMove(event) {
+                            moveAt(event.pageX, event.pageY);
+                        }
+    
+                        document.addEventListener('mousemove', onMouseMove);
+    
+                        form.onmouseup = function () {
+                            document.removeEventListener('mousemove', onMouseMove);
+                            form.onmouseup = null;
+                        };
+                    }
+                };
+            },
+            onEventDelete: function () {
+                var form = document.getElementById('event-form');
+                form.style.display = 'none'; // Cache le popup uniquement lors de la suppression de l'événement
+            },
+            data: [
+                { color: '#4981d6', start: '2024-11-16T08:00', end: '2024-11-16T09:00', title: 'Entraînement cardio', description: 'Séance intense pour améliorer l\'endurance.' },
+                { color: '#C1FF72', start: '2024-11-16T12:00', end: '2024-11-16T13:30', title: 'Séance de musculation', description: 'Focus sur les jambes et les épaules.' },
+                { color: '#ff5e57', start: '2024-11-16T15:00', end: '2024-11-16T16:00', title: 'Yoga', description: 'Séance de relaxation et étirements.' },
+                { color: '#ffa726', start: '2024-11-16T18:00', end: '2024-11-16T19:00', title: 'Boxe', description: 'Entraînement de boxe avec sparring.' }
+            ]
+        });
+    
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('event-form').style.display = 'none';
+            var ctx = document.getElementById('taskCompletionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Complet', 'Manqué'],
+                    datasets: [
+                        {
+                            data: [71, 29],
+                            backgroundColor: ['rgba(255, 105, 180, 0.8)', '#666'],
+                            borderWidth: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    elements: {
+                        arc: {
+                            borderRadius: 20
+                        }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true
+                    }
+                }
+            });
+            var chartCanvas = document.getElementById('taskCompletionChart');
+            chartCanvas.style.filter = 'drop-shadow(0px 0px 15px rgba(255, 105, 180, 0.7))';
+        });
+    
+        // Supprimer onmouseleave pour éviter que le popup disparaisse en cas de survol
+        var form = document.getElementById('event-form');
+        form.onmouseleave = null;
+    
+        document.addEventListener('click', function (e) {
+            if (!form.contains(e.target) && !e.target.closest('.mbsc-schedule-event')) {
+                form.style.display = 'none';
             }
         });
     
-        // Appliquer un effet lumineux uniquement à la partie rose
-        var chartCanvas = document.getElementById('taskCompletionChart');
-        chartCanvas.style.filter = 'drop-shadow(0px 0px 15px rgba(255, 105, 180, 0.7))';
-    });
-    
-    // Cacher le formulaire en cliquant à l'extérieur
-    document.addEventListener('click', function (e) {
-        var form = document.getElementById('event-form');
-        if (!form.contains(e.target) && !e.target.closest('.mbsc-schedule-event')) {
-            form.style.display = 'none';
-        }
-    });
-    
-    // Chargement de la sidebar
-    fetch('sidebar.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('sidebar').innerHTML = data;
-        })
-        .catch(error => console.error('Erreur lors du chargement de la sidebar:', error));
-    
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sidebar').innerHTML = data;
+            })
+            .catch(error => console.error('Erreur lors du chargement de la sidebar:', error));
     </script>
+    
+    
 </body>
 </html>
