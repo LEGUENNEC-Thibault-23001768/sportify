@@ -56,9 +56,12 @@ class DashboardController
         $userId = $_SESSION['user_id'];
         $user = User::getUserById($userId);
 
-        //echo $userId;
+    if (!$user) {
+        header('Location: /error');
+        exit;
+    }
 
-        echo View::render('dashboard/profile/index', ['user' => $user]);
+    echo View::render('dashboard/profile/index', ['user' => $user]);
     }
 
     public function updateUserProfile()
@@ -92,6 +95,38 @@ class DashboardController
                 'address'    => $address,
                 'phone'      => $phone,
             ];
+
+            if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == 0) {
+                $uploadDir = 'uploads/profile_pictures/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+
+                $fileName = uniqid() . '_' . basename($_FILES['profile_picture']['name']);
+                $targetFile = $uploadDir . $fileName;
+
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                $fileType = mime_content_type($_FILES['profile_picture']['tmp_name']);
+
+                if (!in_array($fileType, $allowedTypes)) {
+                    $error = 'Type de fichier non autorisé. Seuls JPEG, PNG et GIF sont acceptés.';
+                    $user = User::getUserById($userId);
+                    echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
+                    return;
+                }
+
+                if (move_uploaded_file($_FILES['profile_picture']['tmp_name'], $targetFile)) {
+                    if (!empty($_POST['current_profile_picture']) && file_exists($_POST['current_profile_picture'])) {
+                        unlink($_POST['current_profile_picture']);
+                    }
+                    $data['profile_picture'] = $targetFile;
+                } else {
+                    $error = 'Erreur lors du téléchargement de la photo de profil.';
+                    $user = User::getUserById($userId);
+                    echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
+                    return;
+                }
+            }
 
             if (!empty($_POST['current_password']) && !empty($_POST['new_password']) && !empty($_POST['confirm_password'])) {
                 if (!User::verifyCurrentPassword($userId, $_POST['current_password'])) {
@@ -179,73 +214,104 @@ class DashboardController
     }
 
     public function editUserProfile()
-{
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: /login');
-        exit;
-    }
-
-    $currentUserId = $_SESSION['user_id'];
-    $currentUser = User::getUserById($currentUserId);
-    if ($currentUser['status'] !== 'admin') {
-        header('Location: /dashboard');
-        exit;
-    }
-
-    if (!isset($_GET['id'])) {
-        $_SESSION['error'] = 'Utilisateur non trouvé.';
-        header('Location: /dashboard/admin/users');
-        exit;
-    }
-
-    $userId = $_GET['id'];
-
-    $user = User::getUserById($userId);
-
-    if (!$user) {
-        $_SESSION['error'] = 'Utilisateur introuvable.';
-        header('Location: /dashboard/admin/users');
-        exit();
-    }
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $firstName = trim($_POST['first_name']);
-        $lastName = trim($_POST['last_name']);
-        $email = trim($_POST['email']);
-        $birthDate = trim($_POST['birth_date']);
-        $address = trim($_POST['address']);
-        $phone = trim($_POST['phone']);
-        $status = trim($_POST['status']); 
-
-        if (empty($firstName) || empty($lastName) || empty($email)) {
-            $error = 'Les champs prénom, nom et email sont obligatoires.';
-            echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
-            return;
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
         }
 
-        $data = [
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => $email,
-            'birth_date' => $birthDate,
-            'address' => $address,
-            'phone' => $phone,
-            'status' => $status, 
-        ];
+        $currentUserId = $_SESSION['user_id'];
+        $currentUser = User::getUserById($currentUserId);
+        if ($currentUser['status'] !== 'admin') {
+            header('Location: /dashboard');
+            exit;
+        }
 
-        $result = User::updateUserProfile($userId, $data);
-
-        if ($result) {
-            $_SESSION['success_message'] = 'Le profil a été mis à jour avec succès.';
+        if (!isset($_GET['id'])) {
+            $_SESSION['error'] = 'Utilisateur non trouvé.';
             header('Location: /dashboard/admin/users');
             exit;
-        } else {
-            $error = 'Une erreur est survenue lors de la mise à jour des informations.';
-            echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
         }
-    } else {
-        echo View::render('dashboard/profile/index', ['user' => $user, 'ifAdminuser' => $currentUser]);
+
+        $userId = $_GET['id'];
+
+        $user = User::getUserById($userId);
+
+        if (!$user) {
+            $_SESSION['error'] = 'Utilisateur introuvable.';
+            header('Location: /dashboard/admin/users');
+            exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $firstName = trim($_POST['first_name']);
+            $lastName = trim($_POST['last_name']);
+            $email = trim($_POST['email']);
+            $birthDate = trim($_POST['birth_date']);
+            $address = trim($_POST['address']);
+            $phone = trim($_POST['phone']);
+            $status = trim($_POST['status']); 
+
+            if (empty($firstName) || empty($lastName) || empty($email)) {
+                $error = 'Les champs prénom, nom et email sont obligatoires.';
+                echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
+                return;
+            }
+
+            $data = [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $email,
+                'birth_date' => $birthDate,
+                'address' => $address,
+                'phone' => $phone,
+                'status' => $status, 
+            ];
+
+            // Gestion de la photo de profil pour l'administrateur
+            if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == 0) {
+                $uploadDir = 'uploads/profile_pictures/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+
+                $fileName = uniqid() . '_' . basename($_FILES['profile_picture']['name']);
+                $targetFile = $uploadDir . $fileName;
+
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                $fileType = mime_content_type($_FILES['profile_picture']['tmp_name']);
+
+                if (!in_array($fileType, $allowedTypes)) {
+                    $error = 'Type de fichier non autorisé. Seuls JPEG, PNG et GIF sont acceptés.';
+                    echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
+                    return;
+                }
+
+                if (move_uploaded_file($_FILES['profile_picture']['tmp_name'], $targetFile)) {
+                    if (!empty($user['profile_picture']) && file_exists($user['profile_picture'])) {
+                        unlink($user['profile_picture']);
+                    }
+                    $data['profile_picture'] = $targetFile;
+                } else {
+                    $error = 'Erreur lors du téléchargement de la photo de profil.';
+                    echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
+                    return;
+                }
+            }
+
+            $result = User::updateUserProfile($userId, $data);
+
+            if ($result) {
+                $_SESSION['success_message'] = 'Le profil a été mis à jour avec succès.';
+                header('Location: /dashboard/admin/users');
+                exit;
+            } else {
+                $error = 'Une erreur est survenue lors de la mise à jour des informations.';
+                echo View::render('dashboard/profile/index', ['error' => $error, 'user' => $user]);
+            }
+        } else {
+            echo View::render('dashboard/profile/index', ['user' => $user, 'ifAdminuser' => $currentUser]);
+        }
     }
-}
 
 }

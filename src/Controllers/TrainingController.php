@@ -200,13 +200,11 @@ class TrainingController {
                 'equipment' => $inputs['equipment'] ?: ($existingPlan['equipment'] ?? null),
             ];
     
-            // Générer un nouveau plan d'entraînement basé sur les nouvelles données
             $prompt = Training::buildPrompt($updatedData);
             $client = Gemini::client($this->apiKey);
             $result = $client->geminiPro()->generateContent($prompt);
             $generatedText = $result->text();
     
-            // Mettre à jour le plan d'entraînement existant dans la base de données
             $updatedData['planContent'] = $generatedText;
             Training::updateTrainingPlan($memberId, $updatedData);
     

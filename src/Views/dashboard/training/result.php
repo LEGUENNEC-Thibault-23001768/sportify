@@ -376,18 +376,17 @@
 
                 updateStars(numSets);
 
-                // Extract and use the rest time from the exercise data
                 const restTime = exercise.repos ? parseInt(exercise.repos) : 60; // Default to 60 seconds if not specified
                 startRestTimer(restTime);
 
                 if (currentSetIndex === numSets) {
-                    endSetButton.classList.add('hidden'); // Hide End Set button if all sets are done
+                    endSetButton.classList.add('hidden'); 
                 }
             });
 
             nextExerciseButton.addEventListener('click', () => {
                 currentExerciseIndex++;
-                nextExerciseButton.classList.add('hidden'); // Hide the Next Exercise button
+                nextExerciseButton.classList.add('hidden'); 
                 displayCurrentExercise();
             });
 

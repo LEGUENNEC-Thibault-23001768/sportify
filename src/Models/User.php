@@ -179,7 +179,7 @@ class User
             throw new \Exception("Utilisateur non trouvé.");
         }
 
-        $allowedFields = ['first_name', 'last_name', 'email', 'birth_date', 'address', 'phone', 'status'];
+        $allowedFields = ['first_name', 'last_name', 'email', 'birth_date', 'address', 'phone', 'status', 'profile_picture'];
         $setFields = [];
         $params = [':userId' => $userId];
 
