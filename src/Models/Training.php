@@ -40,7 +40,18 @@ class Training {
         
             Continue pour tous les jours jusqu'à **Jour 7**.
         
-            Inclure des conseils généraux pour l'échauffement, la récupération et la motivation. Assurez-vous que le plan est progressif et adapté à l'utilisateur.";
+            Inclure des conseils généraux pour l'échauffement, la récupération et la motivation. Assurez-vous que le plan est progressif et adapté à l'utilisateur.
+
+            ULTRA IMPORTANT: Ne pas inclure d'exercices qui pourraient aggraver les contraintes signalées.
+
+            ULTRA IMPORTANT: Ne pas inclure de conseils généraux, ni médicaux.
+
+            ULTRA IMPORTANT: Ne pas inclure d'adaptations pour les équipements manquants, ainsi que d'adaptations pour les contraintes signalées.
+
+            ULTRA IMPORTANT: Si l'utilisateur signale une contrainte qui n'est pas en accord avec tes choix en tant qu'IA, créer un plan alternatif.
+
+            Assurez-vous que le plan est progressif et adapté à l'utilisateur.";
+    
     }
     
 
