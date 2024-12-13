@@ -10,7 +10,6 @@
     <div class="edit-plan-form">
         <h1>Modifier votre Plan d'Entraînement</h1>
         <form action="/dashboard/training/edit" method="POST">
-            <!-- Gender -->
             <label for="gender">Sexe :</label>
             <select name="gender" id="gender">
                 <option value="">(Non modifié)</option>
@@ -27,7 +26,13 @@
             </select>
 
             <label for="goals">Objectifs :</label>
-            <input type="text" name="goals" id="goals" placeholder="<?= htmlspecialchars($existingPlan['goals'] ?? 'Non défini') ?>">
+            <select name="goals" id="goals">
+                <option value="">(Non modifié)</option>
+                <option value="Lose Weight" <?= isset($existingPlan['goals']) && $existingPlan['goals'] === 'Lose Weight' ? 'selected' : '' ?>>Perdre du poids</option>
+                <option value="Build Muscle" <?= isset($existingPlan['goals']) && $existingPlan['goals'] === 'Build Muscle' ? 'selected' : '' ?>>Construire du muscle</option>
+                <option value="Improve Fitness" <?= isset($existingPlan['goals']) && $existingPlan['goals'] === 'Improve Fitness' ? 'selected' : '' ?>>Améliorer la condition physique</option>
+                <option value="Run a Marathon" <?= isset($existingPlan['goals']) && $existingPlan['goals'] === 'Run a Marathon' ? 'selected' : '' ?>>Courir un marathon</option>
+            </select>
 
             <label for="weight">Poids :</label>
             <input type="number" name="weight" id="weight" placeholder="<?= htmlspecialchars($existingPlan['weight'] ?? 'Non défini') ?>">
@@ -39,10 +44,21 @@
             <input type="text" name="constraints" id="constraints" placeholder="<?= htmlspecialchars($existingPlan['constraints'] ?? 'Aucune') ?>">
 
             <label for="preferences">Préférences :</label>
-            <input type="text" name="preferences" id="preferences" placeholder="<?= htmlspecialchars($existingPlan['preferences'] ?? 'Aucune') ?>">
+            <select name="preferences" id="preferences">
+                <option value="">(Non modifié)</option>
+                <option value="Domicile" <?= isset($existingPlan['preferences']) && $existingPlan['preferences'] === 'Domicile' ? 'selected' : '' ?>>À domicile</option>
+                <option value="Salle de sport" <?= isset($existingPlan['preferences']) && $existingPlan['preferences'] === 'Salle de sport' ? 'selected' : '' ?>>En salle de sport</option>
+                <option value="Extérieur" <?= isset($existingPlan['preferences']) && $existingPlan['preferences'] === 'Extérieur' ? 'selected' : '' ?>>En extérieur</option>
+            </select>
 
             <label for="equipment">Équipement :</label>
-            <input type="text" name="equipment" id="equipment" placeholder="<?= htmlspecialchars($existingPlan['equipment'] ?? 'Aucun') ?>">
+            <select name="equipment" id="equipment">
+                <option value="">(Non modifié)</option>
+                <option value="none" <?= isset($existingPlan['equipment']) && $existingPlan['equipment'] === 'none' ? 'selected' : '' ?>>Aucun</option>
+                <option value="dumbbells" <?= isset($existingPlan['equipment']) && $existingPlan['equipment'] === 'dumbbells' ? 'selected' : '' ?>>Haltères</option>
+                <option value="treadmill" <?= isset($existingPlan['equipment']) && $existingPlan['equipment'] === 'treadmill' ? 'selected' : '' ?>>Tapis de course</option>
+                <option value="resistance_bands" <?= isset($existingPlan['equipment']) && $existingPlan['equipment'] === 'resistance_bands' ? 'selected' : '' ?>>Bandes de résistance</option>
+            </select>
 
             <button type="submit">Enregistrer les modifications</button>
         </form>

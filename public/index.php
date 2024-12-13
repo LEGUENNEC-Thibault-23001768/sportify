@@ -71,15 +71,18 @@ $router->post( '/forgot-password', 'AuthController@sendResetLink');
 $router->get( '/reset-password', 'AuthController@showResetPasswordForm');
 $router->post( '/reset-password', 'AuthController@resetPassword');
 
-$router->get('/dashboard/training/start', 'TrainingController@start');
-$router->get('/dashboard/training/step/{step}', 'TrainingController@step');
-$router->post('/dashboard/training/step/{step}', 'TrainingController@step');
-$router->get('/dashboard/training/generate', 'TrainingController@generate');
+
+// Training routes
 $router->get('/dashboard/training', 'TrainingController@dashboard');
+$router->get('/dashboard/training/start', 'TrainingController@start');
+$router->get('/dashboard/training/generate', 'TrainingController@generate');
 $router->get('/dashboard/training/edit', 'TrainingController@edit');
-$router->post('/dashboard/training/edit', 'TrainingController@edit');
+$router->post('/dashboard/training/update', 'TrainingController@update');
 $router->get('/dashboard/training/train', 'TrainingController@train');
 
+// New API routes for training
+$router->post('/api/training/process-step', 'TrainingController@apiProcessStep');
+$router->post('/api/training/generate', 'TrainingController@apiGenerate');
 
 
 

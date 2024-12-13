@@ -53,6 +53,7 @@ class Database
         try {
             $stmt = self::$conn->prepare($sql);
             $stmt->execute($params);
+
             return $stmt;
         } catch (PDOException $e) {
             throw new PDOException("Query error: " . $e->getMessage(), (int)$e->getCode());
