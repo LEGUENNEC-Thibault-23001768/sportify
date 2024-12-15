@@ -1,3 +1,4 @@
+/* Global Styles */
 body, html {
     margin: 0;
     padding: 0;
@@ -13,6 +14,7 @@ body, html {
 }
 
 .main-content {
+    margin-top: 60px; 
     display: flex;
     flex-direction: row;
     gap: 30px;
@@ -21,21 +23,21 @@ body, html {
 }
 
 .left-section {
-    flex: 3;
-    display: flex;
-    flex-direction: row;
-    gap: 30px;
-}
-
-.report-section {
-    flex: 2;
     display: flex;
     flex-direction: column;
+    gap: 30px;
+    margin-left: -20px;
+    height: auto;
+}
+
+
+.report-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
 
 .report-card {
-    flex: 1;
     background: #1a1a1a;
     border-radius: 15px;
     padding: 20px;
@@ -46,6 +48,12 @@ body, html {
     text-align: center;
     color: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.report-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 255, 0, 0.5); 
 }
 
 .performance-card {
@@ -53,17 +61,48 @@ body, html {
     color: black;
 }
 
-.radial-chart-section {
-    flex: 1;
-    background: #1a1a1a;
-    border-radius: 15px;
-    padding: 20px;
+/* Graphe Araignée */
+.right-section {
+    flex: 2;
     display: flex;
     justify-content: center;
-    align-items: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    align-items: flex-start; /* Aligner le graphe en haut */
+    padding: 0;
+    margin-top: 0; /* Supprime la marge supérieure */
+    background: none;
+    height: auto; /* Assure que la section ajuste sa hauteur automatiquement */
 }
 
+
+.right-section canvas {
+    width: 400px; /* Augmente la taille */
+    height: 400px;
+}
+
+/* Tableau des Heures */
+.chart-container {
+    border-radius: 15px;
+    padding: 0; /* Suppression des paddings */
+    box-shadow: none; /* Suppression des ombres */
+    text-align: center;
+    margin-top: 20px;
+    margin-left: -20px; /* Déplace légèrement le tableau vers la gauche */
+    background: none; /* Suppression du fond */
+}
+
+.chart-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #C1FF72;
+}
+
+canvas {
+    width: 100%;
+    max-height: 300px;
+}
+
+/* Additional Styling */
 .report-title {
     font-size: 16px;
     font-weight: bold;
@@ -79,139 +118,4 @@ body, html {
 .report-subtitle {
     font-size: 14px;
     color: #888;
-}
-
-.custom-left-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    background: #1a1a1a;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.activities-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.activities-list li {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #444;
-    color: #C1FF72;
-}
-
-.activities-list li:last-child {
-    border-bottom: none;
-}
-
-.section-title {
-    font-size: 20px;
-    font-weight: bold;
-    color: #C1FF72;
-    margin-bottom: 10px;
-}
-
-.right-section {
-    flex: 1;
-    background: #1a1a1a;
-    border-radius: 15px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-}
-
-.stats-header {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    align-items: center;
-    color: #ffffff;
-    font-size: 16px;
-}
-
-.time-selector {
-    font-size: 14px;
-    color: #888;
-    cursor: pointer;
-}
-
-.stats-circle {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
-
-.circle-chart {
-    width: 120px;
-    height: 120px;
-}
-
-.circle-bg {
-    fill: none;
-    stroke: #eee;
-    stroke-width: 3.8;
-}
-
-.circle {
-    fill: none;
-    stroke: #00bfff;
-    stroke-width: 2.8;
-    stroke-linecap: round;
-    animation: progress 1s ease-out forwards;
-}
-
-@keyframes progress {
-    0% {
-        stroke-dasharray: 0 100;
-    }
-}
-
-.circle-center {
-    position: absolute;
-    text-align: center;
-    color: white;
-}
-
-.circle-center p {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.circle-center span {
-    font-size: 12px;
-}
-
-.stats-list {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.stat-item {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-    color: #ffffff;
-}
-
-.stat-item .value {
-    font-weight: bold;
-}
-
-.stat-item .green {
-    color: #0f0;
-}
-
-.stat-item .red {
-    color: #f00;
 }
