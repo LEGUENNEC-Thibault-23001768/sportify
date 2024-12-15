@@ -1,121 +1,189 @@
-/* Global Styles */
-body, html {
-    margin: 0;
-    padding: 0;
-    font-family: 'League Spartan', sans-serif;
-    height: 100%;
-    background: black;
-    color: white;
-}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - Sports</title>
+    <link rel="stylesheet" href="/public/css/stat.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <div id="sidebar"></div>
+        <main class="main-content">
+            <div class="left-section">
+                <div class="report-section">
+                    <div class="report-card performance-card">
+                        <div class="report-title">Choix du sport</div>
+                        <select id="sport-select" style="width: 100%; padding: 10px;">
+                            <option value="football">Football</option>
+                            <option value="musculation">Musculation</option>
+                            <option value="rpm">RPM</option>
+                            <option value="boxe">Boxe</option>
+                            <option value="tennis">Tennis</option>
+                            <option value="basketball">Basketball</option>
+                        </select>
+                    </div>
+                    <div class="report-card game-time-card" id="stat-1">
+                        <div class="report-title">Buts marqués</div>
+                        <div class="report-value">--</div>
+                        <div class="report-subtitle">--</div>
+                    </div>
+                </div>
+                <div class="report-section">
+                    <div class="report-card calories-card" id="stat-2">
+                        <div class="report-title">Temps de jeu</div>
+                        <div class="report-value">--</div>
+                        <div class="report-subtitle">--</div>
+                    </div>
+                    <div class="report-card game-time-card" id="stat-3">
+                        <div class="report-title">Passes décisives</div>
+                        <div class="report-value">--</div>
+                        <div class="report-subtitle">--</div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Temps passé par jour</div>
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+            <div class="right-section">
+                <div class="chart-container">
+                    <div class="chart-title">Performance par sport</div>
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        let radarChart;
 
-.dashboard {
-    display: flex;
-    height: 100%;
-}
+        const statsData = {
+            football: ["10 buts", "90 minutes", "5 passes décisives"],
+            musculation: ["120kg au squat", "2 heures", "50 répétitions"],
+            rpm: ["30 km parcourus", "1h30", "10 sprints"],
+            boxe: ["150 coups portés", "3 rounds", "10 esquives"],
+            tennis: ["20 aces", "2 heures", "5 fautes doubles"],
+            basketball: ["25 points", "40 minutes", "12 rebonds"]
+        };
 
-.main-content {
-    margin-top: 60px; 
-    display: flex;
-    flex-direction: row;
-    gap: 30px;
-    padding: 30px;
-    flex-grow: 1;
-}
+        const radarData = {
+            football: [85, 75, 70, 60, 90],
+            musculation: [60, 95, 50, 40, 30],
+            rpm: [70, 80, 60, 50, 85],
+            boxe: [65, 90, 75, 70, 80],
+            tennis: [75, 55, 80, 85, 65],
+            basketball: [80, 70, 65, 60, 75]
+        };
 
-.left-section {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    margin-left: -20px;
-    height: auto;
-}
+        const weeklyData = {
+            football: [1.5, 2, 2.5, 3, 1, 2, 0.5],
+            musculation: [2, 2.5, 3, 3.5, 2, 3, 1.5],
+            rpm: [1, 1.5, 2, 2.5, 2, 2, 1],
+            boxe: [1.5, 2, 2.5, 3, 2, 2.5, 1],
+            tennis: [2, 1.5, 2, 3, 2, 2, 1],
+            basketball: [2.5, 2, 2.5, 3, 3, 2.5, 1.5]
+        };
 
+        function updateStats() {
+            const selectedSport = document.getElementById('sport-select').value;
+            const stats = statsData[selectedSport];
+            const statsTitles = {
+                football: ["Buts marqués", "Temps de jeu", "Passes décisives"],
+                musculation: ["Charge maximale", "Durée d'entraînement", "Répétitions"],
+                rpm: ["Distance", "Temps", "Sprints"],
+                boxe: ["Coups portés", "Rounds", "Esquives"],
+                tennis: ["Aces", "Temps de jeu", "Fautes doubles"],
+                basketball: ["Points", "Temps", "Rebonds"]
+            }[selectedSport];
 
-.report-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
+            document.getElementById('stat-1').querySelector('.report-title').textContent = statsTitles[0];
+            document.getElementById('stat-1').querySelector('.report-value').textContent = stats[0];
+            document.getElementById('stat-2').querySelector('.report-title').textContent = statsTitles[1];
+            document.getElementById('stat-2').querySelector('.report-value').textContent = stats[1];
+            document.getElementById('stat-3').querySelector('.report-title').textContent = statsTitles[2];
+            document.getElementById('stat-3').querySelector('.report-value').textContent = stats[2];
 
-.report-card {
-    background: #1a1a1a;
-    border-radius: 15px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+            updateChart(selectedSport);
+            updateBarChart(selectedSport);
+        }
 
-.report-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 255, 0, 0.5); 
-}
+        function updateChart(selectedSport) {
+            const newData = radarData[selectedSport];
+            radarChart.data.datasets[0].data = newData;
+            radarChart.data.datasets[0].label = selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1);
+            radarChart.update();
+        }
 
-.performance-card {
-    background: #C1FF72;
-    color: black;
-}
+        function updateBarChart(selectedSport) {
+            const newData = weeklyData[selectedSport];
+            barChart.data.datasets[0].data = newData;
+            barChart.update();
+        }
 
-/* Graphe Araignée */
-.right-section {
-    flex: 2;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; /* Aligner le graphe en haut */
-    padding: 0;
-    margin-top: 0; /* Supprime la marge supérieure */
-    background: none;
-    height: auto; /* Assure que la section ajuste sa hauteur automatiquement */
-}
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        radarChart = new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Endurance', 'Force', 'Agilité', 'Stratégie', 'Vitesse'],
+                datasets: [{
+                    label: 'Football',
+                    data: [85, 75, 70, 60, 90],
+                    backgroundColor: 'rgba(193, 255, 114, 0.2)',
+                    borderColor: '#C1FF72',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#C1FF72'
+                        }
+                    }
+                },
+                scales: {
+                    r: {
+                        grid: { color: '#444' },
+                        pointLabels: { color: '#C1FF72' }
+                    }
+                }
+            }
+        });
 
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        const barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
+                datasets: [{
+                    label: 'Temps d’entraînement (heures)',
+                    data: [1.5, 2, 2.5, 3, 1, 2, 0.5],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#C1FF72' }
+                    },
+                    x: {
+                        ticks: { color: '#C1FF72' }
+                    }
+                }
+            }
+        });
 
-.right-section canvas {
-    width: 400px; /* Augmente la taille */
-    height: 400px;
-}
+        document.getElementById('sport-select').addEventListener('change', updateStats);
 
-/* Tableau des Heures */
-.chart-container {
-    border-radius: 15px;
-    padding: 0; /* Suppression des paddings */
-    box-shadow: none; /* Suppression des ombres */
-    text-align: center;
-    margin-top: 20px;
-    margin-left: -20px; /* Déplace légèrement le tableau vers la gauche */
-    background: none; /* Suppression du fond */
-}
-
-.chart-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #C1FF72;
-}
-
-canvas {
-    width: 100%;
-    max-height: 300px;
-}
-
-/* Additional Styling */
-.report-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.report-value {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.report-subtitle {
-    font-size: 14px;
-    color: #888;
-}
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(data => { document.getElementById('sidebar').innerHTML = data; })
+            .catch(error => console.error('Erreur lors du chargement de la sidebar:', error));
+    </script>
+</body>
+</html>
