@@ -9,176 +9,143 @@
 </head>
 <body>
     <div class="dashboard">
-        <div id="sidebar"></div>
+        <div id="sidebar">
+            <h2>Menu</h2>
+            <ul>
+                <li>Accueil</li>
+                <li>Statistiques</li>
+                <li>Entraînements</li>
+                <li>Réglages</li>
+            </ul>
+        </div>
         <main class="main-content">
+            <!-- Section de gauche -->
             <div class="left-section">
-                <div class="report-section">
-                    <div class="report-card performance-card">
-                        <div class="report-title">Choix du sport</div>
-                        <select id="sport-select" style="width: 100%; padding: 10px;">
-                            <option value="football">Football</option>
-                            <option value="musculation">Musculation</option>
-                            <option value="rpm">RPM</option>
-                            <option value="boxe">Boxe</option>
-                            <option value="tennis">Tennis</option>
-                            <option value="basketball">Basketball</option>
-                        </select>
-                    </div>
-                    <div class="report-card game-time-card" id="stat-1">
-                        <div class="report-title">Buts marqués</div>
-                        <div class="report-value">--</div>
-                        <div class="report-subtitle">--</div>
-                    </div>
+                <!-- Carrés -->
+                <div class="report-card performance-card">
+                    <div class="report-title">Choix du sport</div>
+                    <select id="sport-select" style="width: 100%; padding: 10px;">
+                        <option value="football">Football</option>
+                        <option value="musculation">Musculation</option>
+                        <option value="rpm">RPM</option>
+                        <option value="boxe">Boxe</option>
+                        <option value="tennis">Tennis</option>
+                        <option value="basketball">Basketball</option>
+                    </select>
                 </div>
-                <div class="report-section">
-                    <div class="report-card calories-card" id="stat-2">
-                        <div class="report-title">Temps de jeu</div>
-                        <div class="report-value">--</div>
-                        <div class="report-subtitle">--</div>
-                    </div>
-                    <div class="report-card game-time-card" id="stat-3">
-                        <div class="report-title">Passes décisives</div>
-                        <div class="report-value">--</div>
-                        <div class="report-subtitle">--</div>
-                    </div>
+                <div class="report-card game-time-card" id="stat-1">
+                    <div class="report-title">Buts marqués</div>
+                    <div class="report-value">--</div>
+                    <div class="report-subtitle">--</div>
                 </div>
+                <div class="report-card calories-card" id="stat-2">
+                    <div class="report-title">Temps de jeu</div>
+                    <div class="report-value">--</div>
+                    <div class="report-subtitle">--</div>
+                </div>
+                <div class="report-card game-time-card" id="stat-3">
+                    <div class="report-title">Passes décisives</div>
+                    <div class="report-value">--</div>
+                    <div class="report-subtitle">--</div>
+                </div>
+                <!-- Tableau -->
                 <div class="chart-container">
                     <div class="chart-title">Temps passé par jour</div>
                     <canvas id="barChart"></canvas>
                 </div>
             </div>
+        
+            <!-- Section de droite -->
             <div class="right-section">
-                <div class="chart-container">
+                <!-- Graphe araignée -->
+                <div class="chart-container radar-chart">
                     <div class="chart-title">Performance par sport</div>
                     <canvas id="radarChart"></canvas>
                 </div>
+                <!-- Progression -->
+                <div class="progression-section">
+                    <div class="task-completion-card">
+                        <div class="progression-title">Progression</div>
+                        <div class="circle-container">
+                            <canvas id="taskCompletionChart"></canvas>
+                            <div id="chart-center-text">71%</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </main>
+        </main>        
     </div>
     <script>
-        let radarChart;
+        document.addEventListener('DOMContentLoaded', function () {
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            const taskCtx = document.getElementById('taskCompletionChart').getContext('2d');
 
-        const statsData = {
-            football: ["10 buts", "90 minutes", "5 passes décisives"],
-            musculation: ["120kg au squat", "2 heures", "50 répétitions"],
-            rpm: ["30 km parcourus", "1h30", "10 sprints"],
-            boxe: ["150 coups portés", "3 rounds", "10 esquives"],
-            tennis: ["20 aces", "2 heures", "5 fautes doubles"],
-            basketball: ["25 points", "40 minutes", "12 rebonds"]
-        };
-
-        const radarData = {
-            football: [85, 75, 70, 60, 90],
-            musculation: [60, 95, 50, 40, 30],
-            rpm: [70, 80, 60, 50, 85],
-            boxe: [65, 90, 75, 70, 80],
-            tennis: [75, 55, 80, 85, 65],
-            basketball: [80, 70, 65, 60, 75]
-        };
-
-        const weeklyData = {
-            football: [1.5, 2, 2.5, 3, 1, 2, 0.5],
-            musculation: [2, 2.5, 3, 3.5, 2, 3, 1.5],
-            rpm: [1, 1.5, 2, 2.5, 2, 2, 1],
-            boxe: [1.5, 2, 2.5, 3, 2, 2.5, 1],
-            tennis: [2, 1.5, 2, 3, 2, 2, 1],
-            basketball: [2.5, 2, 2.5, 3, 3, 2.5, 1.5]
-        };
-
-        function updateStats() {
-            const selectedSport = document.getElementById('sport-select').value;
-            const stats = statsData[selectedSport];
-            const statsTitles = {
-                football: ["Buts marqués", "Temps de jeu", "Passes décisives"],
-                musculation: ["Charge maximale", "Durée d'entraînement", "Répétitions"],
-                rpm: ["Distance", "Temps", "Sprints"],
-                boxe: ["Coups portés", "Rounds", "Esquives"],
-                tennis: ["Aces", "Temps de jeu", "Fautes doubles"],
-                basketball: ["Points", "Temps", "Rebonds"]
-            }[selectedSport];
-
-            document.getElementById('stat-1').querySelector('.report-title').textContent = statsTitles[0];
-            document.getElementById('stat-1').querySelector('.report-value').textContent = stats[0];
-            document.getElementById('stat-2').querySelector('.report-title').textContent = statsTitles[1];
-            document.getElementById('stat-2').querySelector('.report-value').textContent = stats[1];
-            document.getElementById('stat-3').querySelector('.report-title').textContent = statsTitles[2];
-            document.getElementById('stat-3').querySelector('.report-value').textContent = stats[2];
-
-            updateChart(selectedSport);
-            updateBarChart(selectedSport);
-        }
-
-        function updateChart(selectedSport) {
-            const newData = radarData[selectedSport];
-            radarChart.data.datasets[0].data = newData;
-            radarChart.data.datasets[0].label = selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1);
-            radarChart.update();
-        }
-
-        function updateBarChart(selectedSport) {
-            const newData = weeklyData[selectedSport];
-            barChart.data.datasets[0].data = newData;
-            barChart.update();
-        }
-
-        const radarCtx = document.getElementById('radarChart').getContext('2d');
-        radarChart = new Chart(radarCtx, {
-            type: 'radar',
-            data: {
-                labels: ['Endurance', 'Force', 'Agilité', 'Stratégie', 'Vitesse'],
-                datasets: [{
-                    label: 'Football',
-                    data: [85, 75, 70, 60, 90],
-                    backgroundColor: 'rgba(193, 255, 114, 0.2)',
-                    borderColor: '#C1FF72',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#C1FF72'
-                        }
-                    }
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Endurance', 'Force', 'Agilité', 'Stratégie', 'Vitesse'],
+                    datasets: [{
+                        label: 'Football',
+                        data: [85, 75, 70, 60, 90],
+                        backgroundColor: 'rgba(193, 255, 114, 0.2)',
+                        borderColor: '#C1FF72',
+                        borderWidth: 2
+                    }]
                 },
-                scales: {
-                    r: {
-                        grid: { color: '#444' },
-                        pointLabels: { color: '#C1FF72' }
-                    }
-                }
-            }
-        });
-
-        const barCtx = document.getElementById('barChart').getContext('2d');
-        const barChart = new Chart(barCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
-                datasets: [{
-                    label: 'Temps d’entraînement (heures)',
-                    data: [1.5, 2, 2.5, 3, 1, 2, 0.5],
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#C1FF72' }
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#C1FF72' } }
                     },
-                    x: {
-                        ticks: { color: '#C1FF72' }
+                    scales: {
+                        r: { grid: { color: '#444' }, pointLabels: { color: '#C1FF72' } }
                     }
                 }
-            }
-        });
+            });
 
-        document.getElementById('sport-select').addEventListener('change', updateStats);
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
+                    datasets: [{
+                        label: 'Temps d’entraînement (heures)',
+                        data: [1.5, 2, 2.5, 3, 1, 2, 0.5],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#C1FF72' } },
+                        x: { ticks: { color: '#C1FF72' } }
+                    }
+                }
+            });
+
+            new Chart(taskCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Complet', 'Manqué'],
+                    datasets: [{
+                        data: [71, 29],
+                        backgroundColor: ['rgba(255, 105, 180, 0.8)', '#666'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '70%',
+                    plugins: { legend: { display: false } },
+                    elements: { arc: { borderRadius: 20 } },
+                    animation: { animateRotate: true, animateScale: true }
+                }
+            });
+
+            const chartCanvas = document.getElementById('taskCompletionChart');
+            chartCanvas.style.filter = 'drop-shadow(0px 0px 15px rgba(255, 105, 180, 0.7))';
+        });
 
         fetch('sidebar.html')
             .then(response => response.text())
