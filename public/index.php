@@ -45,10 +45,11 @@ $router->post('/dashboard/booking/{reservation_id}/update', 'BookingController@u
 
 
 $router->get( '/dashboard/admin/users', 'DashboardController@manageUsers');
-$router->get( '/dashboard/admin/users/delete', 'DashboardController@deleteUser');
-$router->get( '/dashboard/admin/users/edit', 'DashboardController@editUserProfile');
-$router->post( '/dashboard/admin/users/edit', 'DashboardController@editUserProfile');
-
+$router->delete('/dashboard/admin/users/delete/{id}', 'DashboardController@deleteUser');
+$router->get('/api/users/{id}', 'DashboardController@getUserApi');
+$router->post('/api/users/{id}', 'DashboardController@updateUserApi');
+$router->get('/api/users/{id}/subscription', 'DashboardController@getUserSubscription');
+$router->post('/api/users/{id}/subscription', 'DashboardController@updateUserSubscription');
 
 
 $router->post( '/teams/{team_id}/add-member', 'TeamController@addParticipant');

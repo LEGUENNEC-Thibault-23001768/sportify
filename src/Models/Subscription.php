@@ -103,6 +103,27 @@ class Subscription
         return Database::query($sql, $params)->rowCount() > 0;
     }
 
+    public static function updateSubscriptionDetails($memberId, $subscriptionType, $startDate, $endDate, $amount)
+    {
+        $userSubscription = self::getStripeSubscriptionId($memberId);
+        if (!$userSubscription) {
+        }
+
+        $stripeSubscriptionId = $userSubscription['stripe_subscription_id'];
+
+        $sql = "UPDATE SUBSCRIPTION SET subscription_type = :subscription_type, start_date = :start_date, end_date = :end_date, amount = :amount WHERE member_id = :member_id AND stripe_subscription_id = :stripe_subscription_id";
+        $params = [
+            ':subscription_type' => $subscriptionType,
+            ':start_date' => $startDate,
+            ':end_date' => $endDate,
+            ':amount' => $amount,
+            ':member_id' => $memberId,
+            ':stripe_subscription_id' => $stripeSubscriptionId
+        ];
+
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
     public static function cancelSubscription($memberId)
     {
         $activeSubscription = self::getActiveSubscription($memberId);
