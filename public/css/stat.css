@@ -1,189 +1,217 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de bord - Sports</title>
-    <link rel="stylesheet" href="/public/css/stat.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <div class="dashboard">
-        <div id="sidebar"></div>
-        <main class="main-content">
-            <div class="left-section">
-                <div class="report-section">
-                    <div class="report-card performance-card">
-                        <div class="report-title">Choix du sport</div>
-                        <select id="sport-select" style="width: 100%; padding: 10px;">
-                            <option value="football">Football</option>
-                            <option value="musculation">Musculation</option>
-                            <option value="rpm">RPM</option>
-                            <option value="boxe">Boxe</option>
-                            <option value="tennis">Tennis</option>
-                            <option value="basketball">Basketball</option>
-                        </select>
-                    </div>
-                    <div class="report-card game-time-card" id="stat-1">
-                        <div class="report-title">Buts marqués</div>
-                        <div class="report-value">--</div>
-                        <div class="report-subtitle">--</div>
-                    </div>
-                </div>
-                <div class="report-section">
-                    <div class="report-card calories-card" id="stat-2">
-                        <div class="report-title">Temps de jeu</div>
-                        <div class="report-value">--</div>
-                        <div class="report-subtitle">--</div>
-                    </div>
-                    <div class="report-card game-time-card" id="stat-3">
-                        <div class="report-title">Passes décisives</div>
-                        <div class="report-value">--</div>
-                        <div class="report-subtitle">--</div>
-                    </div>
-                </div>
-                <div class="chart-container">
-                    <div class="chart-title">Temps passé par jour</div>
-                    <canvas id="barChart"></canvas>
-                </div>
-            </div>
-            <div class="right-section">
-                <div class="chart-container">
-                    <div class="chart-title">Performance par sport</div>
-                    <canvas id="radarChart"></canvas>
-                </div>
-            </div>
-        </main>
-    </div>
-    <script>
-        let radarChart;
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'League Spartan', sans-serif;
+    height: 100%;
+    background: black;
+    color: white;
+    overflow: hidden;
+}
 
-        const statsData = {
-            football: ["10 buts", "90 minutes", "5 passes décisives"],
-            musculation: ["120kg au squat", "2 heures", "50 répétitions"],
-            rpm: ["30 km parcourus", "1h30", "10 sprints"],
-            boxe: ["150 coups portés", "3 rounds", "10 esquives"],
-            tennis: ["20 aces", "2 heures", "5 fautes doubles"],
-            basketball: ["25 points", "40 minutes", "12 rebonds"]
-        };
+.dashboard {
+    display: grid;
+    grid-template-columns: 250px 1fr 1fr; /* Sidebar + Contenu principal */
+    grid-template-rows: 1fr 1fr; /* Deux lignes : Carrés + Tableau/Progression */
+    gap: 20px; /* Réduit l'espace global entre les éléments */
+    height: 100vh;
+    padding-left: 20px;
+    box-sizing: border-box;
+}
 
-        const radarData = {
-            football: [85, 75, 70, 60, 90],
-            musculation: [60, 95, 50, 40, 30],
-            rpm: [70, 80, 60, 50, 85],
-            boxe: [65, 90, 75, 70, 80],
-            tennis: [75, 55, 80, 85, 65],
-            basketball: [80, 70, 65, 60, 75]
-        };
+/* Section principale */
+.main-content {
+    grid-column: 2 / 4; /* Décale tout après la sidebar */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 30px;
+    padding: 20px;
+}
 
-        const weeklyData = {
-            football: [1.5, 2, 2.5, 3, 1, 2, 0.5],
-            musculation: [2, 2.5, 3, 3.5, 2, 3, 1.5],
-            rpm: [1, 1.5, 2, 2.5, 2, 2, 1],
-            boxe: [1.5, 2, 2.5, 3, 2, 2.5, 1],
-            tennis: [2, 1.5, 2, 3, 2, 2, 1],
-            basketball: [2.5, 2, 2.5, 3, 3, 2.5, 1.5]
-        };
+/* Carrés Statistiques */
+.report-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Deux carrés par ligne */
+    grid-gap: 20px;
+    grid-column: 1 / 2; /* Colonne de gauche */
+    grid-row: 1 / 2; /* Ligne 1 */
+    margin-top: 50px;
+}
 
-        function updateStats() {
-            const selectedSport = document.getElementById('sport-select').value;
-            const stats = statsData[selectedSport];
-            const statsTitles = {
-                football: ["Buts marqués", "Temps de jeu", "Passes décisives"],
-                musculation: ["Charge maximale", "Durée d'entraînement", "Répétitions"],
-                rpm: ["Distance", "Temps", "Sprints"],
-                boxe: ["Coups portés", "Rounds", "Esquives"],
-                tennis: ["Aces", "Temps de jeu", "Fautes doubles"],
-                basketball: ["Points", "Temps", "Rebonds"]
-            }[selectedSport];
+.report-card {
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-            document.getElementById('stat-1').querySelector('.report-title').textContent = statsTitles[0];
-            document.getElementById('stat-1').querySelector('.report-value').textContent = stats[0];
-            document.getElementById('stat-2').querySelector('.report-title').textContent = statsTitles[1];
-            document.getElementById('stat-2').querySelector('.report-value').textContent = stats[1];
-            document.getElementById('stat-3').querySelector('.report-title').textContent = statsTitles[2];
-            document.getElementById('stat-3').querySelector('.report-value').textContent = stats[2];
+.report-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 255, 0, 0.5);
+}
 
-            updateChart(selectedSport);
-            updateBarChart(selectedSport);
-        }
+.performance-card {
+    background-color: #C1FF72;
+    color: black;
+}
 
-        function updateChart(selectedSport) {
-            const newData = radarData[selectedSport];
-            radarChart.data.datasets[0].data = newData;
-            radarChart.data.datasets[0].label = selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1);
-            radarChart.update();
-        }
+.report-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #C1FF72;
+}
 
-        function updateBarChart(selectedSport) {
-            const newData = weeklyData[selectedSport];
-            barChart.data.datasets[0].data = newData;
-            barChart.update();
-        }
+.report-value {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+}
 
-        const radarCtx = document.getElementById('radarChart').getContext('2d');
-        radarChart = new Chart(radarCtx, {
-            type: 'radar',
-            data: {
-                labels: ['Endurance', 'Force', 'Agilité', 'Stratégie', 'Vitesse'],
-                datasets: [{
-                    label: 'Football',
-                    data: [85, 75, 70, 60, 90],
-                    backgroundColor: 'rgba(193, 255, 114, 0.2)',
-                    borderColor: '#C1FF72',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#C1FF72'
-                        }
-                    }
-                },
-                scales: {
-                    r: {
-                        grid: { color: '#444' },
-                        pointLabels: { color: '#C1FF72' }
-                    }
-                }
-            }
-        });
+.report-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
 
-        const barCtx = document.getElementById('barChart').getContext('2d');
-        const barChart = new Chart(barCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
-                datasets: [{
-                    label: 'Temps d’entraînement (heures)',
-                    data: [1.5, 2, 2.5, 3, 1, 2, 0.5],
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#C1FF72' }
-                    },
-                    x: {
-                        ticks: { color: '#C1FF72' }
-                    }
-                }
-            }
-        });
+/* Graphe Araignée */
+.right-section {
+    grid-column: 3 / 4; /* Dernière colonne */
+    grid-row: 1 / 2; /* Ligne 1 */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Monte le graphe plus haut */
+    margin-right: 10px; /* Réduit l'espace avec la progression */
+}
 
-        document.getElementById('sport-select').addEventListener('change', updateStats);
+.right-section canvas {
+    width: 250px; /* Taille réduite */
+    height: 250px;
+}
 
-        fetch('sidebar.html')
-            .then(response => response.text())
-            .then(data => { document.getElementById('sidebar').innerHTML = data; })
-            .catch(error => console.error('Erreur lors du chargement de la sidebar:', error));
-    </script>
-</body>
-</html>
+/* Tableau des Heures */
+.chart-container {
+    grid-column: 1 / 2; /* Colonne 1 */
+    grid-row: 2 / 3; /* Ligne 2 */
+    border-radius: 15px;
+    text-align: center;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    background: #1a1a1a;
+    width: 100%; /* Élargit le tableau */
+    margin: 50px auto; /* Ajoute de l'espace en haut */
+}
+
+.chart-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #C1FF72;
+}
+
+canvas {
+    width: 100%;
+    height: 100px; /* Hauteur réduite pour le tableau */
+}
+
+/* Barre de Progression */
+.progression-section {
+    grid-column: 3 / 4; /* Dernière colonne */
+    grid-row: 2 / 3; /* Ligne 2 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px; /* Réduit l’espace entre la section progression et le graphe */
+    margin-left: 10px; /* Réduit l'espace avec le graphe araignée */
+}
+
+.task-completion-card {
+    width: 250px;
+    height: 250px;
+    background: linear-gradient(145deg, rgba(9, 9, 9, 0.8), rgba(47, 47, 47, 0.9));
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.progression-title {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #C1FF72;
+}
+
+.circle-container {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+#taskCompletionChart {
+    width: 100%;
+    height: 100%;
+}
+
+#chart-center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    pointer-events: none;
+}
+
+table, th, td {
+    border: 1px solid #C1FF72;
+    font-size: 18px; /* Taille de texte plus grande */
+    padding: 15px; /* Espacement accru */
+}
+
+table {
+    width: 100%;
+    table-layout: fixed; /* S'assure que les colonnes restent uniformes */
+}
+
+.report-section, .progression-section {
+    gap: 10px; /* Réduit l’espace entre les éléments de ces sections */
+}
+
+@media screen and (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto;
+    }
+
+    .report-section, .right-section, .chart-container, .progression-section {
+        grid-column: 1 / 2;
+    }
+
+    .right-section canvas {
+        width: 200px;
+        height: 200px;
+    }
+
+    .task-completion-card {
+        width: 200px;
+        height: 200px;
+    }
+
+    .chart-container {
+        width: 100%; /* S'adapte sur mobile */
+    }
+}
