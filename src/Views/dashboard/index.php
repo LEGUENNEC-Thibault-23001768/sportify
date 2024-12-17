@@ -3,8 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="_assets/css/admin.css">  
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> 
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/_assets/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Check if jQuery is loaded before using it
+        if (typeof jQuery === 'undefined') {
+            console.error('jQuery is not loaded!');
+            // You can try loading it here or display an error message to the user
+        }
+    </script>
 </head>
 <body>
     <div class="sidebar">
@@ -12,12 +21,13 @@
             <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify">
         </div>
         <ul>
-            <li><a href="#"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-            <li><a href="#"><i class="fas fa-chart-line"></i> Suivi </a></li>
-            <li><a href="#"><i class="fas fa-futbol"></i> Terrains</a></li>
-            <li><a href="#"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
-            <li><a href="#"><i class="fas fa-trophy"></i> Événements</a></li>
-            <li><a href="#" class="management"><i class="fas fa-tasks"></i> Gestion</a></li> 
+            <!-- Updated data-target attributes -->
+            <li><a href="#" data-target="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="#" data-target="suivi"><i class="fas fa-chart-line"></i> Suivi </a></li>
+            <li><a href="#" data-target="terrains"><i class="fas fa-futbol"></i> Terrains</a></li>
+            <li><a href="#" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
+            <li><a href="#" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
+            <li><a href="#" class="management" data-target="admin/users"><i class="fas fa-tasks"></i> Gestion</a></li>
         </ul>
         <div class="settings-section">
             <a href="/dashboard/profile" class="settings"> Paramètres</a>
@@ -26,95 +36,127 @@
     </div>
     <div class="navbar">
         <div class="logo"></div>
-        <p class="profile-name"><?= htmlspecialchars($user['first_name']) . ' ' . htmlspecialchars($user['last_name']) ?></p>
+        <p class="profile-name">Jack OWO</p>
         <div class="profile-icon">
-            <img src="<?= !empty($user['profile_picture']) ? htmlspecialchars($user['profile_picture']) : 'https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg'; ?>" alt="Profil" id="profile-icon">
+            <img src="uploads/profile_pictures/675bf6cc8c469_index.jpeg" alt="Profil" id="profile-icon">
             <div class="dropdown" id="dropdown">
                 <a href="/dashboard/profile">Mon profil</a>
-                <a href="/logout">Déconnexion</a> 
+                <a href="/logout">Déconnexion</a>
             </div>
         </div>
     </div>
-    
 
-    <div class="dashboard-content">
-        <h1>Bienvenue sur votre tableau de bord, <?= htmlspecialchars($user['first_name']) ?> !</h1>
-    
-        <?php if ($user['status'] === 'coach' || $user['status'] === 'admin'): ?>
-            <div class="coach-panel">
-                <h2> 📅 Gestion événements</h2>
-                <p>Vous pouvez créer et gérer des événements pour les membres.</p>
-                <a href="/dashboard/events" class="btn">Gérer les événements</a>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($user['status'] === 'admin'): ?>
-            <div class="admin-panel">
-                <h2> 👥 Gestion utilisateurs</h2>
-                <p>Vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
-                <a href="/dashboard/admin/users" class="btn btn-danger">Gérer les utilisateurs</a>
-            </div>
-
-        <div class="card">
-             <h3 class="title rapport-activite">📊 Rapport d'activité</h3>
-             <ul>
-                <li>Nombre total de réservations cette semaine : 30 </li>
-                <li><a disabled class="btn">Créer ou Modifier un Rapport</a></li>
-            </ul>
-        </div>
-
-        <div class="card">
-             <h3 class="title prochaines-reservations">🏋️ Prochaines réservations</h3>
-             <ul>
-                 <li>Prochaine réservation: La salle tennis est reservé de 16h à 18h</li>
-                 <li><a class="btn" href="/dashboard/booking">Voir les prochaines réservations</a></li>
-             </ul>
-        </div>
-        <div class="card-row">
-             <div class="small-card">
-                 <div class="card-title"><span class="emoji">👥</span> Utilisateurs actifs</div>
-                 <div class="card-value">120 utilisateurs actifs actuellement</div>
-             </div>
-                 <div class="small-card">
-                 <div class="card-title"><span class="emoji">📈</span> Nouvelles inscriptions</div>
-             <div class="card-value">5 nouvelles inscriptions ont été faites récemment à Sportify !</div>
-        </div>
-        <div class="card">
-        <h3 class="title personal-training">🎯 Entraînement personnalisé</h3>
-        <p>Recevez un plan d'entraînement adapté à votre profil.</p>
-        <a class="btn" href="/dashboard/training/start">Commencer</a>
+    <div class="dashboard-content" id="dynamic-content">
+        <!-- Dynamic content will be loaded here -->
     </div>
-        <?php endif; ?>
-</div>
-
-
-
-    <?php
-    if (isset($_SESSION['message'])) {
-        echo "<div class='alert alert-success'>" . htmlspecialchars($_SESSION['message']) . "</div>";
-        unset($_SESSION['message']);
-    }
-    ?>
 
     <script>
-        document.getElementById('profile-icon').addEventListener('click', function() {
-            const dropdown = document.getElementById('dropdown');
-            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
-                dropdown.style.display = 'block';
-            } else {
-                dropdown.style.display = 'none';
+        $(document).ready(function() {
+            $('.sidebar a').click(function(e) {
+                e.preventDefault();
+                const target = $(this).data('target');
+                if (target) {
+                    loadContent(target);
+                }
+            });
+
+            const loadedScripts = {};
+            const loadedCSS = {};
+
+            function loadContent(content) {
+                $.ajax({
+                    url: '/dashboard/content/' + content,
+                    method: 'GET',
+                    success: function(response) {
+                        $('#dynamic-content').html(response);
+            
+                        // Find the element with the data-view attribute
+                        const viewContainer = $('#dynamic-content').find('[data-view]');
+            
+                        // Check if the element exists and has the data-view attribute
+                        if (viewContainer.length > 0) {
+                            const view = viewContainer.attr('data-view'); // Use .attr() instead of .data()
+                            console.log("View:", view);
+            
+                            // Load the script and CSS if the view is defined
+                            loadScript('/_assets/js/' + view + '.js', function() {
+                                console.log('sdgoidsg')
+                                if (typeof initialize === 'function') {
+                                    initialize();
+                                }
+                            });
+                            loadCSS('/_assets/css/' + view + '.css');
+                        } else {
+                            console.warn("No data-view attribute found for this content.");
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error: " + status + " - " + error);
+                        $('#dynamic-content').html("<p>Error loading content.</p>");
+                    }
+                });
+            }
+
+            function loadScript(src, cb) {
+                if (loadedScripts[src]) {
+                    console.log('Script already loaded:', src);
+                    if (typeof cb === 'function') {
+                        cb();
+                    }
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = true;
+
+                script.onload = function() {
+                    loadedScripts[src] = true;
+                    console.log('Script loaded:', src);
+
+                    if (typeof cb === 'function') {
+                        cb();
+                    }
+                };
+
+                script.onerror = function() {
+                    console.error("Error loading script:", src);
+                    delete loadedScripts[src];
+                };
+
+                document.body.appendChild(script);
+            }
+
+            function loadCSS(src, cb) {
+                if (loadedCSS[src]) {
+                    console.log('CSS already loaded:', src);
+                    if (typeof cb === 'function') {
+                        cb();
+                    }
+                    return;
+                }
+
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = src;
+
+                link.onload = function() {
+                    loadedCSS[src] = true;
+                    console.log('CSS loaded:', src);
+
+                    if (typeof cb === 'function') {
+                        cb();
+                    }
+                };
+
+                link.onerror = function() {
+                    console.error("Error loading CSS:", src);
+                    delete loadedCSS[src];
+                };
+
+                document.head.appendChild(link);
             }
         });
-
-        window.onclick = function(event) {
-            if (!event.target.matches('#profile-icon')) {
-                const dropdown = document.getElementById('dropdown');
-                if (dropdown.style.display === 'block') {
-                    dropdown.style.display = 'none';
-                }
-            }
-        };
     </script>
-
 </body>
 </html>

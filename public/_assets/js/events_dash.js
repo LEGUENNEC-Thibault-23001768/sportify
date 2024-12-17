@@ -1,4 +1,4 @@
-$(document).ready(function() {
+function initialize() {
     mobiscroll.setOptions({
         theme: 'ios',
         themeVariant: 'dark'
@@ -211,7 +211,7 @@ $(document).ready(function() {
     // Event create popup
     const createEventPopup = document.getElementById('createEventPopup');
 
-    function closeCreateEventPopup() {
+    window.closeCreateEventPopup = function() {
         createEventPopup.style.display = 'none';
         popupOverlay.style.display = 'none'; // Hide overlay
         $('#eventForm')[0].reset(); // Reset form on closing
@@ -426,4 +426,4 @@ $(document).ready(function() {
             toast.remove();
         });
     }
-})
+};

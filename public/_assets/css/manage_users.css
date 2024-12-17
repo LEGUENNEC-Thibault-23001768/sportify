@@ -1,0 +1,362 @@
+
+.container {
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #282828;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+h1, h3 {
+    color: #eee;
+}
+
+/* Search Form */
+.search-form {
+    margin-bottom: 20px;
+}
+
+.search-form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.search-form input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #eee;
+}
+
+.search-form button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #0077cc;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* Table */
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table th,
+.user-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #555;
+}
+
+.user-table th {
+    background-color: #333;
+}
+
+/* Action Buttons */
+.user-table .btn {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-right: 5px;
+    text-decoration: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.user-table .btn-edit {
+    background-color: #ffaa00;
+    color: #fff;
+    border: none;
+}
+
+.user-table .btn-delete {
+    background-color: #cc0000;
+    color: #fff;
+    border: none;
+}
+
+/* Alerts */
+.alert {
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.alert-success {
+    background-color: #008800;
+    color: #fff;
+}
+
+.alert-danger {
+    background-color: #880000;
+    color: #fff;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #282828;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+}
+
+.modal-header {
+    border-bottom: 1px solid #555;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    position: relative; /* Added for absolute positioning of close button */
+}
+
+.modal-title {
+    color: #eee;
+    margin: 0;
+    text-align: center;
+    width: 100%;
+    font-size: 24px; /* Increased title size */
+}
+
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.modal-form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.modal-form input,
+.modal-form select {
+    width: 95%;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #eee;
+    margin-bottom: 10px;
+}
+
+.modal-form .form-group {
+    margin-bottom: 15px;
+}
+
+.modal-footer {
+    text-align: right;
+    margin-top: 20px;
+}
+
+.modal-footer .btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #555;
+    margin-right: 10px;
+}
+
+.modal-footer .btn-primary {
+    background-color: #0077cc;
+}
+
+/* Modal Form */
+.modal-form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.modal-form input,
+.modal-form select {
+    width: 95%;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #eee;
+    margin-bottom: 10px;
+}
+
+.modal-form .form-group {
+    margin-bottom: 15px;
+}
+
+/* Modal Animation */
+.modal.show {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Blurred Background */
+body.modal-open {
+    overflow: hidden;
+}
+
+body.modal-open .main-content {
+    filter: blur(4px);
+    pointer-events: none;
+    user-select: none;
+}
+
+.main-content {
+    transition: filter 0.3s ease-out;
+}
+
+.modal-tab-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 10px; /* Reduced margin */
+}
+
+.modal-tab-buttons button {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 16px;
+    color: #aaa;
+    cursor: pointer;
+    margin: 0 10px;
+    border-bottom: 2px solid transparent;
+    transition: border-bottom-color 0.3s ease, color 0.3s ease;
+}
+
+.modal-tab-buttons button.active {
+    color: #eee;
+    border-bottom-color: #0077cc;
+}
+
+.modal-tab-content {
+    display: none;
+    opacity: 0; /* Initially hidden for transition */
+    transition: opacity 0.3s ease; /* Added transition */
+}
+
+.modal-tab-content.active {
+    display: block;
+    opacity: 1; /* Make visible when active */
+}
+
+.error-message {
+    color: red;
+    margin-top: 10px;
+}
+.modal-form button, .modal-footer button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-form button:hover, .modal-footer button:hover {
+    opacity: 0.8;
+}
+
+.modal-form button.btn-primary, .modal-footer button.btn-primary {
+    background-color: #0077cc;
+}
+
+.modal-form button.btn-secondary, .modal-footer button.btn-secondary {
+    background-color: #555;
+}
+
+.modal-form button.btn-danger, .modal-footer button.btn-danger {
+    background-color: #cc0000;
+}
+
+.modal-form button.btn-success, .modal-footer button.btn-success {
+    background-color: #008800;
+}
+
+.modal-form input, .modal-form select {
+    width: 95%;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #eee;
+    margin-bottom: 10px;
+    transition: border-color 0.3s ease;
+}
+
+.modal-form input:focus, .modal-form select:focus {
+    border-color: #0077cc;
+    outline: none;
+}
+
+#subscription-tab .form-group input {
+    width: 95%;
+    padding: 8px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #333;
+    color: #eee;
+    margin-bottom: 10px;
+    transition: border-color 0.3s ease;
+}
+
+#subscription-tab .form-group input:focus {
+    border-color: #0077cc;
+    outline: none;
+}
+
+#subscription-tab .btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px; /* Added some space above buttons */
+}
+
+#subscription-tab .btn:hover {
+    opacity: 0.8;
+}
+
+#subscription-tab .btn-primary {
+    background-color: #0077cc;
+}
+
+#subscription-tab .btn-danger {
+    background-color: #cc0000;
+}
+
+#subscription-tab .btn-success {
+    background-color: #008800;
+}

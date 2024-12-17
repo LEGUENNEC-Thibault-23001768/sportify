@@ -4,75 +4,130 @@ namespace Core;
 
 class Router
 {
-    private $routes = [];
+    private static $routes = [];
 
-    public function get($url, $handler)
+    public static function get($url, $handler, $middleware = null)
     {
-        $this->addRoute('GET', $url, $handler);
+        self::addRoute('GET', $url, $handler, $middleware);
     }
 
-    public function post($url, $handler)
+    public static function post($url, $handler, $middleware = null)
     {
-        $this->addRoute('POST', $url, $handler);
+        self::addRoute('POST', $url, $handler, $middleware);
     }
 
-    public function delete($url, $handler) {
-        $this->addRoute('DELETE',$url,$handler);
-    }
-
-    private function addRoute($method, $url, $handler)
+    public static function delete($url, $handler, $middleware = null)
     {
-        $this->routes[$method][$url] = $handler;
+        self::addRoute('DELETE', $url, $handler, $middleware);
     }
 
-    public function dispatch($url)
+    private static function addRoute($method, $url, $handler, $middleware = null)
+    {
+        self::$routes[$method][$url] = ['handler' => $handler, 'middleware' => $middleware];
+    }
+
+    public static function dispatch($url)
     {
         $method = $_SERVER['REQUEST_METHOD'];
         $urlPath = parse_url($url, PHP_URL_PATH);
 
-        if (!isset($this->routes[$method])) {
+        if (!isset(self::$routes[$method])) {
             throw new \Exception("No routes defined for method: $method");
         }
 
-        foreach ($this->routes[$method] as $route => $handler) {
+        foreach (self::$routes[$method] as $route => $routeData) {
             $params = [];
-            if ($this->matchRoute($route, $urlPath, $params)) {
+            if (self::matchRoute($route, $urlPath, $params)) {
+                // Apply middleware
+                if (isset($routeData['middleware'])) {
+                    $middlewares = is_array($routeData['middleware'])
+                        ? $routeData['middleware']
+                        : [$routeData['middleware']];
+
+                    foreach ($middlewares as $middleware) {
+                        if (!self::executeMiddleware($middleware)) {
+                            return;
+                        }
+                    }
+                }
+
+                error_log("Matched Route: " . $route);
+                error_log("Captured Parameters: " . print_r(array_values($params), true));
+
+                $handler = $routeData['handler'];
                 if (is_string($handler)) {
-                    list($controller, $action) = explode('@', $handler);
-                    $controller = "Controllers\\$controller";
-                    
-                    if (!class_exists($controller)) {
-                        throw new \Exception("Controller not found: $controller");
-                    }
-
-                    $controllerInstance = new $controller();
-
-                    if (!method_exists($controllerInstance, $action)) {
-                        throw new \Exception("Action: $action not found in controller: $controller");
-                    }
-
-                    return $controllerInstance->$action(...$params);
+                    return self::invokeHandler($handler, array_values($params)); // Pass only parameter values
                 } elseif (is_callable($handler)) {
-                    return $handler(...$params);
+                    return call_user_func_array($handler, array_values($params)); // Pass only parameter values
                 } else {
-                    throw new \Exception("Invalid route handler");
+                    throw new \Exception("Invalid route handler for route: $route");
                 }
             }
         }
 
-        throw new \Exception("No route found for URL: $url with method: $method");
+        throw new \Exception("No route found for URL: $urlPath with method: $method");
     }
 
-    private function matchRoute($route, $url, &$params)
+    private static function matchRoute($route, $url, &$params)
     {
-        $pattern = preg_replace('/\/{(.*?)}/', '/([^/]+)', $route);
-        $pattern = '#^' . $pattern . '$#';
+        $route = rtrim($route, '/');
+        $url = rtrim($url, '/');
+
+
+       if (strpos($route, '/*') !== false) {
+            $pattern = preg_replace('/\/{(.*?)}/', '/(?<$1>[^/]+)', $route);
+
+            $pattern = str_replace('/*', '(?<wildcard>.*)', $pattern);
+            $pattern = '#^' . str_replace('/', '\/', $pattern) . '$#';
+        } else {
+            $pattern = preg_replace('/\/{(.*?)}/', '/(?<$1>[^/]+)', $route);
+             $pattern = '#^' . str_replace('/', '\/', $pattern) . '$#';
+        }
+
+
 
         if (preg_match($pattern, $url, $matches)) {
-            array_shift($matches);
-            $params = $matches;
-            return true;
+            $params = array_filter($matches, function ($key) {
+                return is_string($key);
+            }, ARRAY_FILTER_USE_KEY);
+
+             if(strpos($route, '/*') !== false){
+                 $wildcard_value = $matches['wildcard'] ?? null;
+                 if($wildcard_value){
+                      $params['wildcard'] = $wildcard_value;
+                 }
+              }
+
+           return true;
         }
+
         return false;
+    }
+
+    private static function invokeHandler($handler, $params)
+    {
+        list($controllerName, $action) = explode('@', $handler);
+        $controller = "Controllers\\$controllerName";
+
+        if (!class_exists($controller)) {
+            throw new \Exception("Controller not found: $controller");
+        }
+
+        $controllerInstance = new $controller();
+
+        if (!method_exists($controllerInstance, $action)) {
+            throw new \Exception("Action: $action not found in controller: $controller");
+        }
+
+        return call_user_func_array([$controllerInstance, $action], $params);
+    }
+
+    private static function executeMiddleware($middleware)
+    {
+        if (is_callable($middleware)) {
+            return $middleware();
+        } else {
+            throw new \Exception("Invalid middleware: " . $middleware);
+        }
     }
 }

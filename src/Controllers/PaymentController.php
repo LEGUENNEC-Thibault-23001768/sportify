@@ -22,11 +22,6 @@ class PaymentController
 
     public function createCheckoutSession()
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit;
-        }
-
         $userEmail = $_SESSION['user_email'];
 
         $existingCustomers = $this->stripe->customers->search([
@@ -61,11 +56,6 @@ class PaymentController
 
     public function success()
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit;
-        }
-
         $sessionId = $_GET['session_id'] ?? null; 
         if (!$sessionId) {
             $_SESSION['error'] = "Erreur : Session ID manquant.";
@@ -116,10 +106,6 @@ class PaymentController
 
     public function listInvoices() 
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit;
-        }
         try {
             $activeSubscription = Subscription::getStripeSubscriptionId($_SESSION['user_id']);
             
@@ -169,11 +155,6 @@ class PaymentController
 
     public function cancelSubscription()
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit;
-        }
-
         try {
             $activeSubscription = Subscription::getActiveSubscription($_SESSION['user_id']);
 

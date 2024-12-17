@@ -46,6 +46,6 @@ class APIResponse
             echo json_encode($this->data);
         }
 
-        exit; // Important to stop further execution
+        exit;
     }
 }

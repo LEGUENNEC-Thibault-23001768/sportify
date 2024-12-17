@@ -14,11 +14,6 @@ class EventController
 {
     public function index()
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login'); // Redirect to login if not logged in
-            exit;
-        }
-
         $currentUserId = $_SESSION['user_id'];
         $member = User::getUserById($currentUserId);
 
@@ -69,11 +64,6 @@ class EventController
     {
         $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
-        $currentUser = User::getUserById($currentUserId);
-
-        if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
-            return $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
-        }
 
         $eventData = $_POST;
 
@@ -139,20 +129,18 @@ class EventController
         }
     
         // Check if the user is authorized to send invitations
-        if ($event['created_by'] != $currentUserId && $currentUser['status'] !== "coach" && $currentUser['status'] !== "admin") {
+        if ($event['created_by'] != $currentUserId) {
             $response->setStatusCode(403)->setData(['error' => 'You are not authorized to send invitations'])->send();
             return;
         }
     
         $email = $_POST['email'];
     
-        // Validate email
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $response->setStatusCode(400)->setData(['error' => 'Invalid email format'])->send();
             return;
         }
     
-        // Check if the user is already registered or invited
         $user = User::getUserByEmail($email);
         if ($user && EventRegistration::isUserRegistered($eventId, $user['member_id'])) {
             $response->setStatusCode(400)->setData(['error' => 'User is already registered for this event'])->send();
@@ -167,7 +155,6 @@ class EventController
     
         $token = EventInvitation::createInvitation($eventId, $email);
     
-        // Send invitation email
         if ($this->sendInvitationEmail($email, $token, $event)) {
             $response->setStatusCode(200)->setData(['message' => 'Invitation sent successfully'])->send();
         } else {
@@ -179,13 +166,8 @@ class EventController
     {
         $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
-        $currentUser = User::getUserById($currentUserId);
         $event = Event::findEvents($eventId);
 
-        if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
-            $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
-            return;
-        }
 
         if (!$event) {
             $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
@@ -204,6 +186,8 @@ class EventController
         $currentUserId = $_SESSION['user_id'];
         $member = User::getUserById($currentUserId);
         $event = Event::findEvents($eventId);
+
+        error_log(print_r($event,true));
     
         if (!$event) {
             return (new APIResponse)->setStatusCode(404)->setData(['error' => 'Event not found'])->send();

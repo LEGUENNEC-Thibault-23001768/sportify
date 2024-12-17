@@ -12,58 +12,49 @@ class DashboardController
 {
     public function showDashboard()
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
+        $userId = $_SESSION['user_id'];
+        $user = User::getUserById($userId);
 
-        $user_id = $_SESSION['user_id'];
+        echo View::render('layouts/dashboard', ['user' => $user]);
+    }
 
-        $admin = User::getUserById($user_id);
+    public function contentLoader($category, $wildcard = '')
+    {
 
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
+        $wildcard = ltrim($wildcard, '/');
+    
+        $segments = !empty($wildcard) ? explode('/', $wildcard) : [];
 
         $userId = $_SESSION['user_id'];
         $user = User::getUserById($userId);
-        $response = new APIResponse();
 
-        $hasActiveSubscription = Subscription::hasActiveSubscription($userId);
-        $subscriptionInfo = $hasActiveSubscription ? Subscription::getStripeSubscriptionId($userId) : null;
-
-        $hasActiveSubscription = $subscriptionInfo["status"] ?? "Aucun";
-
-        $response->setStatusCode(200)->setData([
-            'user' => $user,
-            'hasActiveSubscription' => $hasActiveSubscription,
-            'subscription' => [
-                'plan_name' => $subscriptionInfo["subscription_type"] ?? "Aucun",
-                'start_date' => $subscriptionInfo["start_date"] ?? "Aucun",
-                'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
-                'amount' => $subscriptionInfo["amount"] ?? 0,
-                'currency' => $subscriptionInfo["currency"] ?? '€',
-                'status' => $subscriptionInfo["status"] ?? "Aucun"
-            ]
-        ])->send();
+        try {
+            if ($category === 'admin' && $segments[0] === 'users') {
+                $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
+                $users = !empty($searchTerm) ? User::searchUsers($searchTerm) : User::getAllUsers();
+                echo View::render('dashboard/admin/users/index', ['users' => $users, 'searchTerm' => $searchTerm, 'user' => $user, 'dataView' => 'admin/users']);
+            } else if ($category === "events") {
+                error_log(print_r("qsq",true));
+                //echo View::render('dashboard/events/index', ['member' => $user]);  
+                echo View::render('dashboard/events/index', ['user' => $user, 'dataView' => 'events']);
+            } else {
+                // Construct the view path using both category and segments
+                $viewPath = 'dashboard/' . $category . '/' . implode('/', $segments) . '/index';
+                try {
+                    echo View::render($viewPath, ['user' => $user]);
+                } catch (\Exception $e) {
+                    // Handle cases where the view file doesn't exist
+                    echo "<p>Content not found: " . htmlspecialchars($e->getMessage()) . "</p>";
+                }
+            } 
+        } catch (\Exception $e) {
+            //error_log(print_r($e,true));
+            echo "<p>Content not found.</p>";
+        }
     }
 
     public function showProfile()
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
 
         $userId = $_SESSION['user_id'];
         $user = User::getUserById($userId);
@@ -79,77 +70,45 @@ class DashboardController
 
     public function updateUserProfile()
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
         $response = new APIResponse();
+        $userId = $_SESSION['user_id'];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $userId = $_SESSION['user_id'];
+        $data = json_decode(file_get_contents('php://input'), true);
 
-            $data = json_decode(file_get_contents('php://input'), true);
+        // Validate and sanitize input data
+        $firstName = trim($data['first_name'] ?? '');
+        $lastName = trim($data['last_name'] ?? '');
+        $email = trim($data['email'] ?? '');
+        $birthDate = trim($data['birth_date'] ?? '');
+        $address = trim($data['address'] ?? '');
+        $phone = trim($data['phone'] ?? '');
 
-            // Validate and sanitize input data
-            $firstName = trim($data['first_name'] ?? '');
-            $lastName = trim($data['last_name'] ?? '');
-            $email = trim($data['email'] ?? '');
-            $birthDate = trim($data['birth_date'] ?? '');
-            $address = trim($data['address'] ?? '');
-            $phone = trim($data['phone'] ?? '');
+        if (empty($firstName) || empty($lastName) || empty($email)) {
+            $response->setStatusCode(400)->setData(['error' => 'Les champs prénom, nom et email sont obligatoires'])->send();
+            return;
+        }
 
-            if (empty($firstName) || empty($lastName) || empty($email)) {
-                $response->setStatusCode(400)->setData(['error' => 'Les champs prénom, nom et email sont obligatoires'])->send();
-                return;
-            }
+        $updateData = [
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $email,
+            'birth_date' => $birthDate,
+            'address' => $address,
+            'phone' => $phone,
+        ];
 
-            $updateData = [
-                'first_name' => $firstName,
-                'last_name' => $lastName,
-                'email' => $email,
-                'birth_date' => $birthDate,
-                'address' => $address,
-                'phone' => $phone,
-            ];
+        // Handle profile picture update if necessary
 
-            // Handle profile picture update if necessary
-
-            if (User::updateUserProfile($userId, $updateData)) {
-                $response->setStatusCode(200)->setData(['message' => 'Profil mis à jour avec succès.'])->send();
-            } else {
-                $response->setStatusCode(500)->setData(['error' => 'Échec de la mise à jour du profil.'])->send();
-            }
+        if (User::updateUserProfile($userId, $updateData)) {
+            $response->setStatusCode(200)->setData(['message' => 'Profil mis à jour avec succès.'])->send();
         } else {
-            $response->setStatusCode(400)->setData(['error' => 'Invalid request method.'])->send();
+            $response->setStatusCode(500)->setData(['error' => 'Échec de la mise à jour du profil.'])->send();
         }
     }
 
     // User Management (Admin)
     public function manageUsers()
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
-    
         $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
         $users = !empty($searchTerm) ? User::searchUsers($searchTerm) : User::getAllUsers();
         echo View::render('dashboard/admin/users/index', ['users' => $users, 'searchTerm' => $searchTerm]);
@@ -157,19 +116,7 @@ class DashboardController
 
     public function deleteUser($userId)
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
+        
         $response = new APIResponse();
     
         if (User::deleteUser($userId)) {
@@ -182,19 +129,6 @@ class DashboardController
     // API Endpoint for Editing Users (Admin)
     public function getUserApi($userId)
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
         $response = new APIResponse();
 
         $user = User::getUserById($userId);
@@ -208,19 +142,7 @@ class DashboardController
 
     public function updateUserApi($userId)
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
+        
         $response = new APIResponse();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -270,19 +192,6 @@ class DashboardController
     }
     public function getUserSubscription($userId)
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
         $response = new APIResponse();
 
         $subscription = Subscription::getStripeSubscriptionId($userId);
@@ -296,19 +205,6 @@ class DashboardController
 
     public function updateUserSubscription($userId)
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
         $response = new APIResponse();
     
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -338,19 +234,6 @@ class DashboardController
 
     public function cancelUserSubscription($userId)
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
         $response = new APIResponse();
 
         if (Subscription::cancelSubscription($userId)) {
@@ -362,19 +245,6 @@ class DashboardController
 
     public function resumeUserSubscription($userId)
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
         $response = new APIResponse();
 
         if (Subscription::resumeSubscription($userId)) {

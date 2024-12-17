@@ -3,13 +3,14 @@
 namespace Controllers;
 
 use Models\User;
+use Core\Auth;
 use Core\View;
 
 class AuthController
 {
     public function showLoginForm()
     {
-        if (isset($_SESSION['user_id'])) {
+        if (Auth::isLoggedIn()) {
             header('Location: /dashboard');
             exit;
         }
@@ -18,7 +19,7 @@ class AuthController
 
     public function showRegisterForm()
     {
-        if (isset($_SESSION['user_id'])) {
+        if (Auth::isLoggedIn()) {
             header('Location: /dashboard');
             exit;
         }
@@ -27,42 +28,31 @@ class AuthController
 
     public function login()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                error_log(print_r("on est là bizarrement", true));
-                $_SESSION['error_message'] = "Format d'email invalide.";
-                header('Location: /login');
-                exit;
-            }
-
-            
-            $password = $_POST['password'] ?? '';
-            $user = User::login($email, $password);
-
-            if ($user) {
-                $_SESSION['user_id'] = $user['member_id'];
-                $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-                $_SESSION['user_email'] = $user['email'];
-                header('Location: /dashboard');
-                exit;
-            } else {
-                echo View::render('auth/login', ['error' => 'Email ou mot de passe incorrect.']);
-            }
-        } else {
+        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['error_message'] = "Format d'email invalide.";
             header('Location: /login');
             exit;
+        }
+
+        
+        $password = $_POST['password'] ?? '';
+        $user = User::login($email, $password);
+
+        if ($user) {
+            $_SESSION['user_id'] = $user['member_id'];
+            $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+            $_SESSION['user_email'] = $user['email'];
+            header('Location: /dashboard');
+            exit;
+        } else {
+            echo View::render('auth/login', ['error' => 'Email ou mot de passe incorrect.']);
         }
     }
 
     public function logout()
     {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit;
-        }
         $_SESSION = array();
-        
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
             setcookie(session_name(), '', 1,
@@ -78,53 +68,50 @@ class AuthController
 
     public function register()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = trim($_POST['email']);
-            $password = trim($_POST['password']);
-            $confirmPassword = trim($_POST['confirm_password']);
+        $email = trim($_POST['email']);
+        $password = trim($_POST['password']);
+        $confirmPassword = trim($_POST['confirm_password']);
 
-            if (empty($email) || empty($password) || empty($confirmPassword)) {
-                $error = 'Tous les champs sont obligatoires.';
-                echo View::render('auth/login', ['error' => $error]);
-                return;
-            }
+        if (empty($email) || empty($password) || empty($confirmPassword)) {
+            $error = 'Tous les champs sont obligatoires.';
+            echo View::render('auth/login', ['error' => $error]);
+            return;
+        }
 
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $error = 'Veuillez entrer un email valide.';
-                echo View::render('auth/login', ['error' => $error]);
-                return;
-            }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Veuillez entrer un email valide.';
+            echo View::render('auth/login', ['error' => $error]);
+            return;
+        }
 
-            if ($password !== $confirmPassword) {
-                $error = 'Les mots de passe ne correspondent pas.';
-                echo View::render('auth/login', ['error' => $error]);
-                return;
-            }
+        if ($password !== $confirmPassword) {
+            $error = 'Les mots de passe ne correspondent pas.';
+            echo View::render('auth/login', ['error' => $error]);
+            return;
+        }
 
-            if (User::findByEmail($email)) {
-                $error = 'Cet email est déjà utilisé.';
-                echo View::render('auth/login', ['error' => $error]);
-                return;
-            }
+        if (User::findByEmail($email)) {
+            $error = 'Cet email est déjà utilisé.';
+            echo View::render('auth/login', ['error' => $error]);
+            return;
+        }
 
-            $newUser = [
-                'email' => $email,
-                'password' => $password,
-                'first_name' => 'DefaultFirst', 
-                'last_name' => 'DefaultLast',   
-                'birth_date' => null,           
-                'address' => null,              
-                'phone' => null                 
-            ];
+        $newUser = [
+            'email' => $email,
+            'password' => $password,
+            'first_name' => 'DefaultFirst', 
+            'last_name' => 'DefaultLast',   
+            'birth_date' => null,           
+            'address' => null,              
+            'phone' => null                 
+        ];
 
-            if (User::create($newUser)) {
-                $message = "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception.";
-                error_log($message);
-                echo View::render('auth/login', ['message' => $message]);
-            } else {
-                $error = "Erreur lors de l'inscription. Veuillez réessayer.";
-                echo View::render('auth/login', ['error' => $error]);
-            }
+        if (User::create($newUser)) {
+            $message = "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception.";
+            echo View::render('auth/login', ['message' => $message]);
+        } else {
+            $error = "Erreur lors de l'inscription. Veuillez réessayer.";
+            echo View::render('auth/login', ['error' => $error]);
         }
     }
 
@@ -141,26 +128,24 @@ class AuthController
 
     public function sendResetLink()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-            
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                echo View::render('auth/forgot-password', ['error' => "Format d'email invalide."]);
-                return;
-            }
+        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+        
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo View::render('auth/forgot-password', ['error' => "Format d'email invalide."]);
+            return;
+        }
 
-            $user = User::findByEmail($email);
-            if ($user) {
-                $token = bin2hex(random_bytes(32));
-                if (User::storeResetToken($email, $token)) {
-                    User::sendPasswordResetEmail($email, $token);
-                    echo View::render('auth/forgot-password', ['message' => "Un lien de réinitialisation a été envoyé à votre adresse email."]);
-                } else {
-                    echo View::render('auth/forgot-password', ['error' => "Une erreur est survenue. Veuillez réessayer."]);
-                }
+        $user = User::findByEmail($email);
+        if ($user) {
+            $token = bin2hex(random_bytes(32));
+            if (User::storeResetToken($email, $token)) {
+                User::sendPasswordResetEmail($email, $token);
+                echo View::render('auth/forgot-password', ['message' => "Un lien de réinitialisation a été envoyé à votre adresse email."]);
             } else {
-                echo View::render('auth/forgot-password', ['error' => "Aucun compte trouvé avec cet email."]);
+                echo View::render('auth/forgot-password', ['error' => "Une erreur est survenue. Veuillez réessayer."]);
             }
+        } else {
+            echo View::render('auth/forgot-password', ['error' => "Aucun compte trouvé avec cet email."]);
         }
     }
 
@@ -181,21 +166,19 @@ class AuthController
 
     public function resetPassword()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $token = $_POST['token'] ?? '';
-            $password = $_POST['password'] ?? '';
-            $confirmPassword = $_POST['confirm_password'] ?? '';
+        $token = $_POST['token'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
 
-            if ($password !== $confirmPassword) {
-                echo View::render('auth/reset-password', ['error' => "Les mots de passe ne correspondent pas.", 'token' => $token]);
-                return;
-            }
+        if ($password !== $confirmPassword) {
+            echo View::render('auth/reset-password', ['error' => "Les mots de passe ne correspondent pas.", 'token' => $token]);
+            return;
+        }
 
-            if (User::resetPassword($token, $password)) {
-                echo View::render('auth/login', ['message' => "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter."]);
-            } else {
-                echo View::render('auth/reset-password', ['error' => "Le lien de réinitialisation est invalide ou a expiré.", 'token' => $token]);
-            }
+        if (User::resetPassword($token, $password)) {
+            echo View::render('auth/login', ['message' => "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter."]);
+        } else {
+            echo View::render('auth/reset-password', ['error' => "Le lien de réinitialisation est invalide ou a expiré.", 'token' => $token]);
         }
     }
 }

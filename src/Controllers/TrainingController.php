@@ -19,11 +19,6 @@ class TrainingController {
     }
 
     public function start() {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit;
-        }
-    
         $memberId = $_SESSION['user_id'];
         $existingPlan = Training::getExistingTrainingPlan($memberId);
     
@@ -99,10 +94,6 @@ class TrainingController {
     public function apiProcessStep() {
         $response = new APIResponse();
     
-        if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return $response->setStatusCode(401)->setData(['error' => 'Unauthorized'])->send();
-        }
-    
         $step = $_POST['step'] ?? null;
         $data = $_POST['data'] ?? null;
     
@@ -121,11 +112,6 @@ class TrainingController {
     
 
     public function dashboard() {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit;
-        }
-    
         $memberId = $_SESSION['user_id'];
         $existingPlan = Training::getExistingTrainingPlan($memberId);
     
@@ -140,10 +126,6 @@ class TrainingController {
     }
 
     public function train() {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit;
-        }
     
         $memberId = $_SESSION['user_id'];
         $existingPlan = Training::getExistingTrainingPlan($memberId);
