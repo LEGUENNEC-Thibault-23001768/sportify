@@ -3,62 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/_assets/css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <title>Tableau de bord</title>
+    <title>Tableau de bord - Accueil</title>
+    <link rel="stylesheet" href="/public/css/home.css">
+    <link rel="stylesheet" href="css/mobiscroll.javascript.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<div class="sidebar">
-        <div class="logo">
-            <a href="home.html">
-                <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify">
-            </a>
-        </div>
-        <ul>
-            <li><a href="/dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-            <li><a href="#"><i class="fas fa-chart-line"></i> Suivi</a></li>
-            <li><a href="/dashboard/booking"><i class="fas fa-futbol"></i> Terrains</a></li>
-            <li><a href="#"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
-            <li><a href="/dashboard/events"><i class="fas fa-trophy"></i> Événements</a></li>
-            <li><a href="/dashboard/training"><i class="fas fa-calendar-alt"></i> Programme</a></li> 
-            <li><a href="/dashboard/admin/users" class="management"><i class="fas fa-tasks"></i> Gestion</a></li>
-        </ul>
-        
-        <div class="settings-section">
-            <a href="#" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
-            <a href="#" class="logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
-        </div>
-    </div>  
-    <div class="navbar">
-        <div class="logo"></div>
-        <div class="profile-info">
-            <p class="profile-name"><?= htmlspecialchars($user['first_name']) . ' ' . htmlspecialchars($user['last_name']) ?></p>
-            <div class="subscription-status">
-                <?php echo $hasActiveSubscription?>
-                <?php if (!isset($hasActiveSubscription) || !$hasActiveSubscription): ?>
-                    <form action="/create-checkout-session" method="POST">
-                        <button type="submit" class="subscribe-button">S'abonner</button>
-                    </form>
-                    <?php else: ?>
-                        <p class="active-subscription">Abonnement actif</p>
-                        <?php endif; ?>
-                    </div>
-        </div>
-        <div class="profile-icon">
-            <img src="<?= !empty($user['profile_picture']) ? htmlspecialchars($user['profile_picture']) : 'https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg'; ?>" alt="Profil" id="profile-icon">
-            <div class="dropdown" id="dropdown">
-                <a href="/dashboard/profile">Mon profil</a>
-                <a href="/logout">Déconnexion</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="dashboard-content">
-        <h1>Bienvenue sur votre tableau de bord, <?= htmlspecialchars($user['first_name']) ?> !</h1>
-
-        <?php if ($user['status'] === 'membre'): ?>
-            <link rel="stylesheet" href="/_assets/css/member.css">
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <div class="dashboard">
+        <div id="sidebar"></div>
+        <main class="main-content">
             <div class="main-section">
                 <div class="left-section">
                     <div class="report-controls">
@@ -92,90 +45,35 @@
                     <div class="task-completion-card">
                         <div class="progression-title">Progression</div>
                         <div class="circle-container">
-                        <canvas id="taskCompletionChart"></canvas>
+                            <canvas id="taskCompletionChart"></canvas>
                             <div id="chart-center-text">71%</div>
                         </div>
                     </div>
                 </div>
             </div>
             <div mbsc-page class="demo-mobile-day-view">
-                <div style="">  <div id="demo-mobile-day-view"></div>
+                <div style="height:1%">
+                    <div id="demo-mobile-day-view"></div>
                 </div>
             </div>
-        <?php elseif ($user['status'] === 'coach' || $user['status'] === 'admin'): ?>
-            <div class="coach-panel">
-                <h2> 📅 Gestion événements</h2>
-                <p>Vous pouvez créer et gérer des événements pour les membres.</p>
-                <a href="/dashboard/events" class="btn">Gérer les événements</a>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($user['status'] === 'admin'): ?>
-            <!-- Contenu spécifique aux administrateurs -->
-            <div class="admin-panel">
-                <h2> 👥 Gestion utilisateurs</h2>
-                <p>Vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
-                <a href="/dashboard/admin/users" class="btn btn-danger">Gérer les utilisateurs</a>
-            </div>
-            <div class="card">
-                <h3 class="title rapport-activite">📊 Rapport d'activité</h3>
-                <ul>
-                    <li>Nombre total de réservations cette semaine : 30 </li>
-                    <li><a disabled class="btn">Créer ou Modifier un Rapport</a></li>
-                </ul>
-            </div>
-            <div class="card">
-                <h3 class="title prochaines-reservations">🏋️ Prochaines réservations</h3>
-                <ul>
-                    <li>Prochaine réservation: La salle tennis est reservé de 16h à 18h</li>
-                    <li><a class="btn" href="/dashboard/booking">Voir les prochaines réservations</a></li>
-                </ul>
-            </div>
-            <div class="card-row">
-                <div class="small-card">
-                    <div class="card-title"><span class="emoji">👥</span> Utilisateurs actifs</div>
-                    <div class="card-value">120 utilisateurs actifs actuellement</div>
-                </div>
-                <div class="small-card">
-                    <div class="card-title"><span class="emoji">📈</span> Nouvelles inscriptions</div>
-                    <div class="card-value">5 nouvelles inscriptions ont été faites récemment à Sportify !</div>
-                </div>
-            </div>
-            <div class="card">
-                <h3 class="title personal-training">🎯 Entraînement personnalisé</h3>
-                <p>Recevez un plan d'entraînement adapté à votre profil.</p>
-                <a class="btn" href="/dashboard/training/start">Commencer</a>
-            </div>
-        <?php endif; ?>
+        </main>
     </div>
+<div id="event-form">
+    <label for="event-title">Nom</label>
+    <input type="text" id="event-title" placeholder="Nom de l'événement">
+    <label for="event-description">Description</label>
+    <textarea id="event-description" placeholder="Description de l'événement"></textarea>
+    
+    <div id="color-options">
+        <div class="color-option" data-color="#4981d6" style="background-color: #4981d6;"></div>
+        <div class="color-option" data-color="#C1FF72" style="background-color: #C1FF72;"></div>
+        <div class="color-option" data-color="#ff5e57" style="background-color: #ff5e57;"></div>
+        <div class="color-option" data-color="#ffa726" style="background-color: #ffa726;"></div>
+    </div>
+</div>
 
-    <?php
-    if (isset($_SESSION['message'])) {
-        echo "<div class='alert alert-success'>" . htmlspecialchars($_SESSION['message']) . "</div>";
-        unset($_SESSION['message']);
-    }
-    ?>
-    <script src="/_assets/js/mobiscroll.min.js"></script>
-    <link rel="stylesheet" href="/_assets/css/mobiscroll.min.css">
-
+    <script src="js/mobiscroll.javascript.min.js"></script>
     <script>
-        document.getElementById('profile-icon').addEventListener('click', function() {
-            const dropdown = document.getElementById('dropdown');
-            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
-                dropdown.style.display = 'block';
-            } else {
-                dropdown.style.display = 'none';
-            }
-        });
-
-        window.onclick = function(event) {
-            if (!event.target.matches('#profile-icon')) {
-                const dropdown = document.getElementById('dropdown');
-                if (dropdown.style.display === 'block') {
-                    dropdown.style.display = 'none';
-                }
-            }
-        };
         mobiscroll.setOptions({
             locale: mobiscroll.localeFr,
             theme: 'ios',
@@ -348,7 +246,19 @@
                 form.style.display = 'none';
             }
         });
+    
+    $.ajax({
+        url: 'sidebar.html',
+        method: 'GET',
+        success: function(data) {
+            $('#sidebar').html(data);
+        },
+        error: function() {
+            $('#sidebar').html('<p>Error loading sidebar.</p>');
+        }
+    });
     </script>
+    
     
 </body>
 </html>

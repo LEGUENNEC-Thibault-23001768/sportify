@@ -78,7 +78,7 @@ $router->get('/dashboard/training/generate', 'TrainingController@generate');
 $router->get('/dashboard/training', 'TrainingController@dashboard');
 $router->get('/dashboard/training/edit', 'TrainingController@edit');
 $router->post('/dashboard/training/edit', 'TrainingController@edit');
-
+$router->get('/dashboard/load-content', 'DashboardController@loadContent');
 
 
 

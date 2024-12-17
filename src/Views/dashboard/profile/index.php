@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../_assets/css/profile.css">
+    <link rel="stylesheet" href="/_assets/css/profile.css">
     <title>Mon Profil</title>
 </head>
 <body>
@@ -31,7 +31,7 @@
                     <label for="email">Email :</label>
                     <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? "") ?>" required>
                 </div>
-                
+
                 <div class="right-section">
                     <div class="profile-picture-container">
                         <label for="profile_picture">
@@ -49,37 +49,65 @@
             </div>
 
             <div class="bottom-section">
-                <label for="birth_date">Date de naissance :</label>
-                <input type="date" name="birth_date" id="birth_date" value="<?= htmlspecialchars($user['birth_date'] ?? "") ?>">
+                <div class="personal-info">
+                    <label for="birth_date">Date de naissance :</label>
+                    <input type="date" name="birth_date" id="birth_date" value="<?= htmlspecialchars($user['birth_date'] ?? "") ?>">
 
-                <label for="address">Adresse :</label>
-                <textarea name="address" id="address"><?= htmlspecialchars($user['address'] ?? "") ?></textarea>
+                    <label for="address">Adresse :</label>
+                    <textarea name="address" id="address"><?= htmlspecialchars($user['address'] ?? "") ?></textarea>
 
-                <label for="phone">Téléphone :</label>
-                <input type="text" name="phone" id="phone" value="<?= htmlspecialchars($user['phone'] ?? "") ?>">
+                    <label for="phone">Téléphone :</label>
+                    <input type="text" name="phone" id="phone" value="<?= htmlspecialchars($user['phone'] ?? "") ?>">
 
-                <?php if ($ifAdminuser['status'] ?? false === 'admin' ): ?>
-                    <label for="status">Rôle :</label>
-                    <select name="status" id="status">
-                        <option value="membre" <?= $user['status'] === 'user' ? 'selected' : '' ?>>Membre</option>
-                        <option value="coach" <?= $user['status'] === 'coach' ? 'selected' : '' ?>>Coach</option>
-                        <option value="admin" <?= $user['status'] === 'admin' ? 'selected' : '' ?>>Admin</option>
-                    </select>
-                <?php endif; ?>
+                    <?php if ($ifAdminuser['status'] ?? false === 'admin' ): ?>
+                        <label for="status">Rôle :</label>
+                        <select name="status" id="status">
+                            <option value="membre" <?= $user['status'] === 'user' ? 'selected' : '' ?>>Membre</option>
+                            <option value="coach" <?= $user['status'] === 'coach' ? 'selected' : '' ?>>Coach</option>
+                            <option value="admin" <?= $user['status'] === 'admin' ? 'selected' : '' ?>>Admin</option>
+                        </select>
+                    <?php endif; ?>
+                </div>
 
-                <h2>Changer le mot de passe</h2>
+                <div class="password-change">
+                    <h2>Changer le mot de passe</h2>
 
-                <label for="current_password">Mot de passe actuel :</label>
-                <input type="password" name="current_password" id="current_password">
+                    <label for="current_password">Mot de passe actuel :</label>
+                    <input type="password" name="current_password" id="current_password">
 
-                <label for="new_password">Nouveau mot de passe :</label>
-                <input type="password" name="new_password" id="new_password">
+                    <label for="new_password">Nouveau mot de passe :</label>
+                    <input type="password" name="new_password" id="new_password">
 
-                <label for="confirm_password">Confirmer le nouveau mot de passe :</label>
-                <input type="password" name="confirm_password" id="confirm_password">
-
-                <button type="submit" class="profile-update-btn">Mettre à jour</button>
+                    <label for="confirm_password">Confirmer le nouveau mot de passe :</label>
+                    <input type="password" name="confirm_password" id="confirm_password">
+                </div>
             </div>
+
+            <!-- Section pour les factures -->
+            <div class="invoices-section">
+                <h2>Vos factures</h2>
+                <?php if (!empty($invoices)): ?>
+                    <?php foreach ($invoices as $invoice): ?>
+                        <div class="invoice-card">
+                            <div class="invoice-number"><?= htmlspecialchars($invoice['number']) ?></div>
+                            <div class="invoice-amount"><?= htmlspecialchars($invoice['amount_due']) ?> <?= htmlspecialchars($invoice['currency']) ?></div>
+                            <span class="invoice-status status-<?= $invoice['status'] ?>"><?= htmlspecialchars($invoice['status']) ?></span>
+                            <div class="invoice-date">
+                                Créée le : <?= htmlspecialchars($invoice['created']) ?><br>
+                                Due le : <?= htmlspecialchars($invoice['due_date']) ?>
+                            </div>
+                            <div class="payment-info">
+                                Carte : <?= htmlspecialchars($invoice['card_brand']) ?> **** <?= htmlspecialchars($invoice['last_four_digits']) ?>
+                            </div>
+                            <a href="<?= htmlspecialchars($invoice['pdf_url']) ?>" class="invoice-link" target="_blank">Télécharger PDF</a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p>Aucune facture disponible.</p>
+                <?php endif; ?>
+            </div>
+            
+            <button type="submit" class="profile-update-btn">Mettre à jour</button>
         </form>
     </div>
 
@@ -103,6 +131,5 @@
             });
         });
     </script>
-
 </body>
 </html>

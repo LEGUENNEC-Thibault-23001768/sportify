@@ -20,17 +20,27 @@ body, html {
     color: #C1FF72;
     padding: 15px;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
     margin-left: 220px;
+}
+
+.navbar .logo {
+    margin-right: auto; /* Pousse le logo à l'extrême gauche */
+}
+
+.navbar .profile-info {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    margin-right: 20px; /* Ajout d'une marge à droite pour séparer du profil */
 }
 
 .navbar .profile-name {
     padding: 0 10px;
     font-size: 16px;
     color: #ffffff; 
-    margin-right: 4px;
     background: none; 
     border: none; 
 }
@@ -234,16 +244,6 @@ h1 {
     font-weight: bold;
 }
 
-
-
-.profile-name {
-    font-size: 18px;
-    background-color: rgba(247, 244, 244, 0.6);
-    padding: 10px 15px;
-    border-radius: 8px;
-    color: #e2d9d9;
-}
-
 .btn {
     display: inline-block; 
     margin: 5px;
@@ -317,4 +317,32 @@ h1 {
 .card ul li button:hover {
     background-color: #a1e55e; 
     outline: none; 
+}
+
+.subscription-status {
+    display: flex;
+    align-items: center;
+    margin-right: 20px; /* Ajoute une marge à droite */
+}
+
+.subscribe-button {
+    background-color: #C1FF72;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-right: 20px;
+}
+
+.subscribe-button:hover {
+    background-color: #a1e55e;
+}
+
+.active-subscription {
+    color: #C1FF72;
+    margin-right: 20px;
+    font-size: 18px;
 }

@@ -53,7 +53,18 @@ form {
 
 .bottom-section {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between; /* Ajout pour espacer les sections */
+    margin-bottom: 40px;
+}
+
+.personal-info {
+    flex: 1; /* Occupe l'espace disponible */
+    margin-right: 20px;
+}
+
+.password-change {
+    flex: 1; /* Occupe l'espace disponible */
+    margin-left: 20px;
 }
 
 .bottom-section label {
@@ -68,7 +79,7 @@ form {
 .bottom-section input[type="text"],
 .bottom-section input[type="password"],
 .bottom-section select {
-    width: 50%; /* Réduit la largeur à 50% */
+    width: 95%;
     padding: 12px;
     margin: 10px 0;
     border: 1px solid #555;
@@ -190,7 +201,85 @@ h2 {
     color: #fff;
 }
 
-.bottom-section button[type="submit"] {
-    width: 50%; 
-    align-self: flex-start; 
+/* Styles pour la section des factures */
+.invoices-section {
+    margin-top: 40px;
+}
+
+.invoice-card {
+    background-color: #262626;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.invoice-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.invoice-number {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.invoice-amount {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #3ecf8e;
+}
+
+.invoice-status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.status-paid {
+    background-color: #3ecf8e;
+    color: #0a0a0a;
+}
+
+.status-open {
+    background-color: #ffc107;
+    color: #0a0a0a;
+}
+
+.invoice-date,
+.payment-info {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #bbb;
+    line-height: 1.6;
+}
+
+.invoice-link {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #3ecf8e;
+    color: #0a0a0a;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.invoice-link:hover {
+    background-color: #34b97b;
+}
+
+.profile-update-btn{
+    margin-top: 40px;
 }

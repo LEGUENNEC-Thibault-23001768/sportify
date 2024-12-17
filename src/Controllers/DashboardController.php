@@ -33,7 +33,7 @@ class DashboardController
             $subscriptionInfo = Subscription::getStripeSubscriptionId($userId);
         }
 
-        $hasActiveSubscription = $subscriptionInfo["status"] ?? "Aucun";
+        $hasActiveSubscription = $subscriptionInfo["status"];
 
 
         echo View::render('dashboard/index', ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription, 'subscription' => [
@@ -311,6 +311,28 @@ class DashboardController
             }
         } else {
             echo View::render('dashboard/profile/index', ['user' => $user, 'ifAdminuser' => $currentUser]);
+        }
+    }
+
+    public function loadContent()
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+
+        $userId = $_SESSION['user_id'];
+        $user = User::getUserById($userId);
+
+        if (!$user) {
+            header('Location: /error');
+            exit;
+        }
+
+        if ($user['status'] === 'admin' || $user['status'] === 'coach') {
+            echo View::render('dashboard/admin', ['user' => $user]);
+        } else {
+            echo View::render('dashboard/member', ['user' => $user]);
         }
     }
 
