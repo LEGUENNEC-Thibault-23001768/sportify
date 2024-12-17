@@ -178,7 +178,6 @@ class PaymentController
             $activeSubscription = Subscription::getActiveSubscription($_SESSION['user_id']);
 
             if (!$activeSubscription) {
-                echo "pas d'abonnement the fuck?";
                 exit;
             }
 

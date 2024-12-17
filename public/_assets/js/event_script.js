@@ -20,6 +20,7 @@ $(document).ready(function() {
         dragToResize: true,
         eventDelete: true,
         onEventClick: function (args) {
+            console.log(args.event);
             showEventDetails(args.event);
         },
         onEventCreated: function (args) {
@@ -153,13 +154,13 @@ $(document).ready(function() {
 
 
     function populateEventDetailsPopup(eventData, isAuthorizedToDelete, isEventCreator) {
-        let deleteButton = isAuthorizedToDelete ? `<button class="btn btn-danger" onclick="deleteEvent(${event.id})">Delete</button>` : '';
+        let deleteButton = isAuthorizedToDelete ? `<button class="btn btn-danger" onclick="deleteEvent(${eventData.id})">Delete</button>` : '';
         const canInvite = isAuthorizedToDelete || isEventCreator;
         let joinLeaveButton = '';
         if (eventData.is_registered) {
-            joinLeaveButton = `<button class="btn btn-secondary" onclick="leaveEvent(${event.id})">Leave Event</button>`;
+            joinLeaveButton = `<button class="btn btn-secondary" onclick="leaveEvent(${eventData.id})">Leave Event</button>`;
         } else if (!isEventCreator) {
-            joinLeaveButton = `<button class="btn btn-success" onclick="joinEvent(${event.id})">Join Event</button>`;
+            joinLeaveButton = `<button class="btn btn-success" onclick="joinEvent(${eventData.id})">Join Event</button>`;
         }
 
         let participantsList = '<p>No participants yet.</p>';
@@ -266,6 +267,7 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response && response.id) {
+                    console.log(response)
                     calendar.addEvent({
                         id: response.id,
                         title: response.title,

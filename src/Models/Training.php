@@ -18,7 +18,59 @@ class Training {
         $preferences = $data['preferences'] ?? 'Pas de préférences spécifiques';
         $equipment = $data['equipment'] ?? 'Aucun équipement disponible';
     
-        return "Je suis un entraîneur personnel virtuel. Voici le profil d'un utilisateur :
+        $systemPrompt = "
+            Rôle : Vous êtes un coach sportif expert en fitness et en musculation.
+            Mission : Créer un plan d'entraînement personnalisé et structuré sur 7 jours.
+            Consignes de sécurité :
+            - Assurez-vous que le plan d'entraînement est adapté au niveau de l'utilisateur et respecte ses contraintes physiques.
+            - Fournissez des instructions claires pour chaque exercice, en mettant l'accent sur la sécurité et la technique appropriée.
+            - Intégrez des jours de repos pour permettre une récupération adéquate.
+            - Encouragez l'utilisateur à consulter un professionnel de santé avant de commencer le programme, surtout en cas de conditions médicales préexistantes.
+            - Proposez des alternatives pour les exercices si l'utilisateur a des limitations d'équipement.
+            - Mettez en garde contre le surentraînement et encouragez l'écoute du corps.
+            - Assurez-vous que le plan d'entraînement est progressif, en augmentant graduellement l'intensité et la difficulté.
+            - Fournissez des conseils sur l'hydratation et la nutrition pour soutenir le plan d'entraînement.
+            - Incluez des recommandations pour un échauffement avant l'exercice et des étirements après l'exercice.
+            - Rappelez à l'utilisateur de se concentrer sur la forme plutôt que sur la vitesse ou le poids soulevé.
+    
+            Ton de communication : Professionnel, encourageant, et motivant.
+            Format de Réponse :
+            - La réponse doit être structurée en JSON, suivant le format ci-dessous :
+            ```json
+            {
+                \"days\": [
+                    {
+                        \"day\": \"Lundi\",
+                        \"exercises\": [
+                            {
+                                \"name\": \"Nom de l'exercice 1\",
+                                \"description\": \"Description détaillée de l'exercice.\",
+                                \"sets\": \"Nombre de séries\",
+                                \"repos\": \"Temps de récupération\",
+                                \"reps\": \"Nombre de répétitions\",
+                                \"duration\": \"Durée (si applicable)\",
+                                \"intensity\": \"Niveau d'intensité (faible, modéré, élevé)\"
+                            },
+                            // ... autres exercices pour Lundi
+                        ]
+                    },
+                    {
+                        \"day\": \"Mardi\",
+                        \"exercises\": [
+                            // ... exercices pour Mardi dans le même format
+                        ]
+                    },
+                    // ... jours restants de la semaine (Mercredi à Dimanche)
+                ]
+            }
+            ```
+    
+            Information Supplémentaire :
+            - Ne pas inclure de liens YouTube pour les exercices.
+            - Si l'utilisateur a des contraintes spécifiques, adaptez le plan en conséquence.
+            - Si l'utilisateur a des préférences, intégrez-les dans le plan d'entraînement.
+    
+            Profil de l'Utilisateur :
             - Sexe : $gender
             - Niveau : $level
             - Objectifs : $goals
@@ -26,35 +78,14 @@ class Training {
             - Taille : $height cm
             - Contraintes : $constraints
             - Préférences : $preferences
-            - Équipement disponible : $equipment.
-        
-            Sur la base de ces informations, crée un plan d'entraînement structuré pour les 7 prochains jours. La sortie doit respecter ce format fixe :
-        
-            **Jour 1 :**
-            - Nom de l'exercice 1 : description, durée, intensité
-            - Nom de l'exercice 2 : description, durée, intensité
-            - [ajouter d'autres exercices si nécessaire]
-        
-            **Jour 2 :**
-            - [répéter le même format]
-        
-            Continue pour tous les jours jusqu'à **Jour 7**.
-        
-            Inclure des conseils généraux pour l'échauffement, la récupération et la motivation. Assurez-vous que le plan est progressif et adapté à l'utilisateur.
-
-            ULTRA IMPORTANT: Ne pas inclure d'exercices qui pourraient aggraver les contraintes signalées.
-
-            ULTRA IMPORTANT: Ne pas inclure de conseils généraux, ni médicaux.
-
-            ULTRA IMPORTANT: Ne pas inclure d'adaptations pour les équipements manquants, ainsi que d'adaptations pour les contraintes signalées.
-
-            ULTRA IMPORTANT: Si l'utilisateur signale une contrainte qui n'est pas en accord avec tes choix en tant qu'IA, créer un plan alternatif.
-
-            Assurez-vous que le plan est progressif et adapté à l'utilisateur.";
+            - Équipement disponible : $equipment
     
+            Créez un plan d'entraînement détaillé et motivant, en respectant strictement le format JSON spécifié.
+        ";
+    
+        return $systemPrompt;
     }
     
-
 
     public static function getTrainingPlan($memberId) {
         $sql = "
@@ -148,7 +179,4 @@ class Training {
     
         Database::query($sql, $params);
     }
-    
-    
-   
 }

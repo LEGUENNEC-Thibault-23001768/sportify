@@ -44,7 +44,8 @@ class EventController
                     $participants[] = User::getUserById($registration['member_id']);
                 }
             }
-    
+
+
             $mobiscrollEvents[] = [
                 'id' => $event['event_id'],
                 'title' => $event['event_name'],

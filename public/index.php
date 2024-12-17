@@ -45,10 +45,11 @@ $router->post('/dashboard/booking/{reservation_id}/update', 'BookingController@u
 
 
 $router->get( '/dashboard/admin/users', 'DashboardController@manageUsers');
-$router->get( '/dashboard/admin/users/delete', 'DashboardController@deleteUser');
-$router->get( '/dashboard/admin/users/edit', 'DashboardController@editUserProfile');
-$router->post( '/dashboard/admin/users/edit', 'DashboardController@editUserProfile');
-
+$router->delete('/dashboard/admin/users/delete/{id}', 'DashboardController@deleteUser');
+$router->get('/api/users/{id}', 'DashboardController@getUserApi');
+$router->post('/api/users/{id}', 'DashboardController@updateUserApi');
+$router->get('/api/users/{id}/subscription', 'DashboardController@getUserSubscription');
+$router->post('/api/users/{id}/subscription', 'DashboardController@updateUserSubscription');
 
 
 $router->post( '/teams/{team_id}/add-member', 'TeamController@addParticipant');
@@ -71,14 +72,20 @@ $router->post( '/forgot-password', 'AuthController@sendResetLink');
 $router->get( '/reset-password', 'AuthController@showResetPasswordForm');
 $router->post( '/reset-password', 'AuthController@resetPassword');
 
-$router->get('/dashboard/training/start', 'TrainingController@start');
-$router->get('/dashboard/training/step/{step}', 'TrainingController@step');
-$router->post('/dashboard/training/step/{step}', 'TrainingController@step');
-$router->get('/dashboard/training/generate', 'TrainingController@generate');
+
+// Training routes
 $router->get('/dashboard/training', 'TrainingController@dashboard');
+$router->get('/dashboard/training/start', 'TrainingController@start');
+$router->get('/dashboard/training/generate', 'TrainingController@generate');
 $router->get('/dashboard/training/edit', 'TrainingController@edit');
 $router->post('/dashboard/training/edit', 'TrainingController@edit');
 $router->get('/dashboard/load-content', 'DashboardController@loadContent');
+$router->post('/dashboard/training/update', 'TrainingController@update');
+$router->get('/dashboard/training/train', 'TrainingController@train');
+
+$router->post('/api/training/process-step', 'TrainingController@apiProcessStep');
+$router->post('/api/training/generate', 'TrainingController@apiGenerate');
+
 
 
 
