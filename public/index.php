@@ -78,10 +78,11 @@ $router->get('/dashboard/training', 'TrainingController@dashboard');
 $router->get('/dashboard/training/start', 'TrainingController@start');
 $router->get('/dashboard/training/generate', 'TrainingController@generate');
 $router->get('/dashboard/training/edit', 'TrainingController@edit');
+$router->post('/dashboard/training/edit', 'TrainingController@edit');
+$router->get('/dashboard/load-content', 'DashboardController@loadContent');
 $router->post('/dashboard/training/update', 'TrainingController@update');
 $router->get('/dashboard/training/train', 'TrainingController@train');
 
-// New API routes for training
 $router->post('/api/training/process-step', 'TrainingController@apiProcessStep');
 $router->post('/api/training/generate', 'TrainingController@apiGenerate');
 

@@ -33,7 +33,7 @@ class DashboardController
         $hasActiveSubscription = Subscription::hasActiveSubscription($userId);
         $subscriptionInfo = $hasActiveSubscription ? Subscription::getStripeSubscriptionId($userId) : null;
 
-        $hasActiveSubscription = $subscriptionInfo["status"] ?? "Aucun";
+        $hasActiveSubscription = $subscriptionInfo["status"];
 
         $response->setStatusCode(200)->setData([
             'user' => $user,
@@ -336,6 +336,28 @@ class DashboardController
     }
     
 
+    public function loadContent()
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+
+        $userId = $_SESSION['user_id'];
+        $user = User::getUserById($userId);
+
+        if (!$user) {
+            header('Location: /error');
+            exit;
+        }
+
+        if ($user['status'] === 'admin' || $user['status'] === 'coach') {
+            echo View::render('dashboard/admin', ['user' => $user]);
+        } else {
+            echo View::render('dashboard/member', ['user' => $user]);
+        }
+    }
+
     public function cancelUserSubscription($userId)
     {
         if (!isset($_SESSION['user_id'])) {
@@ -383,4 +405,5 @@ class DashboardController
             $response->setStatusCode(500)->setData(['error' => 'Failed to resume subscription'])->send();
         }
     }
+
 }

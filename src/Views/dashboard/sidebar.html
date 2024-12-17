@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar - Dashboard</title>
+    <link rel="stylesheet" href="/public/css/sidebar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="header-container">
+        <div class="report-header">
+            <h1>Tableau de bord</h1>
+            <p id="current-date"></p>
+        </div>
+        <div class="profile-header">
+            <i class="fas fa-bell notification-icon"></i>
+            <a href="#" id="profile-link">            </a>
+           <div class="notification-container">
+                <div class="notification-dropdown" id="notification-dropdown">
+                </div>
+           </div>
+            <a href="#" id="profile-link">Kylian Mbappé</a>
+            <img src="https://i.pinimg.com/736x/79/8f/bf/798fbf62ba74a844ceeef90b83c76e59.jpg" alt="Photo de profil">
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="logo">
+            <a href="home.html">
+                <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify">
+            </a>
+        </div>
+        <ul>
+            <li><a href="#"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="#"><i class="fas fa-chart-line"></i> Suivi</a></li>
+            <li><a href="#"><i class="fas fa-futbol"></i> Terrains</a></li>
+            <li><a href="#"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
+            <li><a href="#"><i class="fas fa-trophy"></i> Événements</a></li>
+            <li><a href="#"><i class="fas fa-calendar-alt"></i> Programme</a></li> 
+            <li><a href="#" class="management"><i class="fas fa-tasks"></i> Gestion</a></li>
+        </ul>
+        
+        <div class="settings-section">
+            <a href="#" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
+            <a href="#" class="logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+        </div>
+    </div>
+  <script src="/js/sidebar.js"></script>
+</body>
+</html>
