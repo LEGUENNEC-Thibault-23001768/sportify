@@ -7,46 +7,67 @@ use Core\View;
 use Core\APIResponse;
 use Models\User;
 use Models\Subscription;
+use Models\Stats;
 
 class DashboardController
 {
     public function showDashboard()
     {
         if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
+            header('Location: /login'); // pas connecté
+            exit;
         }
 
         $userId = $_SESSION['user_id'];
         $user = User::getUserById($userId);
-        $response = new APIResponse();
 
+        if ($user) {
+            $memberId = $user['member_id']; // Récupération de member_id
+        }
+    
         $hasActiveSubscription = Subscription::hasActiveSubscription($userId);
-        $subscriptionInfo = $hasActiveSubscription ? Subscription::getStripeSubscriptionId($userId) : null;
+        $subscriptionInfo = null;
+
+        if ($hasActiveSubscription) {
+            $subscriptionInfo = Subscription::getStripeSubscriptionId($userId);
+        }
 
         $hasActiveSubscription = $subscriptionInfo["status"];
 
-        $response->setStatusCode(200)->setData([
-            'user' => $user,
-            'hasActiveSubscription' => $hasActiveSubscription,
-            'subscription' => [
-                'plan_name' => $subscriptionInfo["subscription_type"] ?? "Aucun",
-                'start_date' => $subscriptionInfo["start_date"] ?? "Aucun",
-                'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
-                'amount' => $subscriptionInfo["amount"] ?? 0,
-                'currency' => $subscriptionInfo["currency"] ?? '€',
-                'status' => $subscriptionInfo["status"] ?? "Aucun"
-            ]
-        ])->send();
+        $viewData = ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription, 'subscription' => [
+            'plan_name' =>  $subscriptionInfo["subscription_type"] ?? "Aucun",
+            'start_date' =>$subscriptionInfo["start_date"] ?? "Aucun",
+            'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
+            'amount' => $subscriptionInfo["amount"] ?? 0,
+            'currency' => $subscriptionInfo["currency"] ?? '€',
+            'status' => $subscriptionInfo["status"] ?? "Aucun"
+        ]];
+
+        if ($user['status'] === 'admin') {
+            $totalUsers = Stats::getTotalUsers();
+            $recentRegistrations = Stats::getRecentRegistrations();
+            $activeSubscriptions = Stats::getActiveSubscriptionsCount();
+            $globalOccupancyRate = Stats::getGlobalOccupancyRate();
+            $topActivities = Stats::getTop5Activities();
+            $memberStatusDistribution = Stats::getMemberStatusDistribution();
+            $reservationsByDay = Stats::getReservationsByDay();
+            $averageMemberAge = Stats::getAverageMemberAge();
+            $retentionRate = Stats::getMemberRetentionRate();
+
+            $viewData = array_merge($viewData, [
+                'totalUsers' => $totalUsers,
+                'recentRegistrations' => $recentRegistrations,
+                'activeSubscriptions' => $activeSubscriptions,
+                'globalOccupancyRate' => $globalOccupancyRate,
+                'topActivities' => $topActivities,
+                'memberStatusDistribution' => $memberStatusDistribution,
+                'reservationsByDay' => $reservationsByDay,
+                'averageMemberAge' => $averageMemberAge,
+                'retentionRate' => $retentionRate
+            ]);
+        }
+
+        echo View::render('dashboard/index', $viewData);
     }
 
     public function showProfile()

@@ -87,6 +87,8 @@ $router->post('/api/training/process-step', 'TrainingController@apiProcessStep')
 $router->post('/api/training/generate', 'TrainingController@apiGenerate');
 
 
+$router->get('/dashboard/stats', 'StatsController@index');
+
 
 
 $url = $_SERVER['REQUEST_URI'];

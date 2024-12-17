@@ -346,3 +346,8 @@ h1 {
     margin-right: 20px;
     font-size: 18px;
 }
+
+#registrationsChart, #topActivitiesChart {
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
