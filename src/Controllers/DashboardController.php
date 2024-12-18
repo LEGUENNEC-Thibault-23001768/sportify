@@ -38,8 +38,8 @@ class DashboardController
                 //echo View::render('dashboard/events/index', ['member' => $user]);  
                 echo View::render('dashboard/events/index', ['user' => $user, 'dataView' => 'events']);
             } else if ($category === "dashboard") {
+                
                 if ($user['status'] !== 'admin') {
-                    
                 }
                 echo View::render('dashboard/index', ['user' => $user]);
             } else {

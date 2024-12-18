@@ -15,27 +15,23 @@ body {
 }
 
 h1 {
-    font-size: 60px;
-    margin: 100px 0 20px; 
+    font-size: 40px; 
+    margin: 20px 0; 
     font-weight: bold;
-    background: linear-gradient(to right, #ffffff, #000000);
-    -webkit-background-clip: text;
-    -moz-background-clip: text;
-    -ms-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-align: center;
+    color: #ffffff; 
+    text-align: left; 
 }
+
 
 h2 {
     text-align: center;
-    color: #C1FF72;
+    color: #d0d1cf;
 }
 
 label {
     display: block;
     margin: 10px 0 5px;
-    color: #C1FF72;
+    color: #ffffff;
 }
 
 input, select {
@@ -63,29 +59,9 @@ button:hover {
     background-color: #C1FF72;
 }
 
-.table {
-    width: 100%;
-    margin-top: 20px;
-    border-collapse: collapse;
-}
 
-table, th, td {
-    border: 1px solid #C1FF72;
-}
 
-th, td {
-    padding: 10px;
-    text-align: center;
-}
-
-th {
-    background-color: #333;
-}
-
-td {
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
+/* Boutons d'action */
 .button-group {
     display: flex; 
     justify-content: center; 
@@ -103,4 +79,197 @@ td {
 
 .action-btn:hover {
     background-color: #C1FF72;
+}
+
+/* Style des entraîneurs */
+.trainers-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    justify-content: center;
+}
+
+.trainer-card {
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    max-width: 400px;  
+    margin: 0 auto;   
+    border-radius: 10px;
+}
+
+.trainer-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+
+
+.trainer-image {
+    width: 100%;
+    max-width: 350px;
+    height: auto;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+
+/* CV spécifique */
+.cv-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 15px;
+    padding: 30px;
+    margin: 0 auto; /* Centre horizontalement le conteneur */
+    width: 90%; /* Ajustez cette valeur selon vos besoins */
+    max-width: 900px; 
+    position: relative; 
+}
+
+.cv-header {
+    width: 100%; 
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 20px; /* Espacement entre le header et le corps */
+}
+
+.cv-header h2 {
+    color: #8e8f8d;
+    font-size: 3em;
+    margin-top: 20px; /* Remonte le titre */
+    text-align: left;
+}
+
+.cv-header p {
+    font-size: 1.2em;
+    color: #fff;
+    text-align: left;
+    padding-top: 5px; 
+    margin-left: 0; /* Retire le margin-left négatif */
+}
+
+.cv-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    color: #f0f0f0;
+    text-align: left;
+}
+
+.cv-details {
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-top: -10px;
+}
+
+.cv-details ul {
+    margin: 0;
+    padding-left: 0;
+    list-style-type: none;
+}
+
+.cv-details li {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.cv-back-btn {
+    margin-top: 25px; /* Augmentation de l'espace au-dessus pour abaisser les boutons */
+    background-color: #C1FF72; /* Couleur verte par défaut */
+    color: #333; /* Texte en couleur sombre */
+    padding: 10px 20px;
+    border: none; /* Supprime les bordures */
+    border-radius: 5px; /* Coins arrondis */
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: bold;
+    transition: background-color 0.3s ease; /* Transition douce pour le hover */
+    display: inline-block; /* Affiche les boutons en ligne */
+}
+
+.cv-back-btn:hover {
+    background-color: #91C556; /* Couleur plus sombre au survol */
+}
+
+.cv-footer-buttons {
+    margin-top: 10px; /* Option supplémentaire pour déplacer le groupe des boutons légèrement */
+    display: flex; /* Aligne les boutons sur une ligne */
+    gap: 10px; /* Espacement entre les boutons */
+}
+
+
+
+.trainer-image-cv {
+    max-width: 132px; /* Taille de l'image */
+    height: 132px;
+    border-radius: 50%; /* Transforme l'image en cercle */
+    object-fit: cover; /* Ajuste l'image pour qu'elle soit bien centrée */
+    position: absolute; /* Position absolue */
+    top: 13.5px;  
+    right: 25px;
+    box-shadow: 0 4px 8px rgba(253, 252, 252, 0.3); 
+}
+
+@media (min-width: 1200px) {
+    .container {
+        width: 70%;
+    }
+    .cv-header {
+        margin-left: 0; 
+    }
+}
+
+
+.cv-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Laisse aligné à gauche comme demandé */
+    gap: 15px;
+    padding: 10px;
+}
+
+.cv-footer-left {
+    display: flex;
+    flex-direction: row;
+    gap: 140px; /* Augmente l'espacement entre les icônes */
+    align-items: center;
+}
+
+.cv-footer-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.halt-icon,
+.balance-icon,
+.remise-icon {
+    width: 80px;
+    height: auto;
+}
+
+/* Styles des labels */
+.prise-de-masse-label,
+.balance-label,
+.remise-en-forme-label {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center; /* Centre le texte par rapport à l'icône */
+}
+
+/* Boutons */
+.cv-footer-buttons {
+    display: flex;
+    justify-content: center; /* Centre les boutons horizontalement */
+    gap: 10px;
+    margin-top: 3px; /* Ajoute un espacement entre les boutons et le contenu */
+    width: 100%; /* Occupe toute la largeur disponible pour faciliter le centrage */
 }

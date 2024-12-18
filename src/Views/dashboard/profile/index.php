@@ -1,14 +1,5 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../_assets/css/profile.css">
-    <title>Mon Profil</title>
-</head>
-<body>
-
-    <div class="container">
+<div id="profile-content" data-view="profile">
+<div class="container">
         <h1>Mon Profil</h1>
 
         <?php if (isset($_SESSION['error'])): ?>
@@ -82,27 +73,4 @@
             </div>
         </form>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const profilePictureInput = document.getElementById('profile_picture');
-            const profilePicture = document.querySelector('.profile-picture');
-
-            profilePicture.addEventListener('click', function() {
-                profilePictureInput.click();
-            });
-
-            profilePictureInput.addEventListener('change', function(event) {
-                if (event.target.files && event.target.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        profilePicture.src = e.target.result;
-                    }
-                    reader.readAsDataURL(event.target.files[0]);
-                }
-            });
-        });
-    </script>
-
-</body>
-</html>
+</div>

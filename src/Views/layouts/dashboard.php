@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/_assets/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Check if jQuery is loaded before using it
         if (typeof jQuery === 'undefined') {
@@ -31,7 +32,7 @@
             <li><a href="#" class="management" data-target="admin/users"><i class="fas fa-tasks"></i> Gestion</a></li>
         </ul>
         <div class="settings-section">
-            <a href="/dashboard/profile" class="settings"> Paramètres</a>
+            <a href="/dashboard/profile" data-target="profile" class="settings"> Paramètres</a>
             <a href="/logout" class="logout"> Se déconnecter</a>
         </div>
     </div>
@@ -166,6 +167,10 @@
 
                 document.head.appendChild(link);
             }
+
+            
+
+            loadContent('dashboard');
         });
     </script>
 </body>

@@ -1,162 +1,107 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="/_assets/css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        // Check if jQuery is loaded before using it
-        if (typeof jQuery === 'undefined') {
-            console.error('jQuery is not loaded!');
-            // You can try loading it here or display an error message to the user
-        }
-    </script>
-</head>
-<body>
-    <div class="sidebar">
-        <div class="logo">
-            <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify">
-        </div>
-        <ul>
-            <!-- Updated data-target attributes -->
-            <li><a href="#" data-target="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-            <li><a href="#" data-target="suivi"><i class="fas fa-chart-line"></i> Suivi </a></li>
-            <li><a href="#" data-target="terrains"><i class="fas fa-futbol"></i> Terrains</a></li>
-            <li><a href="#" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
-            <li><a href="#" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
-            <li><a href="#" class="management" data-target="admin/users"><i class="fas fa-tasks"></i> Gestion</a></li>
-        </ul>
-        <div class="settings-section">
-            <a href="/dashboard/profile" class="settings"> Paramètres</a>
-            <a href="/logout" class="logout"> Se déconnecter</a>
-        </div>
-    </div>
-    <div class="navbar">
-        <div class="logo"></div>
-        <p class="profile-name">Jack OWO</p>
-        <div class="profile-icon">
-            <img src="uploads/profile_pictures/675bf6cc8c469_index.jpeg" alt="Profil" id="profile-icon">
-            <div class="dropdown" id="dropdown">
-                <a href="/dashboard/profile">Mon profil</a>
-                <a href="/logout">Déconnexion</a>
+<div data-view="dashboard">
+    <h1>Bienvenue sur votre tableau de bord, <?= htmlspecialchars($user['first_name']) ?> !</h1>
+
+    <?php if ($user['status'] === 'membre'): ?>
+        <div class="main-section" data-view="member">
+            <div class="left-section">
+                <div class="report-controls">
+                    <select name="week" id="week-select">
+                        <option value="current">Semaine actuelle</option>
+                        <option value="previous">Semaine précédente</option>
+                    </select>
+                </div>
+                <div class="report-section">
+                    <div class="report-card performance-card">
+                        <div class="report-title">Dernières performances</div>
+                        <div class="report-percentage">+5%</div>
+                        <div class="report-value">Squat : 120kg</div>
+                        <div class="report-previous">Semaine dernière : 115kg</div>
+                    </div>
+                    <div class="report-card game-time-card">
+                        <div class="report-title">Temps de jeu</div>
+                        <div class="report-percentage">+10%</div>
+                        <div class="report-value">15 heures</div>
+                        <div class="report-previous">Semaine dernière : 13 heures</div>
+                    </div>
+                    <div class="report-card calories-card">
+                        <div class="report-title">Calories brûlées</div>
+                        <div class="report-percentage">+20%</div>
+                        <div class="report-value">650 Kcal</div>
+                        <div class="report-subtitle">Objectif : 1500 Kcal</div>
+                    </div>
+                </div>
+            </div>
+            <div class="progression-section">
+                <div class="task-completion-card">
+                    <div class="progression-title">Progression</div>
+                    <div class="circle-container">
+                        <canvas id="taskCompletionChart"></canvas>
+                        <div id="chart-center-text">71%</div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    <?php elseif ($user['status'] === 'coach' || $user['status'] === 'admin'): ?>
+        <div class="coach-panel">
+            <h2> 📅 Gestion événements</h2>
+            <p>Vous pouvez créer et gérer des événements pour les membres.</p>
+            <a href="/dashboard/events" class="btn">Gérer les événements</a>
+        </div>
+    <?php endif; ?>
 
-    <div class="dashboard-content" id="dynamic-content">
-        <!-- Dynamic content will be loaded here -->
-    </div>
+    <?php if ($user['status'] === 'admin'): ?>
+        <div class="admin-panel">
+            <h2> 👥 Gestion utilisateurs</h2>
+            <p>Vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
+            <a href="/dashboard/admin/users" class="btn btn-danger">Gérer les utilisateurs</a>
+        </div>
+        <div class="card">
+            <h3 class="title rapport-activite">📊 Rapport d'activité</h3>
+            <ul>
+                <li>Nombre total d'utilisateurs inscrits : <b><?= $totalUsers ?? 0 ?></b></li>
+                <li>Nombre d'inscriptions cette semaine : <b><?= 2//array_sum(array_column($recentRegistrations, 'registrations')) ?></b></li>
+                <li>Nombre d'abonnements actifs : <b><?= $activeSubscriptions ?? 0 ?></b></li>
+                <li>Taux d'occupation global des terrains (moyenne sur la dernière semaine) : <b><?= number_format($globalOccupancyRate, 2) ?? 0 ?>%</b></li>
+                <li>Âge moyen des membres : <b><?= number_format($averageMemberAge, 1) ?? 0 ?> ans</b></li>
+                <li>Taux de rétention des membres (6 derniers mois) : <b><?= number_format($retentionRate, 2) ?? 0 ?>%</b></li>
+            </ul>
+        </div>
 
-    <script>
-        $(document).ready(function() {
-            $('.sidebar a').click(function(e) {
-                e.preventDefault();
-                const target = $(this).data('target');
-                if (target) {
-                    loadContent(target);
-                }
-            });
+        <div class="card">
+            <h3 class="title prochaines-reservations">🏋️ Top 5 des Activités (7 derniers jours)</h3>
+            <ul>
+                <?php foreach ($topActivities as $activity): ?>
+                    <li><?= htmlspecialchars($activity['activity_type']) ?> : <b><?= $activity['total_reservations'] ?> réservations</b></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <div class="card-row">
+            <div class="small-card">
+                <div class="card-title"><span class="emoji">👥</span> Répartition des membres par statut</div>
+                <canvas id="memberStatusChart"></canvas>
+            </div>
+            <div class="small-card">
+                <div class="card-title"><span class="emoji">📅</span> Réservations par jour (7 derniers jours)</div>
+                <canvas id="reservationsByDayChart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h3 class="title personal-training">🎯 Entraînement personnalisé</h3>
+            <p>Recevez un plan d'entraînement adapté à votre profil.</p>
+            <a class="btn" href="/dashboard/training/start">Commencer</a>
+        </div>
+    <?php endif; ?>
+</div>
 
-            const loadedScripts = {};
-            const loadedCSS = {};
+<script>
+    // Pass PHP variables to JavaScript
+    var memberStatusData = {
+        labels: [<?php foreach ($memberStatusDistribution as $status) { echo '"' . htmlspecialchars($status['status']) . '",'; } ?>],
+        data: [<?php foreach ($memberStatusDistribution as $status) { echo $status['count'] . ','; } ?>]
+    };
 
-            function loadContent(content) {
-                $.ajax({
-                    url: '/dashboard/content/' + content,
-                    method: 'GET',
-                    success: function(response) {
-                        $('#dynamic-content').html(response);
-            
-                        // Find the element with the data-view attribute
-                        const viewContainer = $('#dynamic-content').find('[data-view]');
-            
-                        // Check if the element exists and has the data-view attribute
-                        if (viewContainer.length > 0) {
-                            const view = viewContainer.attr('data-view'); // Use .attr() instead of .data()
-                            console.log("View:", view);
-            
-                            // Load the script and CSS if the view is defined
-                            loadScript('/_assets/js/' + view + '.js', function() {
-                                console.log('sdgoidsg')
-                                if (typeof initialize === 'function') {
-                                    initialize();
-                                }
-                            });
-                            loadCSS('/_assets/css/' + view + '.css');
-                        } else {
-                            console.warn("No data-view attribute found for this content.");
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Error: " + status + " - " + error);
-                        $('#dynamic-content').html("<p>Error loading content.</p>");
-                    }
-                });
-            }
-
-            function loadScript(src, cb) {
-                if (loadedScripts[src]) {
-                    console.log('Script already loaded:', src);
-                    if (typeof cb === 'function') {
-                        cb();
-                    }
-                    return;
-                }
-
-                const script = document.createElement('script');
-                script.src = src;
-                script.async = true;
-
-                script.onload = function() {
-                    loadedScripts[src] = true;
-                    console.log('Script loaded:', src);
-
-                    if (typeof cb === 'function') {
-                        cb();
-                    }
-                };
-
-                script.onerror = function() {
-                    console.error("Error loading script:", src);
-                    delete loadedScripts[src];
-                };
-
-                document.body.appendChild(script);
-            }
-
-            function loadCSS(src, cb) {
-                if (loadedCSS[src]) {
-                    console.log('CSS already loaded:', src);
-                    if (typeof cb === 'function') {
-                        cb();
-                    }
-                    return;
-                }
-
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = src;
-
-                link.onload = function() {
-                    loadedCSS[src] = true;
-                    console.log('CSS loaded:', src);
-
-                    if (typeof cb === 'function') {
-                        cb();
-                    }
-                };
-
-                link.onerror = function() {
-                    console.error("Error loading CSS:", src);
-                    delete loadedCSS[src];
-                };
-
-                document.head.appendChild(link);
-            }
-        });
-    </script>
-</body>
-</html>
+    var reservationsData = {
+        labels: [<?php foreach ($reservationsByDay as $day) { echo '"' . htmlspecialchars($day['day_of_week']) . '",'; } ?>],
+        data: [<?php foreach ($reservationsByDay as $day) { echo $day['total_reservations'] . ','; } ?>]
+    };
+</script>
