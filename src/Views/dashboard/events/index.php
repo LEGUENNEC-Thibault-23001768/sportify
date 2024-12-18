@@ -1,3 +1,4 @@
+<?php use Models\Booking; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -69,7 +70,22 @@
                 </div>
                 <div class="form-group">
                     <label for="location">Location</label>
-                    <input type="text" id="location" name="location" class="form-control" required>
+                    <!--                    <input type="text" id="location" name="location" class="form-control" required>-->
+                    <select id="location" name="location">
+                        <?php
+                        $reservations = Booking::getAllReservations();
+                        foreach ($reservations as $reservation) {
+                            if ($reservation['event_id'] == null) {
+                                if ($reservation['member_id'] === $_SESSION['user_id'] || $member['status'] === 'admin') {
+                                    ?>
+                                    <option value='<?= $reservation['court_name'] ?>'>
+                                        <?= $reservation['reservation_date'] ?> - <?= $reservation['start_time'] ?>
+                                        à <?= $reservation['end_time'] ?> - <?= $reservation['court_name'] ?>
+                                    </option>;
+                                <?php }
+                            }
+                        } ?>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="invitations">Invite by Email (comma-separated)</label>

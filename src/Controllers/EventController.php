@@ -65,6 +65,9 @@ class EventController
     }
 
 
+    /**
+     * @throws \DateMalformedStringException
+     */
     public function storeApi()
     {
         $response = new APIResponse();
@@ -106,6 +109,10 @@ class EventController
                     $this->sendInvitationEmail($email, $token, $eventData);
                 }
             }
+        }
+
+        if (!isset($eventData['participants'])) {
+            $eventData['participants'] = [];
         }
 
         if (!$eventId) {

@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(document).ready(async function () {
     const endTimePicker = mobiscroll.datepicker('#end_time', {
         controls: ['time'],
         display: 'center',
@@ -15,15 +15,14 @@ $(document).ready(function () {
         themeVariant: 'dark'
     });
 
-    function getCalendarData() {
-        var eventsData = JSON.parse(getCachedEvents());
-        console.log(eventsData);
-        var bookingsData = JSON.parse(getBookings());
+    async function getCalendarData() {
+        var eventsData = JSON.parse(await getCachedEvents());
+        var bookingsData = JSON.parse(await getBookings());
         return eventsData.concat(bookingsData);
     }
 
-    const bookingsData = getBookings();
-    const calendarData = getCalendarData();
+    const bookingsData = await getBookings();
+    const calendarData = await getCalendarData();
 
     const calendar = mobiscroll.eventcalendar('#myCalendar', {
         view: {
@@ -111,15 +110,16 @@ $(document).ready(function () {
 
     // caching events
 
-    function getCachedEvents() {
+    async function getCachedEvents() {
         let eventsData;
-        $.ajax({
+        await $.ajax({
             url: '/api/events',
             method: 'GET',
             dataType: 'json',
             success: function (data) {
-                eventsData = data;
-                localStorage.setItem('eventsData', JSON.stringify(data));
+                // console.log(data)
+                eventsData = JSON.stringify(data);
+                // localStorage.setItem('eventsData', JSON.stringify(data));
                 // calendar.setEvents(data);
             },
             error: function (error) {
@@ -127,18 +127,20 @@ $(document).ready(function () {
                 showToast("Error fetching events data", 'error');
             }
         });
-        return eventsData || localStorage.getItem('eventsData');
+        // return eventsData || localStorage.getItem('eventsData');
+        // console.log(eventsData)
+        return eventsData;
     }
 
-    function getBookings() {
+    async function getBookings() {
         let bookingsData;
-        $.ajax({
+        await $.ajax({
             url: '/api/booking',
             method: 'GET',
             dataType: 'json',
             success: function (data) {
-                bookingsData = data;
-                localStorage.setItem('bookingsData', JSON.stringify(data));
+                bookingsData = JSON.stringify(data);
+                // localStorage.setItem('bookingsData', JSON.stringify(data));
                 // calendar.setEvents(data);
             },
             error: function (error) {
@@ -146,7 +148,8 @@ $(document).ready(function () {
                 showToast("Error fetching bookings data", 'error');
             }
         });
-        return bookingsData || localStorage.getItem('bookingsData');
+        // return bookingsData || localStorage.getItem('bookingsData');
+        return bookingsData;
     }
 
 
@@ -156,6 +159,11 @@ $(document).ready(function () {
     function showEventDetails(event) {
         const isAuthorizedToDelete = memberStatus === 'coach' || memberStatus === 'admin';
         const isEventCreator = event.created_by === currentUserId;
+        console.log(currentUserId);
+        console.log(event.created_by);
+        console.log(isEventCreator);
+
+        if (event.participants === undefined) event.participants = [];
 
         populateEventDetailsPopup(event, isAuthorizedToDelete, isEventCreator);
 
@@ -303,6 +311,7 @@ $(document).ready(function () {
             },
             success: function (response) {
                 if (response && response.id) {
+                    console.log("Event created successfully :");
                     console.log(response)
                     calendar.addEvent({
                         id: response.id,
@@ -310,7 +319,9 @@ $(document).ready(function () {
                         start: response.start,
                         end: response.end,
                         description: response.description,
-                        location: response.location
+                        max_participants: response.max_participants,
+                        location: response.location,
+                        created_by: currentUserId
                     });
 
                     closeCreateEventPopup();
@@ -385,12 +396,12 @@ $(document).ready(function () {
         $.ajax({
             url: '/api/events/join/' + eventId,
             method: 'POST',
-            success: function (response) {
+            success: async function (response) {
                 console.log("Joined event successfully");
                 console.log(response.event);
-                calendar.removeEvent(eventId);
-                calendar.addEvent(response.event);
-                // calendar.setEvents([response.event]);
+                console.log(eventId);
+                await calendar.removeEvent(eventId);
+                await calendar.addEvent(response.event);
                 closeEventDetailsPopup();
             },
             error: function (error) {
