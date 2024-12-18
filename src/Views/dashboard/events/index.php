@@ -66,7 +66,9 @@
                 </div>
                 <div class="form-group">
                     <label for="max_participants">Max Participants</label>
-                    <input type="number" id="max_participants" name="max_participants" class="form-control" required>
+                    <input type="number" id="max_participants" name="max_participants" class="form-control" min="5"
+                           value="5"
+                           required>
                 </div>
                 <div class="form-group">
                     <label for="location">Location</label>
