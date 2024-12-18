@@ -24,9 +24,10 @@
             <!-- Updated data-target attributes -->
             <li><a href="#" data-target="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
             <li><a href="#" data-target="suivi"><i class="fas fa-chart-line"></i> Suivi </a></li>
-            <li><a href="#" data-target="terrains"><i class="fas fa-futbol"></i> Terrains</a></li>
+            <li><a href="#" data-target="booking"><i class="fas fa-futbol"></i> Terrains</a></li>
             <li><a href="#" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
             <li><a href="#" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
+            <li><a href="#" data-target="training"><i class="fas fa-calendar"></i> Programme</a></li>
             <li><a href="#" class="management" data-target="admin/users"><i class="fas fa-tasks"></i> Gestion</a></li>
         </ul>
         <div class="settings-section">
@@ -88,6 +89,7 @@
                                         });
                                     });
                                 } else {
+                                    
                                     if (typeof initialize === 'function') {
                                         initialize();
                                     }

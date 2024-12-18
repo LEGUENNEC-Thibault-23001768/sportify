@@ -253,4 +253,54 @@ function initialize() {
         resumeSubscriptionButton.addEventListener('click', function() {
             resumeUserSubscription(currentUserId);
         });
+
+
+        $('#search-form').submit(function(e) {
+            console.log("qsfihq")
+            e.preventDefault(); // Prevent default form submission
+            const searchTerm = $('#search').val();
+            searchUsers(searchTerm);
+        });
+
+        function searchUsers(searchTerm) {
+            $.ajax({
+                url: '/api/users',
+                method: 'GET',
+                data: { search: searchTerm },
+                dataType: 'json',
+                success: function(users) {
+                    console.log(users);
+                    updateUsersTable(users);
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    // Handle error appropriately, e.g., display an error message
+                }
+            });
+        }
+    
+        function updateUsersTable(users) {
+            const tableBody = $('#user-table-body');
+            tableBody.empty(); // Clear existing table rows
+    
+            if (users.length > 0) {
+                users.forEach(user => {
+                    const row = `
+                        <tr>
+                            <td>${user.last_name}</td>
+                            <td>${user.first_name}</td>
+                            <td>${user.email}</td>
+                            <td>${user.status}</td>
+                            <td>
+                                <button class="btn btn-edit edit-user" data-user-id="${user.member_id}">Modifier</button>
+                                <a href="/dashboard/admin/users/delete?id=${user.member_id}" class="btn btn-delete" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">Supprimer</a>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.append(row);
+                });
+            } else {
+                tableBody.append('<tr><td colspan="5">Aucun utilisateur trouvé.</td></tr>');
+            }
+        }
 };

@@ -37,6 +37,11 @@ class DashboardController
                 error_log(print_r("qsq",true));
                 //echo View::render('dashboard/events/index', ['member' => $user]);  
                 echo View::render('dashboard/events/index', ['user' => $user, 'dataView' => 'events']);
+            } else if ($category === "dashboard") {
+                if ($user['status'] !== 'admin') {
+                    
+                }
+                echo View::render('dashboard/index', ['user' => $user]);
             } else {
                 // Construct the view path using both category and segments
                 $viewPath = 'dashboard/' . $category . '/' . implode('/', $segments) . '/index';
@@ -66,6 +71,13 @@ class DashboardController
         }
 
         $response->setStatusCode(200)->setData($user)->send();
+    }
+    public function searchUsersApi() {
+        $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $users = !empty($searchTerm) ? User::searchUsers($searchTerm) : User::getAllUsers();
+    
+        $response = new APIResponse();
+        $response->setStatusCode(200)->setData($users)->send();
     }
 
     public function updateUserProfile()

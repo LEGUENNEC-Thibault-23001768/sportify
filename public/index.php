@@ -55,6 +55,7 @@ Router::get('/api/users/{user_id}/subscription', 'DashboardController@getUserSub
 Router::post('/api/users/{user_id}/subscription', 'DashboardController@updateUserSubscription', Auth::isAdmin());
 Router::post('/api/users/{user_id}/subscription/cancel', 'DashboardController@cancelUserSubscription', Auth::isAdmin());
 Router::post('/api/users/{user_id}/subscription/resume', 'DashboardController@resumeUserSubscription', Auth::isAdmin());
+Router::get('/api/users', 'DashboardController@searchUsersApi', Auth::isAdmin());
 
 // --- Team Routes ---
 Router::post('/teams/{team_id}/add-member', 'TeamController@addParticipant', Auth::requireLogin());

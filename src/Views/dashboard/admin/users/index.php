@@ -15,7 +15,7 @@
 
         <h1 class="mt-5">Gestion des Utilisateurs</h1>
 
-        <form method="GET" action="" class="search-form">
+        <form class="search-form" id="search-form">
             <div class="form-group">
                 <label for="search">Rechercher par nom, prénom ou email :</label>
                 <input type="text" name="search" id="search" class="form-control" placeholder="Rechercher un utilisateur" value="<?= htmlspecialchars($searchTerm) ?>">
@@ -37,7 +37,7 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="user-table-body">
                 <?php if (!empty($users)): ?>
                     <?php foreach ($users as $user): ?>
                         <tr>
