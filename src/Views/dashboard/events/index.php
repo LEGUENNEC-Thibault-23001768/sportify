@@ -3,6 +3,7 @@
         <div id="myCalendar"></div>
 
         <!-- Event Details Modal -->
+        <!-- Event Details Modal -->
         <div class="modal" id="eventDetailsPopup">
             <div class="modal-content">
                 <div class="modal-header">
