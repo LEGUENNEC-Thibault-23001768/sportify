@@ -24,7 +24,7 @@
         <li><a href="/dashboard/training"><i class="fas fa-calendar-alt"></i> Programme</a></li>
         <li><a href="/dashboard/admin/users" class="management"><i class="fas fa-tasks"></i> Gestion</a></li>
     </ul>
-
+ 
     <div class="settings-section">
         <a href="#" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
         <a href="#" class="logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
@@ -52,10 +52,10 @@
         </div>
     </div>
 </div>
-
+ 
 <div class="dashboard-content">
     <h1>Bienvenue sur votre tableau de bord, <?= htmlspecialchars($user['first_name']) ?> !</h1>
-
+ 
     <?php if ($user['status'] === 'membre'): ?>
         <link rel="stylesheet" href="/_assets/css/member.css">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -104,56 +104,79 @@
         </div>
     <?php elseif ($user['status'] === 'coach' || $user['status'] === 'admin'): ?>
         <div class="coach-panel">
-            <h2> 📅 Gestion événements</h2>
-            <p>Vous pouvez créer et gérer des événements pour les membres.</p>
-            <a href="/dashboard/events" class="btn">Gérer les événements</a>
-        </div>
-    <?php endif; ?>
-
-    <?php if ($user['status'] === 'admin'): ?>
-        <div class="admin-panel">
-            <h2> 👥 Gestion utilisateurs</h2>
-            <p>Vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
-            <a href="/dashboard/admin/users" class="btn btn-danger">Gérer les utilisateurs</a>
-        </div>
-        <div class="card">
-            <h3 class="title rapport-activite">📊 Rapport d'activité</h3>
-            <ul>
-                <li>Nombre total d'utilisateurs inscrits : <b><?= $totalUsers ?? 0 ?></b></li>
-                <li>Nombre d'inscriptions cette semaine : <b><?= array_sum(array_column($recentRegistrations, 'registrations')) ?></b></li>
-                <li>Nombre d'abonnements actifs : <b><?= $activeSubscriptions ?? 0 ?></b></li>
-                <li>Taux d'occupation global des terrains (moyenne sur la dernière semaine) : <b><?= number_format($globalOccupancyRate, 2) ?? 0 ?>%</b></li>
-                <li>Âge moyen des membres : <b><?= number_format($averageMemberAge, 1) ?? 0 ?> ans</b></li>
-                <li>Taux de rétention des membres (6 derniers mois) : <b><?= number_format($retentionRate, 2) ?? 0 ?>%</b></li>
-            </ul>
-        </div>
-
-        <div class="card">
-            <h3 class="title prochaines-reservations">🏋️ Top 5 des Activités (7 derniers jours)</h3>
-            <ul>
-                <?php foreach ($topActivities as $activity): ?>
-                    <li><?= htmlspecialchars($activity['activity_type']) ?> : <b><?= $activity['total_reservations'] ?> réservations</b></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-        <div class="card-row">
-            <div class="small-card">
-                <div class="card-title"><span class="emoji">👥</span> Répartition des membres par statut</div>
-                <canvas id="memberStatusChart"></canvas>
+        <h2>
+            <img src="https://emojigraph.org/media/apple/raising-hands_1f64c.png" alt="Gestion événements" class="emoji-image">
+            Gestion événements
+        </h2>
+        <p>Vous pouvez créer et gérer des événements pour les membres.</p>
+        <a href="/dashboard/events" class="btn">Gérer les événements</a>
+    </div>
+<?php endif; ?>
+ 
+<?php if ($user['status'] === 'admin'): ?>
+    <div class="admin-panel">
+        <h2>
+            <img src="https://emojigraph.org/media/apple/busts-in-silhouette_1f465.png" alt="Gestion utilisateurs" class="emoji-image">
+            Gestion utilisateurs
+        </h2>
+        <p>Vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
+        <a href="/dashboard/admin/users" class="btn btn-danger">Gérer les utilisateurs</a>
+    </div>
+    <div class="card">
+        <h3 class="title rapport-activite">
+            <img src="https://emojigraph.org/media/apple/bar-chart_1f4ca.png" alt="Rapport d'activité" class="emoji-image">
+            Rapport d'activité
+        </h3>
+        <ul>
+            <li>Nombre total d'utilisateurs inscrits : <b><?= $totalUsers ?? 0 ?></b></li>
+            <li>Nombre d'inscriptions cette semaine : <b><?= array_sum(array_column($recentRegistrations, 'registrations')) ?></b></li>
+            <li>Nombre d'abonnements actifs : <b><?= $activeSubscriptions ?? 0 ?></b></li>
+            <li>Taux d'occupation global des terrains (moyenne sur la dernière semaine) : <b><?= number_format($globalOccupancyRate, 2) ?? 0 ?>%</b></li>
+            <li>Âge moyen des membres : <b><?= number_format($averageMemberAge, 1) ?? 0 ?> ans</b></li>
+            <li>Taux de rétention des membres (6 derniers mois) : <b><?= number_format($retentionRate, 2) ?? 0 ?>%</b></li>
+        </ul>
+    </div>
+ 
+    <div class="card">
+        <h3 class="title prochaines-reservations">
+            <img src="https://emojigraph.org/media/apple/person-lifting-weights_1f3cb-fe0f.png" alt="Top 5 des Activités" class="emoji-image">
+            Top 5 des Activités (7 derniers jours)
+        </h3>
+        <ul>
+            <?php foreach ($topActivities as $activity): ?>
+                <li><?= htmlspecialchars($activity['activity_type']) ?> : <b><?= $activity['total_reservations'] ?> réservations</b></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+ 
+    <div class="card-row">
+        <div class="small-card">
+            <div class="card-title">
+                <img src="https://emojigraph.org/media/apple/busts-in-silhouette_1f465.png" alt="Répartition des membres par statut" class="emoji-image">
+                Répartition des membres par statut
             </div>
-            <div class="small-card">
-                <div class="card-title"><span class="emoji">📅</span> Réservations par jour (7 derniers jours)</div>
-                <canvas id="reservationsByDayChart"></canvas>
+            <canvas id="memberStatusChart"></canvas>
+        </div>
+        <div class="small-card">
+            <div class="card-title">
+                <img src="https://emojigraph.org/media/google/calendar_1f4c5.png" alt="Réservations par jour" class="emoji-image">
+                Réservations par jour (7 derniers jours)
             </div>
+            <canvas id="reservationsByDayChart"></canvas>
         </div>
-        <div class="card">
-            <h3 class="title personal-training">🎯 Entraînement personnalisé</h3>
-            <p>Recevez un plan d'entraînement adapté à votre profil.</p>
-            <a class="btn" href="/dashboard/training/start">Commencer</a>
-        </div>
+    </div>
+ 
+    <div class="card">
+        <h3 class="title personal-training">
+            <img src="https://emojigraph.org/media/apple/target_1f3af.png" alt="Entraînement personnalisé" class="emoji-image">
+            Entraînement personnalisé
+        </h3>
+        <p>Recevez un plan d'entraînement adapté à votre profil.</p>
+        <a class="btn" href="/dashboard/training/start">Commencer</a>
+    </div>
     <?php endif; ?>
 </div>
-
+ 
 <?php
 if (isset($_SESSION['message'])) {
     echo "<div class='alert alert-success'>" . htmlspecialchars($_SESSION['message']) . "</div>";
@@ -162,7 +185,7 @@ if (isset($_SESSION['message'])) {
 ?>
 <script src="/_assets/js/mobiscroll.min.js"></script>
 <link rel="stylesheet" href="/_assets/css/mobiscroll.min.css">
-
+ 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Graphique pour la répartition des membres par statut (camembert)
@@ -187,7 +210,7 @@ if (isset($_SESSION['message'])) {
                 }]
             },
         });
-
+ 
         // Graphique pour le nombre de réservations par jour de la semaine (histogramme)
         var ctxReservationsByDay = document.getElementById('reservationsByDayChart').getContext('2d');
         var reservationsByDayChart = new Chart(ctxReservationsByDay, {
@@ -219,7 +242,7 @@ if (isset($_SESSION['message'])) {
             dropdown.style.display = 'none';
         }
     });
-
+ 
     window.onclick = function(event) {
         if (!event.target.matches('#profile-icon')) {
             const dropdown = document.getElementById('dropdown');
@@ -233,7 +256,7 @@ if (isset($_SESSION['message'])) {
         theme: 'ios',
         themeVariant: 'dark'
     });
-
+ 
     var inst = mobiscroll.eventcalendar('#demo-mobile-day-view', {
         view: {
             schedule: {
@@ -248,7 +271,6 @@ if (isset($_SESSION['message'])) {
         dragToMove: true,
         dragToResize: true,
         renderEvent: function (event) {
-            // Personnalisation de l'affichage des événements
             return {
                 html: `
                     <div>
@@ -263,39 +285,39 @@ if (isset($_SESSION['message'])) {
             var calendarBounds = document.getElementById('demo-mobile-day-view').getBoundingClientRect();
             var popupWidth = form.offsetWidth;
             var popupHeight = form.offsetHeight;
-
+ 
             let popupX = args.domEvent.clientX;
             let popupY = args.domEvent.clientY;
-
+ 
             if (popupX + popupWidth > calendarBounds.right) {
                 popupX = args.domEvent.clientX - popupWidth - 10;
             }
-
+ 
             if (popupY + popupHeight > calendarBounds.bottom) {
                 popupY = args.domEvent.clientY - popupHeight - 10;
             }
-
+ 
             popupX = Math.max(calendarBounds.left + 10, Math.min(popupX, calendarBounds.right - popupWidth - 10));
             popupY = Math.max(calendarBounds.top + 10, Math.min(popupY, calendarBounds.bottom - popupHeight - 10));
-
+ 
             form.style.display = 'block';
             form.style.left = popupX + 'px';
             form.style.top = popupY + 'px';
-
+ 
             var titleInput = document.getElementById('event-title');
             var descriptionInput = document.getElementById('event-description');
-
+ 
             titleInput.value = args.event.title || '';
             descriptionInput.value = args.event.description || '';
-
+ 
             titleInput.oninput = function () {
                 args.event.title = this.value;
             };
-
+ 
             descriptionInput.oninput = function () {
                 args.event.description = this.value;
             };
-
+ 
             // Sauvegarde et mise à jour quand on appuie sur Entrée
             titleInput.onkeydown = descriptionInput.onkeydown = function (e) {
                 if (e.key === 'Enter') {
@@ -305,7 +327,7 @@ if (isset($_SESSION['message'])) {
                     form.style.display = 'none'; // Fermer le popup après sauvegarde
                 }
             };
-
+ 
             // Mise à jour des couleurs
             document.querySelectorAll('.color-option').forEach(option => {
                 option.onclick = function () {
@@ -316,24 +338,24 @@ if (isset($_SESSION['message'])) {
                 };
                 option.classList.toggle('selected', option.getAttribute('data-color') === args.event.color);
             });
-
+ 
             form.onmousedown = function (e) {
                 if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.closest('.color-option')) {
                     e.preventDefault();
                     var offsetX = e.offsetX;
                     var offsetY = e.offsetY;
-
+ 
                     function moveAt(pageX, pageY) {
                         form.style.left = Math.max(calendarBounds.left, Math.min(pageX - offsetX, calendarBounds.right - popupWidth)) + 'px';
                         form.style.top = Math.max(calendarBounds.top, Math.min(pageY - offsetY, calendarBounds.bottom - popupHeight)) + 'px';
                     }
-
+ 
                     function onMouseMove(event) {
                         moveAt(event.pageX, event.pageY);
                     }
-
+ 
                     document.addEventListener('mousemove', onMouseMove);
-
+ 
                     form.onmouseup = function () {
                         document.removeEventListener('mousemove', onMouseMove);
                         form.onmouseup = null;
@@ -352,7 +374,7 @@ if (isset($_SESSION['message'])) {
             { color: '#ffa726', start: '2024-11-16T18:00', end: '2024-11-16T19:00', title: 'Boxe', description: 'Entraînement de boxe avec sparring.' }
         ]
     });
-
+ 
     document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('event-form').style.display = 'none';
         var ctx = document.getElementById('taskCompletionChart').getContext('2d');
@@ -390,16 +412,16 @@ if (isset($_SESSION['message'])) {
         var chartCanvas = document.getElementById('taskCompletionChart');
         chartCanvas.style.filter = 'drop-shadow(0px 0px 15px rgba(255, 105, 180, 0.7))';
     });
-
+ 
     var form = document.getElementById('event-form');
     form.onmouseleave = null;
-
+ 
     document.addEventListener('click', function (e) {
         if (!form.contains(e.target) && !e.target.closest('.mbsc-schedule-event')) {
             form.style.display = 'none';
         }
     });
 </script>
-
+ 
 </body>
 </html>
