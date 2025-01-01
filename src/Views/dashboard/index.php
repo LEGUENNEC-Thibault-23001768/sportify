@@ -166,14 +166,6 @@
         </div>
     </div>
  
-    <div class="card">
-        <h3 class="title personal-training">
-            <img src="https://emojigraph.org/media/apple/target_1f3af.png" alt="Entraînement personnalisé" class="emoji-image">
-            Entraînement personnalisé
-        </h3>
-        <p>Recevez un plan d'entraînement adapté à votre profil.</p>
-        <a class="btn" href="/dashboard/training/start">Commencer</a>
-    </div>
     <?php endif; ?>
 </div>
  
