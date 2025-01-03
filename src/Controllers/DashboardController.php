@@ -40,6 +40,7 @@ class DashboardController
             } else if ($category === "dashboard") {
                 
                 if ($user['status'] !== 'admin') {
+                    
                 }
                 echo View::render('dashboard/index', ['user' => $user]);
             } else {

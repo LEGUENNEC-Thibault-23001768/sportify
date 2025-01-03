@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -47,7 +46,6 @@
             </div>
         </div>
     </div>
-
     <div class="dashboard-content" id="dynamic-content">
         <!-- Dynamic content will be loaded here -->
     </div>
