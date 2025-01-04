@@ -8,6 +8,8 @@ DROP TABLE IF EXISTS PERFORMANCE;
 DROP TABLE IF EXISTS RESERVATION_HISTORY;
 DROP TABLE IF EXISTS SUBSCRIPTION;
 DROP TABLE IF EXISTS MEMBER;
+DROP TABLE IF EXISTS COACH;
+DROP TABLE IF EXISTS AVAILABILITY;
 
 CREATE TABLE MEMBER (
     member_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -19,6 +21,31 @@ CREATE TABLE MEMBER (
     address TEXT,
     phone VARCHAR(15),
     creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE COACH (
+    coach_id INT AUTO_INCREMENT PRIMARY KEY,
+    last_name VARCHAR(100) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(15),
+    specialty VARCHAR(100),
+    description VARCHAR(255),
+    experience VARCHAR(255),
+    certifications VARCHAR(255),
+    achievements VARCHAR(255),
+    qualities VARCHAR(155),
+    creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    image TEXT
+);
+
+CREATE TABLE AVAILABILITY (
+    availability_id INT AUTO_INCREMENT PRIMARY KEY,
+    coach_id INT NOT NULL,
+    day_of_week VARCHAR(10) NOT NULL, -- Ex : 'Monday', 'Tuesday'
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    FOREIGN KEY (coach_id) REFERENCES COACH(coach_id) ON DELETE CASCADE
 );
 
 CREATE TABLE SUBSCRIPTION (
@@ -41,8 +68,12 @@ CREATE TABLE RESERVATION_HISTORY (
     reservation_date DATE NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
+    coach_id INT,
     CONSTRAINT fk_member_reservation
         FOREIGN KEY (member_id) REFERENCES MEMBER(member_id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_coach_reservation
+        FOREIGN KEY (coach_id) REFERENCES COACH(coach_id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 

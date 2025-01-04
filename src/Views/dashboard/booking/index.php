@@ -27,7 +27,7 @@
         <div class="room tennis" data-room="Tennis" data-court-id="6" onclick="openReservationForm(this)">Tennis</div>
         <div class="room foot" data-room="Foot" data-court-id="1" onclick="openReservationForm(this)">Football</div>
         <div class="room rpm" data-room="RPM" data-court-id="3" onclick="openReservationForm(this)">RPM</div>
-        <div class="room yoga" data-room="Yoga" data-court-id="4" onclick="openReservationForm(this)">Yoga</div>
+        <div class="room musculation" data-room="Musculation" data-court-id="4" onclick="openReservationForm(this)">Musculation</div>
         <div class="room basketball" data-room="Basketball" data-court-id="2" onclick="openReservationForm(this)">Basketball</div>
         <div class="room boxe" data-room="Boxe" data-court-id="5" onclick="openReservationForm(this)">Boxe</div>
     </div>

@@ -116,13 +116,13 @@
         </div>
         </div>
     
-        <!-- Yoga -->
-        <div class="category-card yoga">
-        <div class="emoji-wrapper yoga">
+        <!-- Musculation -->
+        <div class="category-card Musculation">
+        <div class="emoji-wrapper Musculation">
             <img src="https://em-content.zobj.net/source/apple/118/person-in-lotus-position_1f9d8.png" alt="Person in Lotus Position" class="emoji-svg">
         </div>
         <div class="category-info">
-            <h2>Yoga</h2>
+            <h2>Musculation</h2>
             <p>16 Entraîneurs</p>
         </div>
         </div>

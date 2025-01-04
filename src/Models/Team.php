@@ -45,4 +45,17 @@ class Team
         $params = [':team_id' => $team_id];
         Database::query($sql, $params);
     }
+
+    public static function getAll()
+    {
+        // Requête SQL pour récupérer toutes les équipes
+        $sql = "SELECT * FROM TEAM";
+
+        // Exécuter la requête
+        $result = Database::query($sql);
+
+        // Retourner toutes les équipes sous forme de tableau
+        return $result->fetchAll();
+    }
+
 }

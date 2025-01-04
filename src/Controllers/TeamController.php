@@ -71,4 +71,10 @@ class TeamController
         header('Location: /teams');
         exit();
     }
+
+    public function listTeams()
+    {
+        $teams = Team::getAll();
+        echo json_encode($teams);
+    }
 }

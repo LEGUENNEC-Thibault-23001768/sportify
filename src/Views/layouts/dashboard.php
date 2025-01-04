@@ -89,6 +89,15 @@
                                             }
                                         });
                                     });
+                                } else if (view == "trainers") {
+                                    loadCSS('/_assets/css/mobiscroll.min.css');
+                                    loadScript('/_assets/js/mobiscroll.min.js', () => {
+                                        loadScript('/_assets/js/trainers.js', function() {
+                                            if (typeof initialize === 'function') {
+                                                initialize();
+                                            }
+                                        });
+                                    });
                                 } else {
                                     
                                     if (typeof initialize === 'function') {

@@ -6,6 +6,12 @@ use Core\Router;
 use Core\View;
 use Core\Auth;
 
+
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', '/var/log/php_errors.log');
+error_reporting(E_ALL);
+
 Config::load(dirname(__DIR__) . '/config.php');
 View::init();
 
@@ -58,8 +64,10 @@ Router::post('/api/users/{user_id}/subscription/resume', 'DashboardController@re
 Router::get('/api/users', 'DashboardController@searchUsersApi', Auth::isAdmin());
 
 // --- Team Routes ---
+Router::get('/api/teams', 'TeamController@listTeams');
 Router::post('/teams/{team_id}/add-member', 'TeamController@addParticipant', Auth::requireLogin());
 Router::post('/teams/{team_id}/remove-member', 'TeamController@removeParticipant', Auth::requireLogin());
+
 
 // --- Google Authentication ---
 Router::get('/google', 'GoogleAuthController@login');
@@ -89,6 +97,31 @@ Router::get('/dashboard/training/train', 'TrainingController@train', Auth::requi
 // --- API Training Routes ---
 Router::post('/api/training/process-step', 'TrainingController@apiProcessStep', Auth::requireLogin());
 Router::post('/api/training/generate', 'TrainingController@apiGenerate', Auth::requireLogin());
+
+// --- Coach Booking Routes ---
+Router::get('/dashboard/coach-bookings', 'CoachBookingController@index', Auth::requireLogin());
+Router::get('/dashboard/coach-bookings/create', 'CoachBookingController@create', Auth::requireLogin());
+Router::post('/dashboard/coach-bookings/store', 'CoachBookingController@store', Auth::requireLogin());
+Router::post('/dashboard/coach-bookings/{booking_id}/delete', 'CoachBookingController@delete', Auth::requireLogin());
+Router::get('/dashboard/coach-bookings/{booking_id}/edit', 'CoachBookingController@edit', Auth::requireLogin());
+Router::post('/dashboard/coach-bookings/{booking_id}/update', 'CoachBookingController@update', Auth::requireLogin());
+Router::get('/api/coaches', 'CoachBookingController@getCoaches'); // Ajout de la route API pour récupérer les coachs
+
+use Controllers\TrainerController;
+
+// Route pour obtenir les informations d'un coach
+Router::get('/api/trainers/{id}', function($id) {
+    $controller = new TrainerController();
+    $controller->show($id);
+});
+
+Router::post('/api/reservation', 'TrainerController@saveReservation', Auth::requireLogin());
+Router::get('/api/reservations/{coachId}', 'TrainerController@getReservations');
+
+
+
+
+
 
 
 // --- CONTENT LOADER ---
