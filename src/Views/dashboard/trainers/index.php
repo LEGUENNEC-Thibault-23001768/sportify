@@ -46,3 +46,30 @@ $image_urls = [
         </div>
     </div>
 </div>
+
+<script>
+
+$('.cv-back-btn').on('click', function() {
+        // Remplacer le contenu de la container par la liste des entraîneurs
+        container.html(`
+            <div data-view="trainers">
+                <h1>Réservation d'entraîneur</h1>
+                <div class="container">
+                    <h2 class="disponibility-label">Nos entraîneurs</h2>
+                    <div class="trainers-list">
+                        <?php foreach ($trainers as $trainer): ?>
+                            <div class="trainer-card" data-id="<?= $trainer['coach_id']; ?>" onclick="showTrainerDetails(<?= json_encode($trainer); ?>)">
+                                <img 
+                                    src="<?= $image_urls[$trainer['specialty']] ?? 'https://via.placeholder.com/150'; ?>" 
+                                    alt="Image du coach" 
+                                    class="trainer-image"
+                                >
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        `);
+    });
+</script>
+

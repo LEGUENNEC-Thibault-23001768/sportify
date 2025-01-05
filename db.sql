@@ -69,6 +69,7 @@ CREATE TABLE RESERVATION_HISTORY (
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     coach_id INT,
+    color VARCHAR(7),
     CONSTRAINT fk_member_reservation
         FOREIGN KEY (member_id) REFERENCES MEMBER(member_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
