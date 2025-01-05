@@ -1,0 +1,370 @@
+/* General Popup Styling */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Couleur semi-transparente pour un effet de flou */
+    backdrop-filter: blur(10px); /* Applique un flou à l'arrière-plan */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup.hidden {
+    display: none;
+}
+
+.popup-content {
+    position: relative; /* Positionnement pour permettre l'alignement absolu des enfants */
+    background: linear-gradient(100deg, #131313, #333, #040404);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    color: white;
+    width: 60%;
+    max-width: 500px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    margin: 0 auto;
+}
+.popup-content h2 {
+    font-size: 28px; /* Taille légèrement plus grande */
+    color: #C1FF72; /* Couleur verte lime */
+    font-weight: bold;
+    text-shadow: 
+        0 0 20px #C1FF72,   /* Couche lumineuse principale */
+        0 0 30px #C1FF72;   /* Couche lumineuse externe */
+    margin-bottom: 15px;
+    text-align: center; /* Centré */
+}
+
+.popup-content p {
+    color: #aaa;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.close-popup {
+    position: absolute; /* Permet de placer la croix en haut à droite */
+    top: 10px; /* Espacement depuis le haut du popup */
+    right: 15px; /* Espacement depuis la droite du popup */
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    color: rgb(187, 187, 187);
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.close-popup:hover {
+    color: red; /* Change la couleur au survol */
+    transform: scale(1.2); /* Agrandissement au survol */
+}
+
+/* Section Sports */
+.categories-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.category-card {
+    background: linear-gradient(145deg, #222, #111);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, background 0.3s ease;
+    width: 100%;
+    max-width: 120px;
+}
+
+.category-card:hover {
+    transform: scale(1.1);
+    background: linear-gradient(145deg, #333, #222);
+}
+#congrats-title {
+    font-size: 28px; /* Taille du texte */
+    color: #C1FF72; /* Couleur verte lime */
+    font-weight: bold;
+    text-shadow: 
+        0 0 20px #C1FF72,   /* Couche lumineuse principale */
+        0 0 30px #C1FF72;   /* Couche lumineuse externe */
+    margin: 20px 0; /* Espacement vertical équilibré */
+    text-align: center; /* Centre le texte */
+    margin-top: 5px;
+}
+
+.emoji-success {
+    width: 80px;
+    margin-bottom: 20px;
+}
+
+
+#close-congrats-btn {
+    background: linear-gradient(145deg, #27ae60, #2ecc71); /* Dégradé vert lime */
+    color: white;
+    box-shadow: 0 0 10px rgba(39, 174, 96, 0.7); /* Effet lumineux */
+    border: none;
+    border-radius: 12px;
+    padding: 15px 30px; /* Taille identique à Suivant */
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease, box-shadow 0.3s ease;
+}
+
+#close-congrats-btn:hover {
+    transform: translateY(-2px); /* Légère élévation au survol */
+    background: linear-gradient(145deg, #2ecc71, #27ae60); /* Couleurs inversées */
+    box-shadow: 0 0 20px rgba(39, 174, 96, 0.9); /* Effet lumineux intensifié */
+}
+
+.emoji-wrapper {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+}
+
+.emoji-svg {
+    width: 40px;
+    height: 40px;
+}
+
+.category-card h3 {
+    color: white;
+    margin: 0;
+    font-size: 16px;
+}
+
+/* Emoji Colors */
+.emoji-wrapper.tennis {
+    background-color: rgba(135, 206, 250, 0.9);
+    box-shadow: 0 0 15px rgba(135, 206, 250, 0.5);
+}
+
+.emoji-wrapper.football {
+    background-color: rgba(103, 255, 103, 0.9);
+    box-shadow: 0 0 15px rgba(103, 255, 103, 0.5);
+}
+
+.emoji-wrapper.basketball {
+    background-color: rgba(255, 127, 127, 0.9);
+    box-shadow: 0 0 15px rgba(255, 127, 127, 0.5);
+}
+
+.emoji-wrapper.rpm {
+    background-color: rgba(255, 181, 42, 0.9);
+    box-shadow: 0 0 15px rgba(255, 165, 0, 0.5);
+}
+
+.emoji-wrapper.musc {
+    background-color: rgba(174, 198, 207, 0.9);
+    box-shadow: 0 0 15px rgba(174, 198, 207, 0.5);
+}
+
+.emoji-wrapper.boxing {
+    background-color: rgba(216, 191, 216, 0.9);
+    box-shadow: 0 0 15px rgba(216, 191, 216, 0.5);
+}
+
+/* Champ de formulaire ajusté */
+input {
+    background: #1a1a1a;
+    color: white;
+    border: 2px solid #555;
+    border-radius: 8px;
+    padding: 15px;
+    width: 150px;
+    height: 60px;
+    font-size: 28px;
+    text-align: center;
+    box-shadow: none;
+    margin: 15px auto;
+    transition: border-color 0.3s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: #aaa;
+    box-shadow: none;
+}
+
+input::placeholder {
+    color: #484848;
+    font-style: normal;
+    font-size: 18px;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+
+/* Animation shake */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+/* Buttons */
+button {
+    background: linear-gradient(145deg, #C1FF72, #a9e658);
+    color: black;
+    cursor: pointer;
+    border: none;
+}
+
+button:hover {
+    background: linear-gradient(145deg, #a9e658, #C1FF72);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+}
+/* Container des boutons */
+.buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Espacement entre les boutons */
+    margin-top: 30px; /* Espacement plus grand avec le formulaire */
+}
+
+/* Style commun pour les boutons */
+#stat-prev-btn,
+#stat-submit-btn {
+    width: 150px; /* Largeur identique pour les deux boutons */
+    height: 50px; /* Hauteur identique pour les deux boutons */
+    background: linear-gradient(145deg, #f39c12, #f1c40f); /* Fond jaune par défaut */
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Ombre subtile */
+}
+
+/* Bouton Précédent */
+#stat-prev-btn {
+    background: linear-gradient(145deg, #f39c12, #f1c40f);
+    box-shadow: 0 0 10px rgba(243, 156, 18, 0.7);
+}
+
+#stat-prev-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(145deg, #f1c40f, #f39c12);
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.9);
+}
+
+/* Bouton Suivant */
+#stat-submit-btn {
+    background: linear-gradient(145deg, #27ae60, #2ecc71);
+    box-shadow: 0 0 10px rgba(39, 174, 96, 0.7);
+}
+
+#stat-submit-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(145deg, #2ecc71, #27ae60);
+    box-shadow: 0 0 20px rgba(39, 174, 96, 0.9);
+}
+
+/* Bouton Oui */
+#confirm-yes-btn {
+    background: linear-gradient(145deg, #27ae60, #2ecc71);
+    box-shadow: 0 0 10px rgba(39, 174, 96, 0.7);
+    color: white; /* Contraste avec le fond */
+}
+
+#confirm-yes-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(145deg, #2ecc71, #27ae60);
+    box-shadow: 0 0 20px rgba(39, 174, 96, 0.9);
+}
+
+/* Bouton Non */
+#confirm-no-btn {
+    background: linear-gradient(145deg, #e74c3c, #c0392b); /* Rouge vif */
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.7);
+    color: white; /* Contraste avec le fond rouge */
+}
+
+#confirm-no-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(145deg, #c0392b, #e74c3c);
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.9);
+}
+
+/* Ajustement des boutons */
+#confirm-yes-btn,
+#confirm-no-btn {
+    width: 150px;
+    margin: 0px;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+/* Sous-titre : Gris et sans effet */
+#stat-sport-title {
+    font-size: 18px; /* Taille plus petite */
+    color: #aaa; /* Gris clair */
+    margin-bottom: 10px;
+    text-transform: uppercase; /* Texte en majuscules */
+    letter-spacing: 1px; /* Espacement entre les lettres */
+    text-align: center; /* Centré */
+    text-shadow: none; /* Pas d'effet d'ombre */
+}
+
+/* Question ou statistique actuelle : Effet vert lumineux */
+#stat-question {
+    font-size: 24px; /* Taille légèrement plus petite que le titre principal */
+    color: #C1FF72; /* Couleur verte lime */
+    font-weight: bold;
+    text-shadow: 
+        0 0 20px #C1FF72, 
+        0 0 30px #C1FF72;
+    margin-bottom: 20px;
+    text-align: center; /* Centré */
+}
+
+.no-close .close-popup {
+    display: none; /* Cache la croix pour les popups marqués */
+}
+/* Style pour le message d'erreur */
+.error-message {
+    color: red; /* Texte toujours en rouge */
+    font-size: 14px; /* Taille du texte */
+    text-align: center; /* Centré */
+    min-height: 20px; /* Réserve un espace pour le message */
+    margin: 5px 0; /* Réduit l'espacement vertical */
+}
+
+/* Animation pour le message d'erreur */
+.error-shake {
+    animation: shake 0.3s ease; /* Animation de secousse */
+}
+
+/* Animation shake */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+}
