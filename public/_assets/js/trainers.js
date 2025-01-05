@@ -175,7 +175,7 @@ function showTrainerDetails(trainer, user) {
                 .then(data => {
                     if (data.success) {
                         alert('Réservation enregistrée avec succès !');
-            
+                
                         const newEvent = {
                             title: `Réservation: ${activity}`,
                             start: `${reservationDate}T${startTime}`,
@@ -184,7 +184,7 @@ function showTrainerDetails(trainer, user) {
                         };
                         inst.addEvent(newEvent);
                         console.log("Événement ajouté au calendrier : ", newEvent);
-    
+                
                         const form = document.getElementById('event-form');
                         if (form) {
                             console.log('Formulaire trouvé, fermeture...');
@@ -192,16 +192,20 @@ function showTrainerDetails(trainer, user) {
                         } else {
                             console.error('Formulaire introuvable ! Vérifiez l\'ID #event-form.');
                         }
-    
                     } else {
+                        if (data.message === 'Ce créneau est déjà réservé.') {
+                            alert('Ce créneau est déjà réservé. Veuillez choisir un autre créneau.');
+                        } else {
+                            alert('Erreur lors de la réservation. Veuillez réessayer.');
+                        }
                         console.error("Erreur serveur :", data);
-                        alert('Erreur lors de la réservation. Veuillez réessayer.');
                     }
                 })
                 .catch(error => {
                     console.error("Erreur réseau :", error);
                     alert('Impossible de contacter le serveur.');
                 });
+                
             });
     
             const inst = mobiscroll.eventcalendar('#demo-mobile-day-view', {
@@ -218,10 +222,25 @@ function showTrainerDetails(trainer, user) {
                 dragToResize: true,
                 onEventClick: function (args) {
                     console.log("Événement cliqué :", args.event);
+            
                     const form = document.getElementById('event-form');
                     form.style.display = 'block';
-                    document.getElementById('event-title').value = args.event.title === "Nom du client" ? clientName : args.event.title;
+                    const startDateTime = new Date(args.event.start.getTime() - args.event.start.getTimezoneOffset() * 60000);
+                    const endDateTime = args.event.end;
+                    const startDateFormatted = startDateTime.toISOString().slice(0, 16);
+                    const endTimeFormatted = endDateTime.toTimeString().slice(0, 5);
+   
+
+
+
             
+
+                    // Remplir les champs du formulaire
+                    document.getElementById('event-title').value = args.event.title === "Nom du client" ? clientName : args.event.title;
+                    document.getElementById('event-date').value = startDateFormatted; // Remplit le champ datetime-local
+                    document.getElementById('event-end-time').value = endTimeFormatted; // Remplit le champ time
+            
+                    // Gestion des couleurs
                     document.querySelectorAll('.color-option').forEach(option => {
                         if (option.getAttribute('data-color') === args.event.color) {
                             option.classList.add('selected');
@@ -229,12 +248,14 @@ function showTrainerDetails(trainer, user) {
                             option.classList.remove('selected');
                         }
                     });
-    
+            
+                    // Mise à jour dynamique du titre de l'événement
                     document.getElementById('event-title').oninput = function () {
                         args.event.title = this.value;
                         inst.updateEvent(args.event);
                     };
             
+                    // Mise à jour dynamique de la couleur de l'événement
                     document.querySelectorAll('.color-option').forEach(option => {
                         option.onclick = function () {
                             document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
@@ -246,6 +267,7 @@ function showTrainerDetails(trainer, user) {
                 },
                 data: [] 
             });
+            
     
             console.log("Coach ID:", selectedTrainer.coach_id);
     

@@ -7,36 +7,34 @@ use Models\User;
 class TrainerController
 {
     public function show($coachId)
-    {
-        $pdo = Database::getConnection();
-    
-        // Récupérer les informations du coach
-        $sql = "SELECT * FROM COACH WHERE coach_id = :coach_id";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(['coach_id' => $coachId]);
-        $trainer = $stmt->fetch(\PDO::FETCH_ASSOC);
-    
-        // Vérifier si le coach existe
-        if ($trainer) {
-            // Vérifier si l'utilisateur est connecté
-            session_start();
-            $user = null;
-            if (isset($_SESSION['user_id'])) {
-                $userId = $_SESSION['user_id'];
-                $user = User::getUserById($userId); // Utiliser la méthode du modèle User
-            }
+{
+    $pdo = Database::getConnection();
 
-            // Retourner les données du coach et de l'utilisateur dans la réponse JSON
-            header('Content-Type: application/json');
-            echo json_encode([
-                'trainer' => $trainer,
-                'user' => $user // Passer les données de l'utilisateur (null si non connecté)
-            ]);
-        } else {
-            header('Content-Type: application/json');
-            echo json_encode(['error' => 'Trainer not found']);
+    $sql = "SELECT * FROM COACH WHERE coach_id = :coach_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['coach_id' => $coachId]);
+    $trainer = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+    // Si un coach est trouvé, récupérer les informations de l'utilisateur
+    if ($trainer) {
+        // Récupérer les informations de l'utilisateur connecté
+        if (isset($_SESSION['user_id'])) {
+            $memberId = $_SESSION['user_id'];
+            $user = User::getUserById($memberId);  // Utilisez votre méthode existante pour récupérer l'utilisateur
         }
+
+        // Envoyer les informations du coach et de l'utilisateur en JSON
+        header('Content-Type: application/json');
+        echo json_encode([
+            'trainer' => $trainer,
+            'user' => isset($user) ? $user : null
+        ]);
+    } else {
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Trainer not found']);
     }
+}
+
 
     public function getReservations($coachId)
     {
@@ -72,67 +70,90 @@ class TrainerController
     }
 
     public function saveReservation()
-    {
-        session_start(); 
+{
+    session_start();
 
-        if (!isset($_SESSION['user_id'])) {
-            http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Utilisateur non connecté.']);
-            return;
-        }
-
-        $memberId = $_SESSION['user_id'];
-        $pdo = Database::getConnection();
-
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        if (
-            empty($data['activity']) || 
-            empty($data['reservation_date']) || 
-            empty($data['start_time']) || 
-            empty($data['end_time']) || 
-            empty($data['coach_id']) || 
-            empty($data['color'])
-        ) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Données incomplètes.']);
-            return;
-        }
-
-        $reservationDateTime = strtotime($data['reservation_date'] . ' ' . $data['start_time']);
-        if ($reservationDateTime < time()) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Impossible de réserver une date passée.']);
-            return;
-        }
-
-        try {
-            // Enregistrer la réservation
-            $sql = "INSERT INTO RESERVATION_HISTORY 
-                    (member_id, activity, reservation_date, start_time, end_time, coach_id, color) 
-                    VALUES (:member_id, :activity, :reservation_date, :start_time, :end_time, :coach_id, :color)";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([
-                'member_id' => $memberId,
-                'activity' => $data['activity'],
-                'reservation_date' => $data['reservation_date'],
-                'start_time' => $data['start_time'],
-                'end_time' => $data['end_time'],
-                'coach_id' => $data['coach_id'],
-                'color' => $data['color'],
-            ]);
-
-            $newReservation = [
-                'title' => $data['activity'],
-                'start' => $data['reservation_date'] . 'T' . $data['start_time'],
-                'end' => $data['reservation_date'] . 'T' . $data['end_time'],
-                'color' => $data['color'],
-            ];
-
-            echo json_encode(['success' => true, 'message' => 'Réservation enregistrée avec succès.', 'reservation' => $newReservation]);
-        } catch (\Exception $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Erreur lors de l\'enregistrement : ' . $e->getMessage()]);
-        }
+    if (!isset($_SESSION['user_id'])) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Utilisateur non connecté.']);
+        return;
     }
+
+    $memberId = $_SESSION['user_id'];
+    $pdo = Database::getConnection();
+
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    if (
+        empty($data['activity']) || 
+        empty($data['reservation_date']) || 
+        empty($data['start_time']) || 
+        empty($data['end_time']) || 
+        empty($data['coach_id']) || 
+        empty($data['color'])
+    ) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Données incomplètes.']);
+        return;
+    }
+
+    $reservationDateTime = strtotime($data['reservation_date'] . ' ' . $data['start_time']);
+    if ($reservationDateTime < time()) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Impossible de réserver une date passée.']);
+        return;
+    }
+
+    // Vérification des conflits
+    $sqlConflict = "SELECT * FROM RESERVATION_HISTORY 
+                    WHERE coach_id = :coach_id 
+                    AND reservation_date = :reservation_date 
+                    AND (
+                        (start_time < :end_time AND end_time > :start_time)
+                    )";
+    $stmtConflict = $pdo->prepare($sqlConflict);
+    $stmtConflict->execute([
+        'coach_id' => $data['coach_id'],
+        'reservation_date' => $data['reservation_date'],
+        'start_time' => $data['start_time'],
+        'end_time' => $data['end_time'],
+    ]);
+    $conflict = $stmtConflict->fetch(\PDO::FETCH_ASSOC);
+
+    if ($conflict) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Ce créneau est déjà réservé.']);
+        return;
+    }
+
+    try {
+        // Enregistrer la réservation
+        $sql = "INSERT INTO RESERVATION_HISTORY 
+                (member_id, activity, reservation_date, start_time, end_time, coach_id, color) 
+                VALUES (:member_id, :activity, :reservation_date, :start_time, :end_time, :coach_id, :color)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'member_id' => $memberId,
+            'activity' => $data['activity'],
+            'reservation_date' => $data['reservation_date'],
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'],
+            'coach_id' => $data['coach_id'],
+            'color' => $data['color'],
+        ]);
+
+        $newReservation = [
+            'title' => $data['activity'],
+            'start' => $data['reservation_date'] . 'T' . $data['start_time'],
+            'end' => $data['reservation_date'] . 'T' . $data['end_time'],
+            'color' => $data['color'],
+        ];
+
+        echo json_encode(['success' => true, 'message' => 'Réservation enregistrée avec succès.', 'reservation' => $newReservation]);
+    } catch (\Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Erreur lors de l\'enregistrement : ' . $e->getMessage()]);
+    }
+}
+
 }
