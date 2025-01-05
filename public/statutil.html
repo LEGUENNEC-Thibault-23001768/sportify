@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistiques des Clients</title>
+    <link rel="stylesheet" href="/public/css/sidebar.css">
+    <link rel="stylesheet" href="/public/css/statutil.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Popup Sports -->
+            <div id="popup-sports" class="popup hidden">
+                <div class="popup-content">
+                    <span class="close-popup">&times;</span>
+                    <h2>Choisissez un Sport</h2>
+                    <p>Sélectionnez un sport pour commencer à enregistrer vos statistiques !</p>
+                    <div class="categories-container">
+                        <!-- Tennis -->
+                        <div class="category-card tennis" data-sport="tennis">
+                            <div class="emoji-wrapper tennis">
+                                <img src="https://emojigraph.org/media/apple/tennis_1f3be.png" alt="Tennis" class="emoji-svg">
+                            </div>
+                            <h3>Tennis</h3>
+                        </div>
+
+                        <!-- Football -->
+                        <div class="category-card football" data-sport="football">
+                            <div class="emoji-wrapper football">
+                                <img src="https://emojigraph.org/media/apple/soccer-ball_26bd.png" alt="Football" class="emoji-svg">
+                            </div>
+                            <h3>Football</h3>
+                        </div>
+
+                        <!-- Basketball -->
+                        <div class="category-card basketball" data-sport="basketball">
+                            <div class="emoji-wrapper basketball">
+                                <img src="https://emojigraph.org/media/apple/basketball_1f3c0.png" alt="Basketball" class="emoji-svg">
+                            </div>
+                            <h3>Basketball</h3>
+                        </div>
+
+                        <!-- RPM -->
+                        <div class="category-card rpm" data-sport="rpm">
+                            <div class="emoji-wrapper rpm">
+                                <img src="https://emojigraph.org/media/apple/person-biking_1f6b4.png" alt="RPM" class="emoji-svg">
+                            </div>
+                            <h3>RPM</h3>
+                        </div>
+
+                        <!-- Musculation -->
+                        <div class="category-card musc" data-sport="musculation">
+                            <div class="emoji-wrapper musc">
+                                <img src="https://emojigraph.org/media/apple/flexed-biceps_1f4aa.png" alt="Musculation" class="emoji-svg">
+                            </div>
+                            <h3>Musculation</h3>
+                        </div>
+
+                        <!-- Boxe -->
+                        <div class="category-card boxing" data-sport="boxe">
+                            <div class="emoji-wrapper boxing">
+                                <img src="https://em-content.zobj.net/source/apple/118/boxing-glove_1f94a.png" alt="Boxe" class="emoji-svg">
+                            </div>
+                            <h3>Boxe</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popup Statistiques -->
+            <div id="popup-stats" class="popup hidden">
+                <div class="popup-content">
+                    <span class="close-popup">&times;</span>
+                    <h2 id="stat-sport-title"></h2>
+                    <p id="stat-question">Entrez votre première statistique :</p>
+                    <input type="number" id="stat-input" placeholder="Entrez une valeur" min="0">
+                    <p id="error-message" class="error-message"></p>
+                    <div class="buttons-container">
+                        <button id="stat-submit-btn">Soumettre</button>
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- Popup Félicitations -->
+            <div id="popup-congrats" class="popup hidden no-close">
+                <div class="popup-content">
+                    <span class="close-popup">&times;</span>
+                    <img src="https://emojigraph.org/media/apple/check-mark-button_2705.png" alt="Succès" class="emoji-success">
+                    <h2 id="congrats-title">Félicitations !</h2>
+                    <p class="congrats-message">Vous avez enregistré toutes vos statistiques avec succès.<br> Continuez comme ça !</p>
+                    <button id="close-congrats-btn">Fermer</button>
+                </div>
+            </div>
+
+            <div id="popup-confirmation" class="popup hidden no-close">
+                <div class="popup-content">
+                    <span class="close-popup">&times;</span>
+                    <h2 id="confirmation-title">Êtes-vous sûr de vouloir quitter ?</h2>
+                    <p id="confirmation-message">
+                        Vos modifications pourraient être perdues.
+                    </p>
+                    <div class="buttons-container">
+                        <button id="confirm-yes-btn">Oui</button>
+                        <button id="confirm-no-btn">Non</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const sportsStats = {
+            tennis: ["Temps total joué (en minutes)", "Nombre de sets gagnés", "Précision des coups (en %)"],
+            football: ["Temps total joué (en minutes)", "Buts marqués ", "Passes réussies (en %)"],
+            basketball: ["Temps total joué (en minutes)", "Points marqués", "Taux de réussite au tir (en %)"],
+            rpm: ["Temps total (en minutes)", "Calories brûlées (en kcal)", "Distance parcourue (en kilomètres)"],
+            musculation: ["Temps total (en minutes)", "Poids maximum soulevé (en kg)", "Nombre de répétitions"],
+            boxe: ["Temps de combat (en minutes)", "Coups réussis ", "Précision des coups (en %)"]
+        };
+
+
+    let selectedSport = "";
+    let currentStatIndex = 0;
+    let statsValues = [];
+    let isCongratsPopupActive = false;
+    let lastActivePopup = null;
+
+    document.getElementById("popup-sports").classList.remove("hidden");
+
+    document.querySelectorAll(".category-card").forEach(card => {
+        card.addEventListener("click", () => {
+            selectedSport = card.dataset.sport;
+            currentStatIndex = 0;
+            statsValues = new Array(sportsStats[selectedSport].length).fill("");
+            document.getElementById("popup-sports").classList.add("hidden");
+            document.getElementById("popup-stats").classList.remove("hidden");
+            updateStatPopup();
+        });
+    });
+
+    const submitButton = document.getElementById("stat-submit-btn");
+    const statInput = document.getElementById("stat-input");
+
+    statInput.addEventListener("input", () => {
+        if (statInput.value.length > 4) {
+            statInput.value = statInput.value.slice(0, 4);
+        }
+        statInput.value = statInput.value.replace(/[^0-9]/g, "");
+    });
+
+    const prevButton = document.createElement("button");
+    prevButton.id = "stat-prev-btn";
+    prevButton.textContent = "Précédent";
+    const buttonsContainer = document.querySelector('.buttons-container');
+    buttonsContainer.insertBefore(prevButton, submitButton);
+
+    prevButton.addEventListener("click", handlePrev);
+    submitButton.addEventListener("click", handleNext);
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            if (isCongratsPopupActive) {
+                closeCongratsPopup();
+            } else if (!document.getElementById("popup-stats").classList.contains("hidden")) {
+                handleNext();
+            }
+        }
+    });
+
+    document.querySelectorAll(".close-popup").forEach(closeBtn => {
+        closeBtn.addEventListener("click", () => {
+            const currentPopup = closeBtn.closest(".popup");
+            if (currentPopup) {
+                currentPopup.classList.add("hidden");
+                document.getElementById("popup-confirmation").classList.remove("hidden");
+                lastActivePopup = currentPopup;
+            }
+        });
+    });
+
+    const confirmYesBtn = document.getElementById("confirm-yes-btn");
+    const confirmNoBtn = document.getElementById("confirm-no-btn");
+
+    confirmYesBtn.addEventListener("click", () => {
+        document.getElementById("popup-confirmation").classList.add("hidden");
+    });
+
+    confirmNoBtn.addEventListener("click", () => {
+        document.getElementById("popup-confirmation").classList.add("hidden");
+        if (lastActivePopup) {
+            lastActivePopup.classList.remove("hidden");
+            lastActivePopup = null;
+        }
+    });
+
+    document.getElementById("close-congrats-btn").addEventListener("click", () => {
+        closeCongratsPopup();
+    });
+
+    function closeCongratsPopup() {
+        document.getElementById("popup-congrats").classList.add("hidden");
+        isCongratsPopupActive = false;
+    }
+
+    function handlePrev() {
+        clearError();
+        if (currentStatIndex > 0) {
+            currentStatIndex--;
+            updateStatPopup();
+        } else {
+            document.getElementById("popup-stats").classList.add("hidden");
+            document.getElementById("popup-sports").classList.remove("hidden");
+        }
+    }
+
+    function handleNext() {
+        const value = statInput.value;
+        clearError();
+        if (value === "") {
+            showError("Oups ! Tu dois entrer une valeur avant de continuer. 😅");
+            return;
+        } else if (value < 0) {
+            showError("Hé, on veut des stats positives ici, pas des valeurs de déprime ! 😜");
+            return;
+        }
+        statsValues[currentStatIndex] = value;
+
+        if (currentStatIndex < sportsStats[selectedSport].length - 1) {
+            currentStatIndex++;
+            updateStatPopup();
+        } else {
+            document.getElementById("popup-stats").classList.add("hidden");
+            document.getElementById("popup-congrats").classList.remove("hidden");
+            isCongratsPopupActive = true;
+        }
+    }
+
+    function updateStatPopup() {
+        document.getElementById("stat-sport-title").textContent = `Statistiques - ${selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1)}`;
+        document.getElementById("stat-question").textContent = sportsStats[selectedSport][currentStatIndex];
+        statInput.value = statsValues[currentStatIndex] || "";
+        submitButton.textContent = currentStatIndex < sportsStats[selectedSport].length - 1 ? "Suivant" : "Soumettre";
+        prevButton.style.display = "inline-block";
+    }
+
+    function showError(message) {
+    const errorDiv = document.getElementById("error-message"); // Sélectionne le conteneur d'erreur
+    errorDiv.textContent = message; // Ajoute le texte du message
+    errorDiv.style.color = "red"; // Définit la couleur rouge
+
+    // Ajoute une animation de secousse sur l'input
+    statInput.classList.add("input-error");
+    errorDiv.classList.add("error-shake"); // Ajoute une animation pour le message
+
+    setTimeout(() => {
+        statInput.classList.remove("input-error"); // Supprime l'animation de l'input
+        errorDiv.classList.remove("error-shake"); // Supprime l'animation du message
+    }, 500);
+}
+
+
+function clearError() {
+    const errorDiv = document.getElementById("error-message");
+    errorDiv.textContent = ""; // Efface le texte de l'erreur
+}
+
+
+    </script>
+</body>
+</html>
