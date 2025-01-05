@@ -1,3 +1,4 @@
+/* Réglages généraux */
 body, html {
     margin: 0;
     padding: 0;
@@ -8,202 +9,257 @@ body, html {
     overflow: hidden;
 }
 
+/* Structure principale */
 .dashboard {
     display: grid;
-    grid-template-columns: 250px 1fr 1fr; /* Sidebar + Contenu principal */
-    grid-template-rows: 1fr 1fr; /* Deux lignes : Carrés + Tableau/Progression */
-    gap: 20px; /* Réduit l'espace global entre les éléments */
-    height: 100vh;
-    padding-left: 20px;
-    box-sizing: border-box;
+    grid-template-columns: 180px 1fr; /* Sidebar + contenu principal */
+    grid-template-rows: auto 1fr; /* Sidebar + contenu */
+    height: 100vh; /* Pleine hauteur */
 }
 
-/* Section principale */
+/* Contenu principal */
 .main-content {
-    grid-column: 2 / 4; /* Décale tout après la sidebar */
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, auto);
-    gap: 30px;
+    grid-column: 2 / 3;
     padding: 20px;
+    margin-top: 45px; /* Décale sous le header */
+    margin-left: 50px; /* Décale à cause de la sidebar */
+    overflow: hidden;
 }
 
-/* Carrés Statistiques */
-.report-section {
+/* Section des cartes */
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+/* Grille des cartes */
+.card-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Deux carrés par ligne */
-    grid-gap: 20px;
-    grid-column: 1 / 2; /* Colonne de gauche */
-    grid-row: 1 / 2; /* Ligne 1 */
-    margin-top: 50px;
+    grid-template-columns: repeat(2, 1fr); /* 2 colonnes */
+    grid-template-rows: repeat(2, 1fr); /* 2 lignes */
+    gap: 20px;
+    flex: 3;
 }
 
-.report-card {
-    background-color: rgba(0, 0, 0, 0.7);
+/* Cartes des sports et stats */
+.card-grid .report-card {
+    background-color: rgba(0, 0, 0, 0.7); /* Couleur de fond */
     border-radius: 15px;
-    padding: 10px;
-    text-align: center;
+    padding: 20px;
+    width: 260px; /* Largeur alignée avec la capture */
+    height: 100px; /* Hauteur réduite */
+    text-align: left;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     position: relative;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.report-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 255, 0, 0.5);
+.card-grid .report-card:hover {
+    transform: scale(1.05); /* Animation au survol */
 }
 
-.performance-card {
-    background-color: #C1FF72;
-    color: black;
-}
-
-.report-title {
-    font-size: 16px;
+/* Titre des cartes */
+.card-grid .report-title {
+    position: absolute;
+    top: 10px; /* Alignement du titre en haut */
+    left: 15px;
+    font-size: 16px; /* Taille exacte du premier carré */
     font-weight: bold;
-    color: #C1FF72;
+    color: #C1FF72; /* Couleur verte */
 }
 
-.report-value {
-    font-size: 24px;
+/* Valeur principale */
+.card-grid .report-value {
+    font-size: 30px; /* Aligné avec le premier carré */
     font-weight: bold;
-    margin-top: 10px;
+    margin-top: 25px; /* Espacement ajusté pour correspondre */
+    color: white;
 }
 
-.report-subtitle {
-    font-size: 14px;
+/* Sous-titre */
+.card-grid .report-subtitle {
+    font-size: 13px; /* Taille exacte du sous-titre */
     color: rgba(255, 255, 255, 0.7);
+    margin-top: 5px;
 }
 
-/* Graphe Araignée */
-.right-section {
-    grid-column: 3 / 4; /* Dernière colonne */
-    grid-row: 1 / 2; /* Ligne 1 */
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; /* Monte le graphe plus haut */
-    margin-right: 10px; /* Réduit l'espace avec la progression */
+/* Styles spécifiques aux cartes */
+.card-grid .performance-card {
+    background-color: #C1FF72;
+    color: black; /* Texte noir pour contraster avec le fond vert */
+    box-shadow: 0 0 20px rgba(103, 255, 103, 0.5); /* Effet lumineux */
 }
 
-.right-section canvas {
-    width: 250px; /* Taille réduite */
-    height: 250px;
+.card-grid .calories-card,
+.card-grid .game-time-card {
+    background: linear-gradient(145deg, rgba(47, 47, 47, 0.9), rgba(9, 9, 9, 0.8));
+    color: white;
 }
 
-/* Tableau des Heures */
-.chart-container {
-    grid-column: 1 / 2; /* Colonne 1 */
-    grid-row: 2 / 3; /* Ligne 2 */
+/* Carte spécifique au choix du sport */
+.performance-card {
+    background-color: #C1FF72; /* Couleur verte */
+    color: black; /* Police noire pour la carte */
     border-radius: 15px;
-    text-align: center;
-    padding: 20px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    background: #1a1a1a;
-    width: 100%; /* Élargit le tableau */
-    margin: 50px auto; /* Ajoute de l'espace en haut */
-}
-
-.chart-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #C1FF72;
-}
-
-canvas {
-    width: 100%;
-    height: 100px; /* Hauteur réduite pour le tableau */
-}
-
-/* Barre de Progression */
-.progression-section {
-    grid-column: 3 / 4; /* Dernière colonne */
-    grid-row: 2 / 3; /* Ligne 2 */
+    padding: 0; /* Pas de padding */
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 10px; /* Réduit l’espace entre la section progression et le graphe */
-    margin-left: 10px; /* Réduit l'espace avec le graphe araignée */
+    justify-content: center; /* Centrage horizontal */
+    align-items: center; /* Centrage vertical */
+    text-align: center;
+    box-shadow: 0 0 20px rgba(103, 255, 103, 0.5); /* Effet lumineux */
+    width: 260px; /* Largeur */
+    height: 100px; /* Hauteur réduite */
+    font-size: 24px; /* Taille de police augmentée */
+    font-weight: bold; /* Texte en gras */
+    cursor: pointer; /* Curseur de sélection */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Animation au survol */
+.performance-card:hover {
+    transform: scale(1.05); /* Agrandit légèrement au survol */
+    box-shadow: 0px 4px 12px rgba(0, 255, 0, 0.4); /* Effet lumineux augmenté */
+}
+
+/* Style spécifique au menu déroulant `select` */
+.performance-card select {
+    position: absolute;
+    width: 100%; /* Prend toute la largeur du carré */
+    height: 100%; /* Prend toute la hauteur du carré */
+    background: transparent; /* Fond transparent */
+    border: none; /* Pas de bordure */
+    color: black !important; /* Assure que le texte est noir */
+    font-size: 24px; /* Taille du texte */
+    font-weight: bold; /* Texte en gras */
+    text-align: center; /* Centre le texte */
+    text-align-last: center; /* Centre le texte sélectionné */
+    cursor: pointer; /* Curseur de clic */
+    appearance: none; /* Supprime le style natif */
+    outline: none; /* Supprime l'effet de focus natif */
+}
+
+/* Supprime tout style hérité du `select` */
+.performance-card select:focus, .performance-card select:hover {
+    background: transparent; /* Fond transparent même au survol ou focus */
+    color: black !important; /* Assure que le texte reste noir */
+}
+
+/* Ajout d'une flèche pour le menu déroulant */
+.performance-card::after {
+    content: '';
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid black;
+}
+
+/* Barre de progression */
 .task-completion-card {
-    width: 250px;
-    height: 250px;
-    background: linear-gradient(145deg, rgba(9, 9, 9, 0.8), rgba(47, 47, 47, 0.9));
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+  margin-top: -15px;
+  width: 300px;
+  height: 210px;
+  background: linear-gradient(145deg, rgba(9, 9, 9, 0.8), rgba(47, 47, 47, 0.9));
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
 .progression-title {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #C1FF72;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #C1FF72;
 }
 
 .circle-container {
-    position: relative;
-    width: 140px;
-    height: 140px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 #taskCompletionChart {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 #chart-center-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-    pointer-events: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  pointer-events: none;
 }
 
-table, th, td {
-    border: 1px solid #C1FF72;
-    font-size: 18px; /* Taille de texte plus grande */
-    padding: 15px; /* Espacement accru */
+/* Graphe en toile d'araignée */
+.radar-chart {
+    flex: 1;
+    background: none;
+    padding: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    width: 65%;
+    margin-top: 10px;
 }
 
-table {
-    width: 100%;
-    table-layout: fixed; /* S'assure que les colonnes restent uniformes */
+/* Barre des jours */
+.chart-container {
+    flex: 1.2;
+    background: none;
+    padding: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 260px;
+    width: 65%;
+    margin-top: 10px;
 }
 
-.report-section, .progression-section {
-    gap: 10px; /* Réduit l’espace entre les éléments de ces sections */
+/* Alignement des deux graphiques */
+.bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
 }
 
+/* Responsive pour petits écrans */
 @media screen and (max-width: 1024px) {
-    .main-content {
+    .dashboard {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto auto;
     }
 
-    .report-section, .right-section, .chart-container, .progression-section {
-        grid-column: 1 / 2;
+    .main-content {
+        overflow-y: auto;
     }
 
-    .right-section canvas {
-        width: 200px;
-        height: 200px;
+    .top-row {
+        flex-wrap: wrap;
     }
 
     .task-completion-card {
@@ -211,7 +267,36 @@ table {
         height: 200px;
     }
 
-    .chart-container {
-        width: 100%; /* S'adapte sur mobile */
+    .circle-container {
+        width: 130px;
+        height: 130px;
+    }
+
+    #chart-center-text {
+        font-size: 18px;
+    }
+
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .task-completion-card {
+        width: 150px;
+        height: 150px;
+    }
+
+    .circle-container {
+        width: 100px;
+        height: 100px;
+    }
+
+    #chart-center-text {
+        font-size: 16px;
+    }
+
+    .card-grid {
+        gap: 10px;
     }
 }
