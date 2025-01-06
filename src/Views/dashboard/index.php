@@ -41,55 +41,74 @@
                 </div>
             </div>
         </div>
+        <div mbsc-page class="demo-mobile-day-view">
+            <div style="">  <div id="demo-mobile-day-view"></div>
+            </div>
+        </div>
     <?php elseif ($user['status'] === 'coach' || $user['status'] === 'admin'): ?>
         <div class="coach-panel">
-            <h2> 📅 Gestion événements</h2>
-            <p>Vous pouvez créer et gérer des événements pour les membres.</p>
-            <a href="/dashboard/events" class="btn">Gérer les événements</a>
-        </div>
-    <?php endif; ?>
+        <h2>
+            <img src="https://emojigraph.org/media/apple/raising-hands_1f64c.png" alt="Gestion événements" class="emoji-image">
+            Gestion événements
+        </h2>
+        <p>Vous pouvez créer et gérer des événements pour les membres.</p>
+        <a href="/dashboard/events" class="btn">Gérer les événements</a>
+    </div>
+<?php endif; ?>
 
-    <?php if ($user['status'] === 'admin'): ?>
-        <div class="admin-panel">
-            <h2> 👥 Gestion utilisateurs</h2>
-            <p>Vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
-            <a href="/dashboard/admin/users" class="btn btn-danger">Gérer les utilisateurs</a>
-        </div>
-        <div class="card">
-            <h3 class="title rapport-activite">📊 Rapport d'activité</h3>
-            <ul>
-                <li>Nombre total d'utilisateurs inscrits : <b><?= $totalUsers ?? 0 ?></b></li>
-                <li>Nombre d'inscriptions cette semaine : <b><?= 2//array_sum(array_column($recentRegistrations, 'registrations')) ?></b></li>
-                <li>Nombre d'abonnements actifs : <b><?= $activeSubscriptions ?? 0 ?></b></li>
-                <li>Taux d'occupation global des terrains (moyenne sur la dernière semaine) : <b><?= number_format($globalOccupancyRate, 2) ?? 0 ?>%</b></li>
-                <li>Âge moyen des membres : <b><?= number_format($averageMemberAge, 1) ?? 0 ?> ans</b></li>
-                <li>Taux de rétention des membres (6 derniers mois) : <b><?= number_format($retentionRate, 2) ?? 0 ?>%</b></li>
-            </ul>
-        </div>
+<?php if ($user['status'] === 'admin'): ?>
+    <div class="admin-panel">
+        <h2>
+            <img src="https://emojigraph.org/media/apple/busts-in-silhouette_1f465.png" alt="Gestion utilisateurs" class="emoji-image">
+            Gestion utilisateurs
+        </h2>
+        <p>Vous pouvez gérer tous les utilisateurs et accéder aux paramètres globaux du système.</p>
+        <a href="/dashboard/admin/users" class="btn btn-danger">Gérer les utilisateurs</a>
+    </div>
+    <div class="card">
+        <h3 class="title rapport-activite">
+            <img src="https://emojigraph.org/media/apple/bar-chart_1f4ca.png" alt="Rapport d'activité" class="emoji-image">
+            Rapport d'activité
+        </h3>
+        <ul>
+            <li>Nombre total d'utilisateurs inscrits : <b><?= $totalUsers ?? 0 ?></b></li>
+            <li>Nombre d'inscriptions cette semaine : <b><?= array_sum(array_column($recentRegistrations, 'registrations')) ?></b></li>
+            <li>Nombre d'abonnements actifs : <b><?= $activeSubscriptions ?? 0 ?></b></li>
+            <li>Taux d'occupation global des terrains (moyenne sur la dernière semaine) : <b><?= number_format($globalOccupancyRate, 2) ?? 0 ?>%</b></li>
+            <li>Âge moyen des membres : <b><?= number_format($averageMemberAge, 1) ?? 0 ?> ans</b></li>
+            <li>Taux de rétention des membres (6 derniers mois) : <b><?= number_format($retentionRate, 2) ?? 0 ?>%</b></li>
+        </ul>
+    </div>
 
-        <div class="card">
-            <h3 class="title prochaines-reservations">🏋️ Top 5 des Activités (7 derniers jours)</h3>
-            <ul>
-                <?php foreach ($topActivities as $activity): ?>
-                    <li><?= htmlspecialchars($activity['activity_type']) ?> : <b><?= $activity['total_reservations'] ?> réservations</b></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-        <div class="card-row">
-            <div class="small-card">
-                <div class="card-title"><span class="emoji">👥</span> Répartition des membres par statut</div>
-                <canvas id="memberStatusChart"></canvas>
+    <div class="card">
+        <h3 class="title prochaines-reservations">
+            <img src="https://emojigraph.org/media/apple/person-lifting-weights_1f3cb-fe0f.png" alt="Top 5 des Activités" class="emoji-image">
+            Top 5 des Activités (7 derniers jours)
+        </h3>
+        <ul>
+            <?php foreach ($topActivities as $activity): ?>
+                <li><?= htmlspecialchars($activity['activity_type']) ?> : <b><?= $activity['total_reservations'] ?> réservations</b></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+
+    <div class="card-row">
+        <div class="small-card">
+            <div class="card-title">
+                <img src="https://emojigraph.org/media/apple/busts-in-silhouette_1f465.png" alt="Répartition des membres par statut" class="emoji-image">
+                Répartition des membres par statut
             </div>
-            <div class="small-card">
-                <div class="card-title"><span class="emoji">📅</span> Réservations par jour (7 derniers jours)</div>
-                <canvas id="reservationsByDayChart"></canvas>
+            <canvas id="memberStatusChart"></canvas>
+        </div>
+        <div class="small-card">
+            <div class="card-title">
+                <img src="https://emojigraph.org/media/google/calendar_1f4c5.png" alt="Réservations par jour" class="emoji-image">
+                Réservations par jour (7 derniers jours)
             </div>
+            <canvas id="reservationsByDayChart"></canvas>
         </div>
-        <div class="card">
-            <h3 class="title personal-training">🎯 Entraînement personnalisé</h3>
-            <p>Recevez un plan d'entraînement adapté à votre profil.</p>
-            <a class="btn" href="/dashboard/training/start">Commencer</a>
-        </div>
+    </div>
+
     <?php endif; ?>
 </div>
 

@@ -3,6 +3,7 @@
 namespace Controllers;
 
 use Core\Auth;
+use Models\Stats;
 use Core\View;
 use Core\APIResponse;
 use Models\User;
@@ -21,42 +22,93 @@ class DashboardController
     public function contentLoader($category, $wildcard = '')
     {
 
-        $wildcard = ltrim($wildcard, '/');
-    
-        $segments = !empty($wildcard) ? explode('/', $wildcard) : [];
-
         $userId = $_SESSION['user_id'];
         $user = User::getUserById($userId);
 
+        $viewData = $this->getCommonViewData($user);
+
+        // Handle specific category and wildcard logic
         try {
-            if ($category === 'admin' && $segments[0] === 'users') {
-                $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
-                $users = !empty($searchTerm) ? User::searchUsers($searchTerm) : User::getAllUsers();
-                echo View::render('dashboard/admin/users/index', ['users' => $users, 'searchTerm' => $searchTerm, 'user' => $user, 'dataView' => 'admin/users']);
-            } else if ($category === "events") {
-                error_log(print_r("qsq",true));
-                //echo View::render('dashboard/events/index', ['member' => $user]);  
-                echo View::render('dashboard/events/index', ['user' => $user, 'dataView' => 'events']);
-            } else if ($category === "dashboard") {
-                
-                if ($user['status'] !== 'admin') {
-                    
-                }
-                echo View::render('dashboard/index', ['user' => $user]);
-            } else {
-                // Construct the view path using both category and segments
-                $viewPath = 'dashboard/' . $category . '/' . implode('/', $segments) . '/index';
-                try {
-                    echo View::render($viewPath, ['user' => $user]);
-                } catch (\Exception $e) {
-                    // Handle cases where the view file doesn't exist
-                    echo "<p>Content not found: " . htmlspecialchars($e->getMessage()) . "</p>";
-                }
-            } 
+            $viewData = $this->handleCategoryLogic($category, $wildcard, $viewData);
+            // Construct the view path
+            $viewPath = $this->getViewPath($category, $wildcard);
+
+            // Render the view
+            echo View::render($viewPath, $viewData);
         } catch (\Exception $e) {
-            //error_log(print_r($e,true));
-            echo "<p>Content not found.</p>";
+            echo "<p>Content not found: " . htmlspecialchars($e->getMessage()) . "</p>";
         }
+    }
+
+    protected function handleCategoryLogic($category, $wildcard, $viewData)
+    {
+        $segments = !empty($wildcard) ? explode('/', ltrim($wildcard, '/')) : [];
+
+        if ($category === 'admin' && $segments[0] === 'users') {
+            $searchTerm = $_GET['search'] ?? '';
+            $users = !empty($searchTerm) ? User::searchUsers($searchTerm) : User::getAllUsers();
+            $viewData = array_merge($viewData, [
+                'users' => $users,
+                'searchTerm' => $searchTerm,
+                'dataView' => 'admin/users'
+            ]);
+        } elseif ($category === "events") {
+            $viewData = array_merge($viewData, ['dataView' => 'events']);
+        }
+
+        return $viewData;
+    }
+
+    protected function getViewPath($category, $wildcard)
+    {
+        $segments = !empty($wildcard) ? explode('/', ltrim($wildcard, '/')) : [];
+
+        $viewPath = 'dashboard';
+
+        if (!empty($segments)) {
+            $viewPath .= '/' . $category . '/' . implode('/', $segments) . '/index';
+        } else if ($category === 'dashboard') {
+            $viewPath .= '/index'; // Add /index for the main dashboard
+        } else {
+            $viewPath .= '/' . $category . '/index';
+        }
+        return $viewPath;
+    }
+
+    protected function getCommonViewData($user)
+    {
+        $userId = $user['member_id'];
+        $hasActiveSubscription = Subscription::hasActiveSubscription($userId);
+        $subscriptionInfo = $hasActiveSubscription ? Subscription::getStripeSubscriptionId($userId) : null;
+
+        $viewData = [
+            'user' => $user,
+            'hasActiveSubscription' => $subscriptionInfo["status"] ?? false,
+            'subscription' => [
+                'plan_name' =>  $subscriptionInfo["subscription_type"] ?? "Aucun",
+                'start_date' => $subscriptionInfo["start_date"] ?? "Aucun",
+                'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
+                'amount' => $subscriptionInfo["amount"] ?? 0,
+                'currency' => $subscriptionInfo["currency"] ?? '€',
+                'status' => $subscriptionInfo["status"] ?? "Aucun"
+            ]
+        ];
+
+        if ($user['status'] === 'admin') {
+            $viewData = array_merge($viewData, [
+                'totalUsers' => Stats::getTotalUsers(),
+                'recentRegistrations' => Stats::getRecentRegistrations(),
+                'activeSubscriptions' => Stats::getActiveSubscriptionsCount(),
+                'globalOccupancyRate' => Stats::getGlobalOccupancyRate(),
+                'topActivities' => Stats::getTop5Activities(),
+                'memberStatusDistribution' => Stats::getMemberStatusDistribution(),
+                'reservationsByDay' => Stats::getReservationsByDay(),
+                'averageMemberAge' => Stats::getAverageMemberAge(),
+                'retentionRate' => Stats::getMemberRetentionRate()
+            ]);
+        }
+
+        return $viewData;
     }
 
     public function showProfile()
