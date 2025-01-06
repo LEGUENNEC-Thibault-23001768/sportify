@@ -5,6 +5,9 @@ namespace Controllers;
 use Core\APIResponse;
 use Core\Config;
 use Core\View;
+use DateMalformedStringException;
+use DateTime;
+use Models\Booking;
 use Models\Event;
 use Models\EventInvitation;
 use Models\EventRegistration;
@@ -66,7 +69,7 @@ class EventController
 
 
     /**
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     public function storeApi()
     {
@@ -84,8 +87,8 @@ class EventController
             return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
         }
 
-        $start = new \DateTime($eventData['event_date'] . 'T' . $eventData['start_time']);
-        $end = new \DateTime($eventData['event_date'] . 'T' . $eventData['end_time']);
+        $start = new DateTime($eventData['event_date'] . 'T' . $eventData['start_time']);
+        $end = new DateTime($eventData['event_date'] . 'T' . $eventData['end_time']);
         $duration = $start->diff($end);
 
         if ($duration->h > 2) {
@@ -97,6 +100,27 @@ class EventController
         }
 
         $eventData['created_by'] = $currentUserId;
+
+        $reservations = Booking::getAllReservations();
+        $myResa = null;
+        foreach ($reservations as $reservation) {
+            if ($reservation['court_name'] == $eventData['location'] && $reservation['reservation_date'] == $eventData['event_date']) {
+                $myResa = $reservation;
+                break;
+            }
+        }
+        if (!isset($myResa)) {
+            return $response->setStatusCode(500)->setData(['error' => 'Location was not found'])->send();
+        }
+
+        if ($myResa['event_id'] != null) {
+            return $response->setStatusCode(500)->setData(['error' => 'Location is already booked'])->send();
+        }
+
+        if ($myResa['start_time'] > $eventData['start_time'] || $myResa['end_time'] < $eventData['end_time']) {
+            return $response->setStatusCode(500)->setData(['error' => 'Event is starting too early or ending too late'])->send();
+        }
+
         $eventId = Event::createEvent($eventData);
 
         if (!empty($eventData['invitations'])) {
@@ -118,6 +142,8 @@ class EventController
         if (!$eventId) {
             return $response->setStatusCode(500)->setData(['error' => 'Failed to create event'])->send();
         }
+
+        Booking::updateReservation($myResa['reservation_id'], $myResa['reservation_date'], $myResa['start_time'], $myResa['end_time'], $eventId);
 
         $mobiscrollEvent = [
             'id' => $eventId,
@@ -223,19 +249,34 @@ class EventController
         $event = Event::findEvents($eventId);
 
         if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
-            $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
-            return;
+            return $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
         }
 
         if (!$event) {
-            $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
-            return;
+            return $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+        }
+
+        $reservations = Booking::getAllReservations();
+        $myResa = null;
+        foreach ($reservations as $reservation) {
+            if ($reservation['court_name'] == $event['location'] && $reservation['reservation_date'] == $event['event_date']) {
+                $myResa = $reservation;
+                break;
+            }
+        }
+
+        if (isset($myResa)) {
+            if ($myResa['event_id'] == null) return null;
+
+            if ($myResa['event_id'] == $eventId) {
+                Booking::updateReservation($myResa['reservation_id'], $myResa['reservation_date'], $myResa['start_time'], $myResa['end_time'], null);
+            }
         }
 
         if (Event::deleteEvent($eventId)) {
-            $response->setData(['message' => 'Event deleted successfully'])->send();
+            return $response->setData(['message' => 'Event deleted successfully'])->send();
         } else {
-            $response->setStatusCode(500)->setData(['error' => 'Failed to delete event'])->send();
+            return $response->setStatusCode(500)->setData(['error' => 'Failed to delete event'])->send();
         }
     }
 
@@ -275,7 +316,7 @@ class EventController
         ];
 
         $response = new APIResponse();
-        $response->setStatusCode(200)->setData($eventData)->send();
+        return $response->setStatusCode(200)->setData($eventData)->send();
     }
 
     public function join($eventId)

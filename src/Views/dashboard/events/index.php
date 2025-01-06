@@ -77,7 +77,7 @@
                         <?php
                         $reservations = Booking::getAllReservations();
                         foreach ($reservations as $reservation) {
-                            if ($reservation['event_id'] == null) {
+                            if ($reservation['event_id'] == null && $reservation['reservation_date'] >= date('Y-m-d')) {
                                 if ($reservation['member_id'] === $_SESSION['user_id'] || $member['status'] === 'admin') {
                                     ?>
                                     <option value='<?= $reservation['court_name'] ?>'>

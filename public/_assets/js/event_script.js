@@ -159,9 +159,6 @@ $(document).ready(async function () {
     function showEventDetails(event) {
         const isAuthorizedToDelete = memberStatus === 'coach' || memberStatus === 'admin';
         const isEventCreator = event.created_by === currentUserId;
-        console.log(currentUserId);
-        console.log(event.created_by);
-        console.log(isEventCreator);
 
         if (event.participants === undefined) event.participants = [];
 
@@ -282,7 +279,6 @@ $(document).ready(async function () {
         }
         var end = new Date(eventDate + 'T' + endTime);
         var durationInHours = (end - start) / 1000 / 60 / 60; // Duration in hours
-        console.log(durationInHours);
 
         if (durationInHours > 2) {
             showToast('Error: Event duration cannot exceed 2 hours.', 'error');
@@ -311,8 +307,7 @@ $(document).ready(async function () {
             },
             success: function (response) {
                 if (response && response.id) {
-                    console.log("Event created successfully :");
-                    console.log(response)
+                    showToast("Event created successfully", 'success');
                     calendar.addEvent({
                         id: response.id,
                         title: response.title,
@@ -325,13 +320,13 @@ $(document).ready(async function () {
                     });
 
                     closeCreateEventPopup();
-                    location.reload();
+                    window.location.reload();
                 } else {
                     console.error("Error: Invalid response format", response);
                 }
             },
             error: function (error) {
-                console.error("Error creating event:", error);
+                console.error("Error creating event:", error.responseJSON.error);
                 showToast("Error creating event: " + error.responseJSON.error, 'error');
             }
         });
@@ -358,10 +353,10 @@ $(document).ready(async function () {
                 console.log("Event deleted successfully");
                 calendar.removeEvent(eventId);
                 closeEventDetailsPopup();
-                location.reload();
+                window.location.reload();
             },
             error: function (error) {
-                console.error("Error deleting event:", error);
+                console.error("Error deleting event:", error.responseJSON.error);
                 showToast("Error deleting event: " + error.responseJSON.error, 'error');
             }
         });

@@ -3,11 +3,12 @@
 namespace Models;
 
 use Core\Database;
-use Models\User;
 use PDO;
 
-class Event {
-    public static function getAllEvents() {
+class Event
+{
+    public static function getAllEvents()
+    {
         $sql = "
             SELECT 
                 e.event_id, 
@@ -30,18 +31,20 @@ class Event {
         return Database::query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function findEvents($eventId) {
+    public static function findEvents($eventId)
+    {
         $sql = "SELECT * FROM EVENTS WHERE event_id = :eventId";
         $params = [':eventId' => $eventId];
         return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function createEvent($data) {
+    public static function createEvent($data)
+    {
         $sql = "INSERT INTO EVENTS (event_name, event_date, start_time, end_time, description, max_participants, location, created_by) 
                 VALUES (:event_name, :event_date, :start_time, :end_time, :description, :max_participants, :location, :created_by)";
-        
+
         $currentUserId = $_SESSION['user_id'];
-        
+
         $params = [
             ':event_name' => $data['event_name'],
             ':event_date' => $data['event_date'],
@@ -61,7 +64,8 @@ class Event {
         return false;
     }
 
-    public static function deleteEvent($eventId) {
+    public static function deleteEvent($eventId)
+    {
         $sql = "DELETE FROM EVENTS WHERE event_id = :eventId";
         $params = [':eventId' => $eventId];
         return Database::query($sql, $params)->rowCount() > 0;

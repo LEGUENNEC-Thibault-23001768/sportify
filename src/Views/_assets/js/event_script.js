@@ -272,26 +272,26 @@ $(document).ready(function () {
         var location = $('#location').val();
         var invitations = $('#invitations').val();
 
-        // Validate the duration of the event (max 2 hours)
-        var start = new Date(eventDate + 'T' + startTime);
-        if (start < new Date()) {
-            showToast('Error: Event start time cannot be in the past.', 'error');
-            return;
-        }
-        var end = new Date(eventDate + 'T' + endTime);
-        var durationInHours = (end - start) / 1000 / 60 / 60; // Duration in hours
-        console.log(durationInHours);
-
-        if (durationInHours > 2) {
-            showToast('Error: Event duration cannot exceed 2 hours.', 'error');
-            return;
-        }
-
-        // Validate max_participants
-        if (maxParticipants < 5) {
-            showToast('Error: Maximum participants must be at least 5.', 'error');
-            return;
-        }
+        // // Validate the duration of the event (max 2 hours)
+        // var start = new Date(eventDate + 'T' + startTime);
+        // if (start < new Date()) {
+        //     showToast('Error: Event start time cannot be in the past.', 'error');
+        //     return;
+        // }
+        // var end = new Date(eventDate + 'T' + endTime);
+        // var durationInHours = (end - start) / 1000 / 60 / 60; // Duration in hours
+        // console.log(durationInHours);
+        //
+        // if (durationInHours > 2) {
+        //     showToast('Error: Event duration cannot exceed 2 hours.', 'error');
+        //     return;
+        // }
+        //
+        // // Validate max_participants
+        // if (maxParticipants < 5) {
+        //     showToast('Error: Maximum participants must be at least 5.', 'error');
+        //     return;
+        // }
 
         $.ajax({
             url: '/api/events',

@@ -171,7 +171,7 @@ class BookingController
             exit();
         }
 
-        $this->bookingModel->updateReservation($reservation_id, $reservation_date, $start_time, $end_time);
+        Booking::updateReservation($reservation_id, $reservation_date, $start_time, $end_time, null);
         $_SESSION['success'] = 'Réservation mise à jour avec succès.';
         header('Location: /dashboard/booking');
         exit();
