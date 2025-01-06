@@ -43,11 +43,12 @@ $router->post('/dashboard/booking/{reservation_id}/update', 'BookingController@u
 
 $router->get('/api/booking', 'BookingController@getBookings');
 
-$router->get('/dashboard/admin/users', 'DashboardController@manageUsers');
-$router->get('/dashboard/admin/users/delete', 'DashboardController@deleteUser');
-$router->get('/dashboard/admin/users/edit', 'DashboardController@editUserProfile');
-$router->post('/dashboard/admin/users/edit', 'DashboardController@editUserProfile');
-
+$router->get( '/dashboard/admin/users', 'DashboardController@manageUsers');
+$router->delete('/dashboard/admin/users/delete/{id}', 'DashboardController@deleteUser');
+$router->get('/api/users/{id}', 'DashboardController@getUserApi');
+$router->post('/api/users/{id}', 'DashboardController@updateUserApi');
+$router->get('/api/users/{id}/subscription', 'DashboardController@getUserSubscription');
+$router->post('/api/users/{id}/subscription', 'DashboardController@updateUserSubscription');
 
 $router->post('/teams/{team_id}/add-member', 'TeamController@addParticipant');
 $router->post('/teams/{team_id}/remove-member', 'TeamController@removeParticipant');
@@ -75,13 +76,15 @@ $router->get('/dashboard/training', 'TrainingController@dashboard');
 $router->get('/dashboard/training/start', 'TrainingController@start');
 $router->get('/dashboard/training/generate', 'TrainingController@generate');
 $router->get('/dashboard/training/edit', 'TrainingController@edit');
+$router->post('/dashboard/training/edit', 'TrainingController@edit');
+$router->get('/dashboard/load-content', 'DashboardController@loadContent');
 $router->post('/dashboard/training/update', 'TrainingController@update');
 $router->get('/dashboard/training/train', 'TrainingController@train');
 
-// New API routes for training
 $router->post('/api/training/process-step', 'TrainingController@apiProcessStep');
 $router->post('/api/training/generate', 'TrainingController@apiGenerate');
 
+$router->get('/dashboard/stats', 'StatsController@index');
 
 $url = $_SERVER['REQUEST_URI'];
 try {

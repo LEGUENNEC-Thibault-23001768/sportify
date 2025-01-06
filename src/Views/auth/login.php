@@ -11,18 +11,16 @@
 <?php
   $errorMessage = isset($_SESSION['error_message']) ? $_SESSION['error_message'] : $error ?? "";
   $successMessage = isset($message) ? $message : '';
-  ?>
+?>
   <div class="login-register-container">
     <div class="form-container">
-
-
-    <?php if ($errorMessage): ?>
+      <?php if ($errorMessage): ?>
         <p class="error-message"><?= htmlspecialchars($errorMessage) ?></p>
-    <?php endif; ?>
+      <?php endif; ?>
 
-    <?php if ($successMessage): ?>
+      <?php if ($successMessage): ?>
         <p class="success-message"><?= htmlspecialchars($successMessage) ?></p>
-    <?php endif; ?>
+      <?php endif; ?>
       <h1 id="form-title">Rejoignez <span>Sportify</span></h1>
       <form id="login-form" action="/login" method="POST">
         <div class="form-group">
@@ -85,7 +83,7 @@
     </div>
 
     <div class="image-container">
-      <img src="https://i.postimg.cc/YS5WypdJ/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.png" alt="Image de fond" class="background-img">
+      <img src="https://i.postimg.cc/yN23RqfV/pixelcut-export-1.png" alt="Image de fond" class="background-img">
     </div>
   </div>
 
