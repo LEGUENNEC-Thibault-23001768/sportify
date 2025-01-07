@@ -2,15 +2,16 @@
 
 namespace Controllers;
 
+use Core\Config;
+use Exception;
 use Google\Auth\OAuth2;
 use GuzzleHttp\Client;
-use Core\View;
-use Core\Config;
+use GuzzleHttp\Exception\GuzzleException;
 use Models\User;
 
 class GoogleAuthController
 {
-    private $oauth;
+    private OAuth2 $oauth;
 
     public function __construct()
     {
@@ -24,7 +25,10 @@ class GoogleAuthController
         ]);
     }
 
-    public function login()
+    /**
+     * @return void
+     */
+    public function login(): void
     {
         $authUrl = $this->oauth->buildFullAuthorizationUri([
             'access_type' => 'offline',
@@ -33,19 +37,21 @@ class GoogleAuthController
         ]);
 
         header('Location: ' . filter_var($authUrl, FILTER_SANITIZE_URL));
-        exit();
     }
 
-    public function callback()
-    {        
+    /**
+     * @return void
+     */
+    public function callback(): void
+    {
         if (!isset($_GET['code'])) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         try {
             $this->oauth->setCode($_GET['code']);
-            
+
             $token = $this->oauth->fetchAuthToken();
             $_SESSION['google_access_token'] = $token['access_token'];
 
@@ -66,7 +72,7 @@ class GoogleAuthController
                     'email' => $email,
                     'first_name' => $firstName,
                     'last_name' => $lastName,
-                    'password' => null, 
+                    'password' => null,
                 ];
 
                 User::create($userData);
@@ -79,19 +85,27 @@ class GoogleAuthController
                 'last_name' => $lastName,
                 'email' => $email
             ];
-            
-            $_SESSION['user_id'] = isset($user['member_id']) ? $user['member_id'] : null;
+
+            $_SESSION['user_id'] = $user['member_id'] ?? null;
             $_SESSION['user_email'] = $email;
 
             header('Location: /dashboard');
-            exit();
-        } catch (\Exception $e) {
+            return;
+        } catch (Exception $e) {
             header('Location: /error?message=' . urlencode($e->getMessage()));
-            exit();
+            return;
+        } catch (GuzzleException $e) {
+            header('Location: /error?message=' . urlencode($e->getMessage()));
+            return;
         }
     }
 
-    private function getUserInfo($accessToken)
+    /**
+     * @param $accessToken
+     * @return mixed
+     * @throws GuzzleException
+     */
+    private function getUserInfo($accessToken): mixed
     {
         $client = new Client();
         $response = $client->get('https://www.googleapis.com/oauth2/v2/userinfo', [

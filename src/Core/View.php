@@ -2,21 +2,45 @@
 
 namespace Core;
 
+use Exception;
+
 class View
 {
-    private static $viewPath;
+    private static string $viewPath;
 
-    public static function init()
+    /**
+     * @return void
+     */
+    public static function init(): void
     {
         self::$viewPath = Config::get("view_path", '../src/Views/');
     }
 
-    public static function render($view, $data = [])
+    /**
+     * @param $view
+     * @param $layout
+     * @param array $data
+     * @return false|string
+     * @throws Exception
+     */
+    public static function renderWithLayout($view, $layout, array $data = []): false|string
+    {
+        $content = self::render($view, $data);
+        return self::render($layout, array_merge($data, ['content' => $content]));
+    }
+
+    /**
+     * @param $view
+     * @param array $data
+     * @return false|string
+     * @throws Exception
+     */
+    public static function render($view, array $data = []): false|string
     {
         $filePath = self::$viewPath . str_replace('.', '/', $view) . '.php';
 
         if (!file_exists($filePath)) {
-            throw new \Exception("View file not found: $filePath");
+            throw new Exception("View file not found: $filePath");
         }
 
         extract($data);
@@ -25,14 +49,6 @@ class View
 
         include $filePath;
 
-        $content = ob_get_clean();
-
-        return $content;
-    }
-
-    public static function renderWithLayout($view, $layout, $data = [])
-    {
-        $content = self::render($view, $data);
-        return self::render($layout, array_merge($data, ['content' => $content]));
+        return ob_get_clean();
     }
 }

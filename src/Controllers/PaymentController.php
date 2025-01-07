@@ -2,29 +2,33 @@
 
 namespace Controllers;
 
-use Stripe\Stripe;
-use Stripe\Checkout\Session;
-use Stripe\Invoice;
-use Stripe\StripeClient;
-use Models\Subscription;
 use Core\Config;
 use Core\View;
+use Models\Subscription;
+use Stripe\Checkout\Session;
+use Stripe\Exception\ApiErrorException;
+use Stripe\Stripe;
+use Stripe\StripeClient;
 
 class PaymentController
 {
-    private $stripe;
-    
+    private StripeClient $stripe;
+
     public function __construct()
     {
         Stripe::setApiKey(Config::get("stripe_key"));
         $this->stripe = new StripeClient((Config::get("stripe_key")));
     }
 
-    public function createCheckoutSession()
+    /**
+     * @return void
+     * @throws ApiErrorException
+     */
+    public function createCheckoutSession(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit;
+            return;
         }
 
         $userEmail = $_SESSION['user_email'];
@@ -43,7 +47,7 @@ class PaymentController
         }
 
         $session = Session::create([
-            'customer' => $customerId, 
+            'customer' => $customerId,
             'payment_method_types' => ['card'],
             'line_items' => [[
                 'price' => 'price_1QBAtU01Olm6yDgOPUmJnGEf',
@@ -56,21 +60,23 @@ class PaymentController
         ]);
 
         header("Location: " . $session->url);
-        exit();
     }
 
-    public function success()
+    /**
+     * @return void
+     */
+    public function success(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit;
+            return;
         }
 
-        $sessionId = $_GET['session_id'] ?? null; 
+        $sessionId = $_GET['session_id'] ?? null;
         if (!$sessionId) {
             $_SESSION['error'] = "Erreur : Session ID manquant.";
             header('Location: /dashboard');
-            exit;
+            return;
         }
 
         try {
@@ -109,24 +115,26 @@ class PaymentController
         } catch (\Exception $e) {
             $_SESSION['error'] = "Une erreur est survenue lors de la gestion de l'abonnement : " . $e->getMessage();
         }
-        
+
         header('Location: /dashboard');
-        exit();
     }
 
-    public function listInvoices() 
+    /**
+     * @return void
+     */
+    public function listInvoices(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit;
+            return;
         }
         try {
             $activeSubscription = Subscription::getStripeSubscriptionId($_SESSION['user_id']);
-            
+
             if (!$activeSubscription) {
                 $_SESSION['error'] = "Aucun abonnement actif trouvé.";
                 echo "pas d'abonnement the fuck?";
-                exit;
+                return;
             }
 
             $stripeSubscription = $this->stripe->subscriptions->retrieve($activeSubscription['stripe_subscription_id']);
@@ -163,22 +171,25 @@ class PaymentController
             echo View::render('dashboard/invoices', ['invoices' => $formattedInvoices]);
         } catch (\Exception $e) {
             echo "erreur lors de récupération: " . $e->getMessage();
-            exit;
+            return;
         }
     }
 
-    public function cancelSubscription()
+    /**
+     * @return void
+     */
+    public function cancelSubscription(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit;
+            return;
         }
 
         try {
             $activeSubscription = Subscription::getActiveSubscription($_SESSION['user_id']);
 
             if (!$activeSubscription) {
-                exit;
+                return;
             }
 
             $stripeSubscription = $this->stripe->subscriptions->update(
@@ -194,6 +205,5 @@ class PaymentController
         }
 
         header('Location: /dashboard');
-        exit;
     }
 }

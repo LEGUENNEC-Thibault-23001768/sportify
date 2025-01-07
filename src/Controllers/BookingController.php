@@ -3,11 +3,16 @@
 namespace Controllers;
 
 use Core\View;
+use Exception;
 use Models\Booking;
 use Models\User;
 
-class BookingController {
+class BookingController
+{
 
+    private View $view;
+    private User $userModel;
+    private Booking $bookingModel;
 
     public function __construct()
     {
@@ -16,7 +21,12 @@ class BookingController {
         $this->bookingModel = new Booking();
     }
 
-    public function index() {
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function index(): void
+    {
 
         $bookingModel = new Booking();
 
@@ -25,12 +35,12 @@ class BookingController {
 
         if (!$currentUserId) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         $user = $this->userModel->getUserById($currentUserId);
 
-        $bookings = $bookingModel->getAllReservations();  
+        $bookings = $bookingModel->getAllReservations();
         $courts = $bookingModel->getAllCourts();
 
         echo $this->view->render('dashboard/booking/index', [
@@ -39,7 +49,11 @@ class BookingController {
         ]);
     }
 
-    public function store() {
+    /**
+     * @return void
+     */
+    public function store(): void
+    {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $bookingModel = new Booking();
@@ -49,124 +63,134 @@ class BookingController {
             $reservation_date = $_POST['reservation_date'];
             $start_time = $_POST['start_time'];
             $end_time = $_POST['end_time'];
-    
+
 
             if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_time) || empty($end_time)) {
                 echo "noob";
                 return;
             }
-            
+
             var_dump($_POST);
 
             $bookingModel->addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
-    
+
             header('Location: /dashboard/booking');
-            exit;
         }
     }
-    
-    
-    public function delete($reservation_id) {
+
+
+    /**
+     * @param $reservation_id
+     * @return void
+     */
+    public function delete($reservation_id): void
+    {
         session_start();
         $currentUserId = $_SESSION['user_id'];
-    
+
         if (!$currentUserId) {
             header('Location: /login');
-            exit();
+            return;
         }
-    
+
         $user = $this->userModel->getUserById($currentUserId);
         $reservation = $this->bookingModel->getReservationById($reservation_id);
-    
+
         if (!$reservation) {
             $_SESSION['error'] = 'Réservation introuvable.';
             header('Location: /dashboard/booking');
-            exit();
+            return;
         }
-    
+
         if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
             $_SESSION['error'] = 'Vous n\'avez pas les droits pour supprimer cette réservation.';
             header('Location: /dashboard/booking');
-            exit();
+            return;
         }
-    
+
         $this->bookingModel->deleteReservation($reservation_id);
         $_SESSION['success'] = 'Réservation supprimée avec succès.';
         header('Location: /dashboard/booking');
-        exit();
     }
 
-    public function edit($reservation_id) {
+    /**
+     * @param $reservation_id
+     * @return void
+     * @throws Exception
+     */
+    public function edit($reservation_id): void
+    {
         session_start();
         $currentUserId = $_SESSION['user_id'];
-    
+
         if (!$currentUserId) {
             header('Location: /login');
-            exit();
+            return;
         }
-    
+
         $reservation = $this->bookingModel->getReservationById($reservation_id);
         $user = $this->userModel->getUserById($currentUserId);
-    
+
         //var_dump($reservation);
 
         if (!$reservation) {
             $_SESSION['error'] = 'Réservation introuvable.';
             header('Location: /dashboard/booking');
-            exit();
+            return;
         }
-    
+
         if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
             $_SESSION['error'] = 'Vous n\'avez pas les droits pour modifier cette réservation.';
             header('Location: /dashboard/booking');
-            exit();
+            return;
         }
-        
-   
-        echo $this->view->render('dashboard/booking/edit', ['reservation' => $reservation,'user' => $user]);
+
+
+        echo $this->view->render('dashboard/booking/edit', ['reservation' => $reservation, 'user' => $user]);
     }
-    
-    public function update($reservation_id) {
+
+    /**
+     * @param $reservation_id
+     * @return void
+     */
+    public function update($reservation_id): void
+    {
         session_start();
         $currentUserId = $_SESSION['user_id'];
-    
+
         if (!$currentUserId) {
             header('Location: /login');
-            exit();
+            return;
         }
-    
+
         $reservation = $this->bookingModel->getReservationById($reservation_id);
-    
+
         if (!$reservation) {
             $_SESSION['error'] = 'Réservation introuvable.';
             header('Location: /dashboard/booking');
-            exit();
+            return;
         }
-    
+
         $user = $this->userModel->getUserById($currentUserId);
         if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
             $_SESSION['error'] = 'Vous n\'avez pas les droits pour modifier cette réservation.';
             header('Location: /dashboard/booking');
-            exit();
+            return;
         }
-    
+
         $reservation_date = $_POST['reservation_date'];
         $start_time = $_POST['start_time'];
         $end_time = $_POST['end_time'];
-    
+
         if (empty($reservation_date) || empty($start_time) || empty($end_time)) {
             $_SESSION['error'] = 'Tous les champs sont requis.';
             header("Location: /dashboard/booking/{$reservation_id}/edit");
-            exit();
+            return;
         }
-    
+
         $this->bookingModel->updateReservation($reservation_id, $reservation_date, $start_time, $end_time);
         $_SESSION['success'] = 'Réservation mise à jour avec succès.';
         header('Location: /dashboard/booking');
-        exit();
     }
-    
-    
-    
 
 }

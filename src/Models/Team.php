@@ -7,7 +7,12 @@ use Core\Database;
 class Team
 {
     // Create a new team
-    public static function create($event_id, $team_name)
+    /**
+     * @param int $event_id
+     * @param string $team_name
+     * @return false|string
+     */
+    public static function create(int $event_id, string $team_name): false|string
     {
         $sql = "INSERT INTO TEAM (event_id, team_name) VALUES (:event_id, :team_name)";
         $params = [
@@ -20,7 +25,12 @@ class Team
     }
 
     // Find a team by its ID
-    public static function findById($team_id)
+
+    /**
+     * @param int $team_id
+     * @return mixed
+     */
+    public static function findById(int $team_id): mixed
     {
         $sql = "SELECT * FROM TEAM WHERE team_id = :team_id";
         $params = [':team_id' => $team_id];
@@ -28,7 +38,13 @@ class Team
     }
 
     // Update the team name
-    public static function update($team_id, $team_name)
+
+    /**
+     * @param int $team_id
+     * @param string $team_name
+     * @return void
+     */
+    public static function update(int $team_id, string $team_name): void
     {
         $sql = "UPDATE TEAM SET team_name = :team_name WHERE team_id = :team_id";
         $params = [
@@ -39,7 +55,12 @@ class Team
     }
 
     // Delete a team
-    public static function delete($team_id)
+
+    /**
+     * @param int $team_id
+     * @return void
+     */
+    public static function delete(int $team_id): void
     {
         $sql = "DELETE FROM TEAM WHERE team_id = :team_id";
         $params = [':team_id' => $team_id];

@@ -3,20 +3,18 @@
 namespace Controllers;
 
 use Core\View;
-use Models\User;
+use Exception;
 use Models\Team;
 use Models\TeamParticipant;
+use Models\User;
 
 class TeamController
 {
-    public function create($event_id)
-    {
-        $members = User::getAll();
-        echo View::render('teams/create', ['event_id' => $event_id, 'members' => $members]);
-    }
-
-   
-    public function store($event_id)
+    /**
+     * @param $event_id
+     * @return void
+     */
+    public function store($event_id): void
     {
         $teamName = $_POST['team_name'];
         $selectedMembers = $_POST['members'];
@@ -27,15 +25,30 @@ class TeamController
             TeamParticipant::addParticipant($team_id, $member_id);
         }
 
-        header('Location: /events/' . $event_id); 
-        exit();
+        header('Location: /events/' . $event_id);
     }
 
-    public function edit($team_id)
+    /**
+     * @param $event_id
+     * @return void
+     * @throws Exception
+     */
+    public function create($event_id): void
+    {
+        $members = User::getAll();
+        echo View::render('teams/create', ['event_id' => $event_id, 'members' => $members]);
+    }
+
+    /**
+     * @param $team_id
+     * @return void
+     * @throws Exception
+     */
+    public function edit($team_id): void
     {
         $team = Team::findById($team_id);
         $membersInTeam = TeamParticipant::getMembersByTeam($team_id);
-        $allMembers = User::getAll(); 
+        $allMembers = User::getAll();
 
         echo View::render('teams/edit', [
             'team' => $team,
@@ -44,7 +57,11 @@ class TeamController
         ]);
     }
 
-    public function update($team_id)
+    /**
+     * @param $team_id
+     * @return void
+     */
+    public function update($team_id): void
     {
         $teamName = $_POST['team_name'];
         $selectedMembers = $_POST['members'];
@@ -59,16 +76,18 @@ class TeamController
         }
 
         header('Location: /teams/' . $team_id);
-        exit();
     }
 
-    public function delete($team_id)
+    /**
+     * @param $team_id
+     * @return void
+     */
+    public function delete($team_id): void
     {
         TeamParticipant::deleteParticipantsByTeam($team_id);
 
         Team::delete($team_id);
 
         header('Location: /teams');
-        exit();
     }
 }

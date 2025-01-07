@@ -3,12 +3,17 @@
 namespace Controllers;
 
 use Core\View;
+use Exception;
 use Models\Stats;
 use Models\User;
 
 class StatsController
 {
-    public function index()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function index(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
@@ -25,11 +30,11 @@ class StatsController
             $activeSubscriptions = Stats::getActiveSubscriptionsCount();
             $globalOccupancyRate = Stats::getGlobalOccupancyRate();
             $topActivities = Stats::getTop5Activities();
-            $memberStatusDistribution = Stats::getMemberStatusDistribution(); 
-            $reservationsByDay = Stats::getReservationsByDay(); 
-            $averageMemberAge = Stats::getAverageMemberAge(); 
-            $retentionRate = Stats::getMemberRetentionRate(); 
-            
+            $memberStatusDistribution = Stats::getMemberStatusDistribution();
+            $reservationsByDay = Stats::getReservationsByDay();
+            $averageMemberAge = Stats::getAverageMemberAge();
+            $retentionRate = Stats::getMemberRetentionRate();
+
             echo View::render('dashboard/stats/index', [
                 'user' => $user,
                 'stats' => $performances,

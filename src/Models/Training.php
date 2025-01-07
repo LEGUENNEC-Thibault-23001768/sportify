@@ -3,12 +3,17 @@
 namespace Models;
 
 use Core\Database;
-use Models\User;
 use PDO;
 
-class Training {
+class Training
+{
 
-    public static function buildPrompt($data) {
+    /**
+     * @param $data
+     * @return string
+     */
+    public static function buildPrompt($data): string
+    {
         $gender = $data['gender'] ?? 'Non spécifié';
         $level = $data['level'] ?? 'Non spécifié';
         $goals = $data['goals'] ?? 'Non spécifié';
@@ -17,8 +22,8 @@ class Training {
         $constraints = $data['constraints'] ?? 'Aucune contrainte signalée';
         $preferences = $data['preferences'] ?? 'Pas de préférences spécifiques';
         $equipment = $data['equipment'] ?? 'Aucun équipement disponible';
-    
-        $systemPrompt = "
+
+        return "
             Rôle : Vous êtes un coach sportif expert en fitness et en musculation.
             Mission : Créer un plan d'entraînement personnalisé et structuré sur 7 jours.
             Consignes de sécurité :
@@ -82,12 +87,15 @@ class Training {
     
             Créez un plan d'entraînement détaillé et motivant, en respectant strictement le format JSON spécifié.
         ";
-    
-        return $systemPrompt;
     }
-    
 
-    public static function getTrainingPlan($memberId) {
+
+    /**
+     * @param int $memberId
+     * @return mixed
+     */
+    public static function getTrainingPlan(int $memberId): mixed
+    {
         $sql = "
         SELECT tp.plan_id, da.day, da.activity_description, da.completed
         FROM TRAINING_PLAN tp
@@ -99,41 +107,39 @@ class Training {
         return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function markActivityAsCompleted($activityId) {
+    /**
+     * @param int $memberId
+     * @param $data
+     * @return void
+     */
+    public static function saveTrainingPlan(int $memberId, $data): void
+    {
         $sql = "
-            UPDATE DAILY_ACTIVITY
-            SET completed = TRUE
-            WHERE activity_id = :activityId
-        ";
-        $params = [':activityId' => $activityId];
-        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
-    }
-
-   public static function saveTrainingPlan($memberId, $data) {
-    $sql = "
         INSERT INTO TRAINING_PLAN 
         (member_id, gender, level, goals, weight, height, constraints, preferences, equipment, plan_content) 
         VALUES (:memberId, :gender, :level, :goals, :weight, :height, :constraints, :preferences, :equipment, :planContent)
     ";
-    $params = [
-        ':memberId' => $memberId,
-        ':gender' => $data['gender'],
-        ':level' => $data['level'],
-        ':goals' => $data['goals'],
-        ':weight' => $data['weight'],
-        ':height' => $data['height'],
-        ':constraints' => $data['constraints'],
-        ':preferences' => $data['preferences'],
-        ':equipment' => $data['equipment'],
-        ':planContent' => $data['planContent'],
-    ];
-    Database::query($sql, $params);
-}
+        $params = [
+            ':memberId' => $memberId,
+            ':gender' => $data['gender'],
+            ':level' => $data['level'],
+            ':goals' => $data['goals'],
+            ':weight' => $data['weight'],
+            ':height' => $data['height'],
+            ':constraints' => $data['constraints'],
+            ':preferences' => $data['preferences'],
+            ':equipment' => $data['equipment'],
+            ':planContent' => $data['planContent'],
+        ];
+        Database::query($sql, $params);
+    }
 
-    
-    
-    
-    public static function getExistingTrainingPlan($memberId) {
+    /**
+     * @param int $memberId
+     * @return mixed|null
+     */
+    public static function getExistingTrainingPlan(int $memberId): mixed
+    {
         $sql = "
             SELECT plan_content 
             FROM TRAINING_PLAN
@@ -143,13 +149,17 @@ class Training {
         ";
         $params = [':memberId' => $memberId];
         $result = Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
-    
+
         return $result ?: null;
     }
-    
-    
-    
-    public static function updateTrainingPlan($memberId, $data) {
+
+    /**
+     * @param int $memberId
+     * @param $data
+     * @return void
+     */
+    public static function updateTrainingPlan(int $memberId, $data): void
+    {
         $sql = "
             UPDATE TRAINING_PLAN
             SET 
@@ -176,7 +186,22 @@ class Training {
             ':planContent' => $data['planContent'],
             ':memberId' => $memberId,
         ];
-    
+
         Database::query($sql, $params);
+    }
+
+    /**
+     * @param int $activityId
+     * @return mixed
+     */
+    public function markActivityAsCompleted(int $activityId): mixed
+    {
+        $sql = "
+            UPDATE DAILY_ACTIVITY
+            SET completed = TRUE
+            WHERE activity_id = :activityId
+        ";
+        $params = [':activityId' => $activityId];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
     }
 }

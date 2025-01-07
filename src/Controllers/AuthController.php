@@ -2,12 +2,20 @@
 
 namespace Controllers;
 
-use Models\User;
 use Core\View;
+use Exception;
+use Models\User;
 
+/**
+ *
+ */
 class AuthController
 {
-    public function showLoginForm()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function showLoginForm(): void
     {
         if (isset($_SESSION['user_id'])) {
             header('Location: /dashboard');
@@ -16,7 +24,11 @@ class AuthController
         echo View::render('auth/login');
     }
 
-    public function showRegisterForm()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function showRegisterForm(): void
     {
         if (isset($_SESSION['user_id'])) {
             header('Location: /dashboard');
@@ -25,7 +37,11 @@ class AuthController
         echo View::render('auth/register');
     }
 
-    public function login()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function login(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
@@ -36,7 +52,7 @@ class AuthController
                 exit;
             }
 
-            
+
             $password = $_POST['password'] ?? '';
             $user = User::login($email, $password);
 
@@ -55,14 +71,17 @@ class AuthController
         }
     }
 
-    public function logout()
+    /**
+     * @return void
+     */
+    public function logout(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit;
+            return;
         }
         $_SESSION = array();
-        
+
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
             setcookie(session_name(), '', 1,
@@ -70,13 +89,16 @@ class AuthController
                 $params["secure"], $params["httponly"]
             );
         }
-        
+
         session_destroy();
         header('Location: /login');
-        exit;
     }
 
-    public function register()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function register(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = trim($_POST['email']);
@@ -110,11 +132,11 @@ class AuthController
             $newUser = [
                 'email' => $email,
                 'password' => $password,
-                'first_name' => 'DefaultFirst', 
-                'last_name' => 'DefaultLast',   
-                'birth_date' => null,           
-                'address' => null,              
-                'phone' => null                 
+                'first_name' => 'DefaultFirst',
+                'last_name' => 'DefaultLast',
+                'birth_date' => null,
+                'address' => null,
+                'phone' => null
             ];
 
             if (User::create($newUser)) {
@@ -128,7 +150,11 @@ class AuthController
         }
     }
 
-    public function verifyEmail()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function verifyEmail(): void
     {
         $token = $_GET['token'] ?? '';
         if (User::verifyEmail($token)) {
@@ -139,11 +165,15 @@ class AuthController
         View::render('auth/login', ['message' => $message]);
     }
 
-    public function sendResetLink()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function sendResetLink(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-            
+
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 echo View::render('auth/forgot-password', ['error' => "Format d'email invalide."]);
                 return;
@@ -164,12 +194,20 @@ class AuthController
         }
     }
 
-    public function showForgotPasswordForm()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function showForgotPasswordForm(): void
     {
         echo View::render('auth/forgot-password');
     }
 
-    public function showResetPasswordForm()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function showResetPasswordForm(): void
     {
         $token = $_GET['token'] ?? '';
         if (empty($token)) {
@@ -179,7 +217,11 @@ class AuthController
         echo View::render('auth/reset-password', ['token' => $token]);
     }
 
-    public function resetPassword()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function resetPassword(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = $_POST['token'] ?? '';

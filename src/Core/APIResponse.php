@@ -4,36 +4,57 @@ namespace Core;
 
 class APIResponse
 {
-    private $data;
-    private $statusCode;
-    private $headers;
+    private mixed $data;
+    private int $statusCode;
+    private array $headers;
 
-    public function __construct($data = null, $statusCode = 200, $headers = [])
+    /**
+     * @param $data
+     * @param int $statusCode
+     * @param array $headers
+     */
+    public function __construct($data = null, int $statusCode = 200, array $headers = [])
     {
         $this->data = $data;
         $this->statusCode = $statusCode;
         $this->headers = $headers;
     }
 
-    public function setData($data)
+    /**
+     * @param $data
+     * @return $this
+     */
+    public function setData($data): static
     {
         $this->data = $data;
         return $this;
     }
 
-    public function setStatusCode($statusCode)
+    /**
+     * @param $statusCode
+     * @return $this
+     */
+    public function setStatusCode($statusCode): static
     {
         $this->statusCode = $statusCode;
         return $this;
     }
 
-    public function addHeader($key, $value)
+    /**
+     * @param $key
+     * @param $value
+     * @return $this
+     */
+    public function addHeader($key, $value): static
     {
         $this->headers[$key] = $value;
         return $this;
     }
 
-    public function send()
+    /**
+     * @return void
+     */
+    public function send(): void
     {
         http_response_code($this->statusCode);
 
@@ -44,8 +65,6 @@ class APIResponse
         if ($this->data !== null) {
             header('Content-Type: application/json');
             echo json_encode($this->data);
-        }
-
-        exit; // Important to stop further execution
+        } else return;
     }
 }

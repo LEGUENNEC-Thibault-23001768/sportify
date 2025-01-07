@@ -3,11 +3,15 @@
 namespace Models;
 
 use Core\Database;
-use Models\User;
 use PDO;
 
-class Event {
-    public static function getAllEvents() {
+class Event
+{
+    /**
+     * @return array
+     */
+    public static function getAllEvents(): array
+    {
         $sql = "
             SELECT 
                 e.event_id, 
@@ -30,18 +34,28 @@ class Event {
         return Database::query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function findEvents($eventId) {
+    /**
+     * @param $eventId
+     * @return mixed
+     */
+    public static function findEvents($eventId): mixed
+    {
         $sql = "SELECT * FROM EVENTS WHERE event_id = :eventId";
         $params = [':eventId' => $eventId];
         return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function createEvent($data) {
+    /**
+     * @param $data
+     * @return false|string
+     */
+    public static function createEvent($data): false|string
+    {
         $sql = "INSERT INTO EVENTS (event_name, event_date, start_time, end_time, description, max_participants, location, created_by) 
                 VALUES (:event_name, :event_date, :start_time, :end_time, :description, :max_participants, :location, :created_by)";
-        
+
         $currentUserId = $_SESSION['user_id'];
-        
+
         $params = [
             ':event_name' => $data['event_name'],
             ':event_date' => $data['event_date'],
@@ -61,7 +75,12 @@ class Event {
         return false;
     }
 
-    public static function deleteEvent($eventId) {
+    /**
+     * @param $eventId
+     * @return bool
+     */
+    public static function deleteEvent($eventId): bool
+    {
         $sql = "DELETE FROM EVENTS WHERE event_id = :eventId";
         $params = [':eventId' => $eventId];
         return Database::query($sql, $params)->rowCount() > 0;

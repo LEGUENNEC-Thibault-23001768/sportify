@@ -2,47 +2,24 @@
 
 namespace Models;
 
-use Core\Database;
 use Core\Config;
+use Core\Database;
+use Exception;
+use PDO;
 use Stripe\Stripe;
 
 class Subscription
 {
-    private static function getDb()
-    {
-        return Database::getConnection();
-    }
-
-    public static function syncSubscriptionWithStripe($memberId)
-    {
-        $localSubscription = self::getStripeSubscriptionId($memberId);
-        if (!$localSubscription) {
-            return false;
-        }
-
-        try {
-            Stripe::setApiKey(Config::get('stripe_key'));
-            $stripeSubscription = \Stripe\Subscription::retrieve($localSubscription['stripe_subscription_id']);
-            
-            $status = $stripeSubscription->status;
-            $endDate = date('Y-m-d', $stripeSubscription->current_period_end);
-            $amount = $stripeSubscription->plan->amount / 100;
-
-            $sql = "UPDATE SUBSCRIPTION SET status = :status, end_date = :end_date, amount = :amount WHERE stripe_subscription_id = :stripe_subscription_id";
-            $params = [
-                ':status' => $status,
-                ':end_date' => $endDate,
-                ':amount' => $amount,
-                ':stripe_subscription_id' => $localSubscription['stripe_subscription_id']
-            ];
-            return Database::query($sql, $params)->rowCount() > 0;
-        } catch (\Exception $e) {
-            error_log('Stripe error: ' . $e->getMessage());
-            return false;
-        }
-    }
-
-    public static function createSubscription($memberId, $stripeSubscriptionId, $subscriptionType, $startDate, $endDate, $amount)
+    /**
+     * @param $memberId
+     * @param $stripeSubscriptionId
+     * @param $subscriptionType
+     * @param $startDate
+     * @param $endDate
+     * @param $amount
+     * @return bool
+     */
+    public static function createSubscription($memberId, $stripeSubscriptionId, $subscriptionType, $startDate, $endDate, $amount): bool
     {
         $sql = "INSERT INTO SUBSCRIPTION (member_id, stripe_subscription_id, subscription_type, start_date, end_date, amount, status) VALUES (:member_id, :stripe_subscription_id, :subscription_type, :start_date, :end_date, :amount, 'Active')";
         $params = [
@@ -56,17 +33,11 @@ class Subscription
         return Database::query($sql, $params)->rowCount() > 0;
     }
 
-    public static function updateSubscriptionStatus($stripeSubscriptionId, $status)
-    {
-        $sql = "UPDATE SUBSCRIPTION SET status = :status WHERE stripe_subscription_id = :stripe_subscription_id";
-        $params = [
-            ':status' => $status,
-            ':stripe_subscription_id' => $stripeSubscriptionId
-        ];
-        return Database::query($sql, $params)->rowCount() > 0;
-    }
-
-    public static function hasActiveSubscription($memberId)
+    /**
+     * @param $memberId
+     * @return bool
+     */
+    public static function hasActiveSubscription($memberId): bool
     {
         self::syncSubscriptionWithStripe($memberId);
         $sql = "SELECT COUNT(*) FROM SUBSCRIPTION WHERE member_id = :member_id AND (status = 'Active' OR status = 'Cancelling')";
@@ -74,22 +45,61 @@ class Subscription
         return Database::query($sql, $params)->fetchColumn() > 0;
     }
 
-    public static function getActiveSubscription($memberId)
+    /**
+     * @param $memberId
+     * @return bool
+     */
+    public static function syncSubscriptionWithStripe($memberId): bool
     {
-        $sql = "SELECT * FROM SUBSCRIPTION WHERE member_id = :member_id AND status = 'Active' ORDER BY start_date DESC LIMIT 1";
-        $params = [':member_id' => $memberId];
-        return Database::query($sql, $params)->fetch();
+        $localSubscription = self::getStripeSubscriptionId($memberId);
+        if (!$localSubscription) {
+            return false;
+        }
+
+        try {
+            Stripe::setApiKey(Config::get('stripe_key'));
+            $stripeSubscription = \Stripe\Subscription::retrieve($localSubscription['stripe_subscription_id']);
+
+            $status = $stripeSubscription->status;
+            $endDate = date('Y-m-d', $stripeSubscription->current_period_end);
+            $amount = $stripeSubscription->plan->amount / 100;
+
+            $sql = "UPDATE SUBSCRIPTION SET status = :status, end_date = :end_date, amount = :amount WHERE stripe_subscription_id = :stripe_subscription_id";
+            $params = [
+                ':status' => $status,
+                ':end_date' => $endDate,
+                ':amount' => $amount,
+                ':stripe_subscription_id' => $localSubscription['stripe_subscription_id']
+            ];
+            return Database::query($sql, $params)->rowCount() > 0;
+        } catch (Exception $e) {
+            error_log('Stripe error: ' . $e->getMessage());
+            return false;
+        }
     }
 
-    public static function getStripeSubscriptionId($userId)
-    {   
+    /**
+     * @param $userId
+     * @return mixed|null
+     */
+    public static function getStripeSubscriptionId($userId): mixed
+    {
         $sql = "SELECT * FROM SUBSCRIPTION WHERE member_id = :user_id ORDER BY start_date DESC LIMIT 1";
         $params = [':user_id' => $userId];
         $result = Database::query($sql, $params)->fetch();
         return $result ? $result : null;
     }
 
-    public static function updateSubscription($memberId, $stripeSubscriptionId, $subscriptionType, $startDate, $endDate, $amount)
+    /**
+     * @param $memberId
+     * @param $stripeSubscriptionId
+     * @param $subscriptionType
+     * @param $startDate
+     * @param $endDate
+     * @param $amount
+     * @return bool
+     */
+    public static function updateSubscription($memberId, $stripeSubscriptionId, $subscriptionType, $startDate, $endDate, $amount): bool
     {
         $sql = "UPDATE SUBSCRIPTION SET stripe_subscription_id = :stripe_subscription_id, subscription_type = :subscription_type, start_date = :start_date, end_date = :end_date, amount = :amount, status = 'Active' WHERE member_id = :member_id AND status IN ('Active', 'Cancelling')";
         $params = [
@@ -103,11 +113,17 @@ class Subscription
         return Database::query($sql, $params)->rowCount() > 0;
     }
 
-    public static function updateSubscriptionDetails($memberId, $subscriptionType, $startDate, $endDate, $amount)
+    /**
+     * @param $memberId
+     * @param $subscriptionType
+     * @param $startDate
+     * @param $endDate
+     * @param $amount
+     * @return bool
+     */
+    public static function updateSubscriptionDetails($memberId, $subscriptionType, $startDate, $endDate, $amount): bool
     {
         $userSubscription = self::getStripeSubscriptionId($memberId);
-        if (!$userSubscription) {
-        }
 
         $stripeSubscriptionId = $userSubscription['stripe_subscription_id'];
 
@@ -124,7 +140,11 @@ class Subscription
         return Database::query($sql, $params)->rowCount() > 0;
     }
 
-    public static function cancelSubscription($memberId)
+    /**
+     * @param $memberId
+     * @return bool
+     */
+    public static function cancelSubscription($memberId): bool
     {
         $activeSubscription = self::getActiveSubscription($memberId);
         if (!$activeSubscription) {
@@ -138,20 +158,43 @@ class Subscription
 
             self::updateSubscriptionStatus($activeSubscription['stripe_subscription_id'], 'Cancelling');
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             error_log('Stripe error: ' . $e->getMessage());
             return false;
         }
     }
 
-    public static function getCancellingSubscription($memberId)
+    /**
+     * @param $memberId
+     * @return mixed
+     */
+    public static function getActiveSubscription($memberId): mixed
     {
-        $sql = "SELECT * FROM SUBSCRIPTION WHERE member_id = :member_id AND status = 'Cancelling' ORDER BY start_date DESC LIMIT 1";
+        $sql = "SELECT * FROM SUBSCRIPTION WHERE member_id = :member_id AND status = 'Active' ORDER BY start_date DESC LIMIT 1";
         $params = [':member_id' => $memberId];
         return Database::query($sql, $params)->fetch();
     }
 
-    public static function resumeSubscription($memberId)
+    /**
+     * @param $stripeSubscriptionId
+     * @param $status
+     * @return bool
+     */
+    public static function updateSubscriptionStatus($stripeSubscriptionId, $status): bool
+    {
+        $sql = "UPDATE SUBSCRIPTION SET status = :status WHERE stripe_subscription_id = :stripe_subscription_id";
+        $params = [
+            ':status' => $status,
+            ':stripe_subscription_id' => $stripeSubscriptionId
+        ];
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
+    /**
+     * @param $memberId
+     * @return bool
+     */
+    public static function resumeSubscription($memberId): bool
     {
         $cancellingSubscription = self::getCancellingSubscription($memberId);
         if (!$cancellingSubscription) {
@@ -165,9 +208,28 @@ class Subscription
 
             self::updateSubscriptionStatus($cancellingSubscription['stripe_subscription_id'], 'Active');
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             error_log('Stripe error: ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * @param $memberId
+     * @return mixed
+     */
+    public static function getCancellingSubscription($memberId): mixed
+    {
+        $sql = "SELECT * FROM SUBSCRIPTION WHERE member_id = :member_id AND status = 'Cancelling' ORDER BY start_date DESC LIMIT 1";
+        $params = [':member_id' => $memberId];
+        return Database::query($sql, $params)->fetch();
+    }
+
+    /**
+     * @return PDO
+     */
+    private static function getDb(): PDO
+    {
+        return Database::getConnection();
     }
 }

@@ -6,12 +6,21 @@ class Config
 {
     private static $config;
 
-    public static function load($file)
+    /**
+     * @param $file
+     * @return void
+     */
+    public static function load($file): void
     {
         self::$config = require $file;
     }
 
-    public static function get($key, $default = null)
+    /**
+     * @param $key
+     * @param $default
+     * @return mixed|null
+     */
+    public static function get($key, $default = null): mixed
     {
         return self::$config[$key] ?? $default;
     }

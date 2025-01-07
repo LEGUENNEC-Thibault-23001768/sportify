@@ -2,20 +2,25 @@
 
 namespace Controllers;
 
+use Core\APIResponse;
 use Core\Auth;
 use Core\View;
-use Core\APIResponse;
-use Models\User;
-use Models\Subscription;
+use Exception;
 use Models\Stats;
+use Models\Subscription;
+use Models\User;
 
 class DashboardController
 {
-    public function showDashboard()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function showDashboard(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login'); // pas connecté
-            exit;
+            return;
         }
 
         $userId = $_SESSION['user_id'];
@@ -24,7 +29,7 @@ class DashboardController
         if ($user) {
             $memberId = $user['member_id']; // Récupération de member_id
         }
-    
+
         $hasActiveSubscription = Subscription::hasActiveSubscription($userId);
         $subscriptionInfo = null;
 
@@ -35,8 +40,8 @@ class DashboardController
         $hasActiveSubscription = $subscriptionInfo["status"];
 
         $viewData = ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription, 'subscription' => [
-            'plan_name' =>  $subscriptionInfo["subscription_type"] ?? "Aucun",
-            'start_date' =>$subscriptionInfo["start_date"] ?? "Aucun",
+            'plan_name' => $subscriptionInfo["subscription_type"] ?? "Aucun",
+            'start_date' => $subscriptionInfo["start_date"] ?? "Aucun",
             'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
             'amount' => $subscriptionInfo["amount"] ?? 0,
             'currency' => $subscriptionInfo["currency"] ?? '€',
@@ -70,11 +75,14 @@ class DashboardController
         echo View::render('dashboard/index', $viewData);
     }
 
-    public function showProfile()
+    /**
+     * @return void
+     */
+    public function showProfile(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         $user_id = $_SESSION['user_id'];
@@ -83,7 +91,7 @@ class DashboardController
 
         if ($admin['status'] !== 'admin') {
             header('Location: /dashboard');
-            exit();
+            return;
         }
 
         $userId = $_SESSION['user_id'];
@@ -98,11 +106,15 @@ class DashboardController
         $response->setStatusCode(200)->setData($user)->send();
     }
 
-    public function updateUserProfile()
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function manageUsers(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         $user_id = $_SESSION['user_id'];
@@ -111,76 +123,25 @@ class DashboardController
 
         if ($admin['status'] !== 'admin') {
             header('Location: /dashboard');
-            exit();
-        }
-        $response = new APIResponse();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $userId = $_SESSION['user_id'];
-
-            $data = json_decode(file_get_contents('php://input'), true);
-
-            // Validate and sanitize input data
-            $firstName = trim($data['first_name'] ?? '');
-            $lastName = trim($data['last_name'] ?? '');
-            $email = trim($data['email'] ?? '');
-            $birthDate = trim($data['birth_date'] ?? '');
-            $address = trim($data['address'] ?? '');
-            $phone = trim($data['phone'] ?? '');
-
-            if (empty($firstName) || empty($lastName) || empty($email)) {
-                $response->setStatusCode(400)->setData(['error' => 'Les champs prénom, nom et email sont obligatoires'])->send();
-                return;
-            }
-
-            $updateData = [
-                'first_name' => $firstName,
-                'last_name' => $lastName,
-                'email' => $email,
-                'birth_date' => $birthDate,
-                'address' => $address,
-                'phone' => $phone,
-            ];
-
-            // Handle profile picture update if necessary
-
-            if (User::updateUserProfile($userId, $updateData)) {
-                $response->setStatusCode(200)->setData(['message' => 'Profil mis à jour avec succès.'])->send();
-            } else {
-                $response->setStatusCode(500)->setData(['error' => 'Échec de la mise à jour du profil.'])->send();
-            }
-        } else {
-            $response->setStatusCode(400)->setData(['error' => 'Invalid request method.'])->send();
-        }
-    }
-
-    // User Management (Admin)
-    public function manageUsers()
-    {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit();
+            return;
         }
 
-        $user_id = $_SESSION['user_id'];
-
-        $admin = User::getUserById($user_id);
-
-        if ($admin['status'] !== 'admin') {
-            header('Location: /dashboard');
-            exit();
-        }
-    
         $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
         $users = !empty($searchTerm) ? User::searchUsers($searchTerm) : User::getAllUsers();
         echo View::render('dashboard/admin/users/index', ['users' => $users, 'searchTerm' => $searchTerm]);
     }
 
-    public function deleteUser($userId)
+    // User Management (Admin)
+
+    /**
+     * @param $userId
+     * @return void
+     */
+    public function deleteUser($userId): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         $user_id = $_SESSION['user_id'];
@@ -189,10 +150,10 @@ class DashboardController
 
         if ($admin['status'] !== 'admin') {
             header('Location: /dashboard');
-            exit();
+            return;
         }
         $response = new APIResponse();
-    
+
         if (User::deleteUser($userId)) {
             $response->setStatusCode(200)->setData(['message' => 'Utilisateur supprimé avec succès.'])->send();
         } else {
@@ -200,12 +161,15 @@ class DashboardController
         }
     }
 
-    // API Endpoint for Editing Users (Admin)
-    public function getUserApi($userId)
+    /**
+     * @param $userId
+     * @return void
+     */
+    public function getUserApi($userId): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         $user_id = $_SESSION['user_id'];
@@ -214,7 +178,7 @@ class DashboardController
 
         if ($admin['status'] !== 'admin') {
             header('Location: /dashboard');
-            exit();
+            return;
         }
         $response = new APIResponse();
 
@@ -227,11 +191,18 @@ class DashboardController
         }
     }
 
-    public function updateUserApi($userId)
+    // API Endpoint for Editing Users (Admin)
+
+    /**
+     * @param $userId
+     * @return void
+     * @throws Exception
+     */
+    public function updateUserApi($userId): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         $user_id = $_SESSION['user_id'];
@@ -240,7 +211,7 @@ class DashboardController
 
         if ($admin['status'] !== 'admin') {
             header('Location: /dashboard');
-            exit();
+            return;
         }
         $response = new APIResponse();
 
@@ -289,11 +260,16 @@ class DashboardController
             $response->setStatusCode(500)->setData(['error' => 'Failed to update user'])->send();
         }
     }
-    public function getUserSubscription($userId)
+
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function updateUserProfile(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         $user_id = $_SESSION['user_id'];
@@ -302,7 +278,67 @@ class DashboardController
 
         if ($admin['status'] !== 'admin') {
             header('Location: /dashboard');
-            exit();
+            return;
+        }
+        $response = new APIResponse();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_SESSION['user_id'];
+
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            // Validate and sanitize input data
+            $firstName = trim($data['first_name'] ?? '');
+            $lastName = trim($data['last_name'] ?? '');
+            $email = trim($data['email'] ?? '');
+            $birthDate = trim($data['birth_date'] ?? '');
+            $address = trim($data['address'] ?? '');
+            $phone = trim($data['phone'] ?? '');
+
+            if (empty($firstName) || empty($lastName) || empty($email)) {
+                $response->setStatusCode(400)->setData(['error' => 'Les champs prénom, nom et email sont obligatoires'])->send();
+                return;
+            }
+
+            $updateData = [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $email,
+                'birth_date' => $birthDate,
+                'address' => $address,
+                'phone' => $phone,
+            ];
+
+            // Handle profile picture update if necessary
+
+            if (User::updateUserProfile($userId, $updateData)) {
+                $response->setStatusCode(200)->setData(['message' => 'Profil mis à jour avec succès.'])->send();
+            } else {
+                $response->setStatusCode(500)->setData(['error' => 'Échec de la mise à jour du profil.'])->send();
+            }
+        } else {
+            $response->setStatusCode(400)->setData(['error' => 'Invalid request method.'])->send();
+        }
+    }
+
+    /**
+     * @param $userId
+     * @return void
+     */
+    public function getUserSubscription($userId): void
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            return;
+        }
+
+        $user_id = $_SESSION['user_id'];
+
+        $admin = User::getUserById($user_id);
+
+        if ($admin['status'] !== 'admin') {
+            header('Location: /dashboard');
+            return;
         }
         $response = new APIResponse();
 
@@ -315,11 +351,15 @@ class DashboardController
         }
     }
 
-    public function updateUserSubscription($userId)
+    /**
+     * @param $userId
+     * @return void
+     */
+    public function updateUserSubscription($userId): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         $user_id = $_SESSION['user_id'];
@@ -328,40 +368,44 @@ class DashboardController
 
         if ($admin['status'] !== 'admin') {
             header('Location: /dashboard');
-            exit();
+            return;
         }
         $response = new APIResponse();
-    
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $response->setStatusCode(400)->setData(['error' => 'Invalid request method'])->send();
             return;
         }
-    
+
         $data = json_decode(file_get_contents('php://input'), true);
-    
+
         $subscriptionType = trim($data['subscription_type'] ?? '');
         $startDate = trim($data['start_date'] ?? '');
         $endDate = trim($data['end_date'] ?? '');
         $amount = trim($data['amount'] ?? '');
-    
+
         if (empty($subscriptionType) || empty($startDate) || empty($endDate) || empty($amount)) {
             $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
             return;
         }
-    
+
         if (Subscription::updateSubscriptionDetails($userId, $subscriptionType, $startDate, $endDate, $amount)) {
             $response->setStatusCode(200)->setData(['message' => 'Subscription updated successfully'])->send();
         } else {
             $response->setStatusCode(500)->setData(['error' => 'Failed to update subscription'])->send();
         }
     }
-    
 
-    public function loadContent()
+
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public function loadContent(): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit;
+            return;
         }
 
         $userId = $_SESSION['user_id'];
@@ -369,7 +413,7 @@ class DashboardController
 
         if (!$user) {
             header('Location: /error');
-            exit;
+            return;
         }
 
         if ($user['status'] === 'admin' || $user['status'] === 'coach') {
@@ -379,11 +423,15 @@ class DashboardController
         }
     }
 
-    public function cancelUserSubscription($userId)
+    /**
+     * @param $userId
+     * @return void
+     */
+    public function cancelUserSubscription($userId): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         $user_id = $_SESSION['user_id'];
@@ -392,7 +440,7 @@ class DashboardController
 
         if ($admin['status'] !== 'admin') {
             header('Location: /dashboard');
-            exit();
+            return;
         }
         $response = new APIResponse();
 
@@ -403,11 +451,15 @@ class DashboardController
         }
     }
 
-    public function resumeUserSubscription($userId)
+    /**
+     * @param $userId
+     * @return void
+     */
+    public function resumeUserSubscription($userId): void
     {
         if (!isset($_SESSION['user_id'])) {
             header('Location: /login');
-            exit();
+            return;
         }
 
         $user_id = $_SESSION['user_id'];
@@ -416,7 +468,7 @@ class DashboardController
 
         if ($admin['status'] !== 'admin') {
             header('Location: /dashboard');
-            exit();
+            return;
         }
         $response = new APIResponse();
 
