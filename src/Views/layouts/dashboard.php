@@ -31,7 +31,7 @@
             <li><a href="/dashboard/admin/users" class="management" data-target="admin/users"><i class="fas fa-tasks"></i> Gestion</a></li>
         </ul>
         <div class="settings-section">
-            <a href="/dashboard/profile" data-target="profile" class="settings"> Paramètres</a>
+            <a href="/dashboard/profile" data-target="profile" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
             <a href="/logout" class="logout"> Se déconnecter</a>
         </div>
     </div>

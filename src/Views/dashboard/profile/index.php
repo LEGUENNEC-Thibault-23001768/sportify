@@ -1,16 +1,10 @@
 <div id="profile-content" data-view="profile">
-<div class="container">
+    <div class="container">
         <h1>Mon Profil</h1>
 
-        <?php if (isset($_SESSION['error'])): ?>
-            <p class="error"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
-        <?php endif; ?>
+        <div id="profile-message"></div>
 
-        <?php if (isset($_SESSION['success_message'])): ?>
-            <p class="success"><?= $_SESSION['success_message']; unset($_SESSION['success_message']); ?></p>
-        <?php endif; ?>
-
-        <form action="" method="POST" enctype="multipart/form-data">
+        <form id="profileForm">
             <div class="top-section">
                 <div class="left-section">
                     <label for="first_name">Prénom :</label>
@@ -22,7 +16,7 @@
                     <label for="email">Email :</label>
                     <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? "") ?>" required>
                 </div>
-                
+
                 <div class="right-section">
                     <div class="profile-picture-container">
                         <label for="profile_picture">
@@ -49,15 +43,6 @@
                 <label for="phone">Téléphone :</label>
                 <input type="text" name="phone" id="phone" value="<?= htmlspecialchars($user['phone'] ?? "") ?>">
 
-                <?php if ($ifAdminuser['status'] ?? false === 'admin' ): ?>
-                    <label for="status">Rôle :</label>
-                    <select name="status" id="status">
-                        <option value="membre" <?= $user['status'] === 'user' ? 'selected' : '' ?>>Membre</option>
-                        <option value="coach" <?= $user['status'] === 'coach' ? 'selected' : '' ?>>Coach</option>
-                        <option value="admin" <?= $user['status'] === 'admin' ? 'selected' : '' ?>>Admin</option>
-                    </select>
-                <?php endif; ?>
-
                 <h2>Changer le mot de passe</h2>
 
                 <label for="current_password">Mot de passe actuel :</label>
@@ -74,3 +59,56 @@
         </form>
     </div>
 </div>
+
+<script>
+    const profileForm = document.getElementById('profileForm');
+    const profileMessageDiv = document.getElementById('profile-message');
+
+    profileForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+    
+        const formData = new FormData(profileForm);
+    
+        if (formData.get('current_password') === '') {
+            formData.delete('current_password');
+         }
+        if (formData.get('new_password') === '') {
+            formData.delete('new_password');
+        }
+        if (formData.get('confirm_password') === '') {
+           formData.delete('confirm_password');
+        }
+    
+         const jsonData = Object.fromEntries(formData.entries());
+
+        fetch('/api/profile', {
+            method: 'PUT',
+             headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jsonData)
+        })
+        .then(response => {
+            return response.json()
+        })
+        .then(data => {
+            console.log(data);
+            if (data.message) {
+                profileMessageDiv.textContent = data.message;
+                profileMessageDiv.className = 'success';
+            } else if (data.error) {
+                profileMessageDiv.textContent = data.error;
+                profileMessageDiv.className = 'error';
+            }
+            setTimeout(() => {
+                profileMessageDiv.textContent = '';
+                profileMessageDiv.className = '';
+            }, 5000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            profileMessageDiv.textContent = 'Une erreur est survenue.';
+            profileMessageDiv.className = 'error';
+        });
+    });
+</script>

@@ -6,15 +6,17 @@ body {
 }
 
 /* --- Modal Blur Effect --- */
-body.modal-open {
-    overflow: hidden;
-}
-
-body.modal-open .dashboard-content {
+.modal-open {
     filter: blur(4px);
     -webkit-filter: blur(4px);
     pointer-events: none;
     user-select: none;
+}
+
+.gym-map,
+#reservations,
+.dashboard-content > h2 {
+    transition: filter 0.3s ease-out;
 }
 
 .dashboard-content {

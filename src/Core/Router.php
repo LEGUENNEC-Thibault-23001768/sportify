@@ -18,13 +18,23 @@ class Router
 
     public static function put($url, $handler, $middleware = null)
     {
-        self::addRoute('POST', $url, $handler, $middleware);
+        self::addRoute('PUT', $url, $handler, $middleware);
     }
 
 
     public static function delete($url, $handler, $middleware = null)
     {
         self::addRoute('DELETE', $url, $handler, $middleware);
+    }
+
+   public static function apiResource($url, $controller, $middleware = null)
+    {
+        self::get($url, "$controller@get", $middleware);
+        self::get($url . '/{id}', "$controller@get", $middleware);
+        self::post($url, "$controller@post", $middleware);
+        self::put($url, "$controller@put", $middleware);
+        self::put($url . '/{id}', "$controller@put", $middleware);
+         self::delete($url . '/{id}', "$controller@delete", $middleware);
     }
 
     private static function addRoute($method, $url, $handler, $middleware = null)
@@ -80,14 +90,14 @@ class Router
         $url = rtrim($url, '/');
 
 
-       if (strpos($route, '/*') !== false) {
+        if (strpos($route, '/*') !== false) {
             $pattern = preg_replace('/\/{(.*?)}/', '/(?<$1>[^/]+)', $route);
 
             $pattern = str_replace('/*', '(?<wildcard>.*)', $pattern);
             $pattern = '#^' . str_replace('/', '\/', $pattern) . '$#';
         } else {
             $pattern = preg_replace('/\/{(.*?)}/', '/(?<$1>[^/]+)', $route);
-             $pattern = '#^' . str_replace('/', '\/', $pattern) . '$#';
+            $pattern = '#^' . str_replace('/', '\/', $pattern) . '$#';
         }
 
 
@@ -121,7 +131,7 @@ class Router
 
         $controllerInstance = new $controller();
 
-        if ($controllerInstance instanceof \Core\APIController) {
+        if ($controllerInstance instanceof \Core\APIController && !method_exists($controllerInstance, $action)) {
             return $controllerInstance->handleRequest($_SERVER['REQUEST_METHOD'], ...$params);
         } else {
             if (!method_exists($controllerInstance, $action)) {

@@ -30,20 +30,12 @@ abstract class APIController
         return $response->setStatusCode(405)->setData(['error' => 'DELETE method not allowed.'])->send();
     }
 
-    public function handleRequest($method, $id = null)
+    public function handleRequest($method, ...$params)
     {
-        switch ($method) {
-            case 'GET':
-                return $this->get($id);
-            case 'POST':
-                return $this->post();
-            case 'PUT':
-                return $this->put($id);
-            case 'DELETE':
-                return $this->delete($id);
-            default:
-                $response = new APIResponse();
-                return $response->setStatusCode(405)->setData(['error' => 'Method not allowed.'])->send();
+         if (method_exists($this, strtolower($method))) {
+           return call_user_func_array([$this, strtolower($method)], $params);
         }
+        $response = new APIResponse();
+        return $response->setStatusCode(405)->setData(['error' => 'Method not allowed.'])->send();
     }
 }

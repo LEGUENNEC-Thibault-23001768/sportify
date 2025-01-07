@@ -1,0 +1,1009 @@
+
+--- Content of ./src/Controllers/GoogleAuthController.php: ---
+
+<?php
+
+namespace Controllers;
+
+use Google\Auth\OAuth2;
+use GuzzleHttp\Client;
+use Core\View;
+use Core\Config;
+use Models\User;
+
+class GoogleAuthController
+{
+    private $oauth;
+
+    public function __construct()
+    {
+        $this->oauth = new OAuth2([
+            'clientId' => Config::get("google")["clientId"],
+            'clientSecret' => Config::get("google")["clientSecret"],
+            'authorizationUri' => Config::get("google")["authorizationUri"],
+            'tokenCredentialUri' => Config::get("google")["tokenCredentialUri"],
+            'redirectUri' => Config::get("google")["redirectUri"],
+            'scope' => ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+        ]);
+    }
+
+    public function login()
+    {
+        $authUrl = $this->oauth->buildFullAuthorizationUri([
+            'access_type' => 'offline',
+            'prompt' => 'consent',
+            'response_type' => 'code'
+        ]);
+
+        header('Location: ' . filter_var($authUrl, FILTER_SANITIZE_URL));
+        exit();
+    }
+
+    public function callback()
+    {        
+        if (!isset($_GET['code'])) {
+            header('Location: /login');
+            exit();
+        }
+
+        try {
+            $this->oauth->setCode($_GET['code']);
+            
+            $token = $this->oauth->fetchAuthToken();
+            $_SESSION['google_access_token'] = $token['access_token'];
+
+            if (isset($token['refresh_token'])) {
+                $_SESSION['google_refresh_token'] = $token['refresh_token'];
+            }
+
+            $userInfo = $this->getUserInfo($token['access_token']);
+
+            $firstName = $userInfo['given_name'];
+            $lastName = $userInfo['family_name'];
+            $email = $userInfo['email'];
+
+            $user = User::findByEmail($email);
+
+            if (!$user) {
+                $userData = [
+                    'email' => $email,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'password' => null, 
+                ];
+
+                User::create($userData);
+            }
+
+            $_SESSION['user'] = [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $email
+            ];
+            
+            $_SESSION['user_id'] = isset($user['member_id']) ? $user['member_id'] : null;
+            $_SESSION['user_email'] = $email;
+
+            header('Location: /dashboard');
+            exit();
+        } catch (\Exception $e) {
+            header('Location: /error?message=' . urlencode($e->getMessage()));
+            exit();
+        }
+    }
+
+    private function getUserInfo($accessToken)
+    {
+        $client = new Client();
+        $response = $client->get('https://www.googleapis.com/oauth2/v2/userinfo', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken
+            ]
+        ]);
+
+        return json_decode($response->getBody(), true);
+    }
+}
+
+--- End of ./src/Controllers/GoogleAuthController.php ---
+
+
+--- Content of ./src/Controllers/PaymentController.php: ---
+
+<?php
+
+namespace Controllers;
+
+use Stripe\Stripe;
+use Stripe\Checkout\Session;
+use Stripe\Invoice;
+use Stripe\StripeClient;
+use Models\Subscription;
+use Core\Config;
+use Core\View;
+
+class PaymentController
+{
+    private $stripe;
+    
+    public function __construct()
+    {
+        Stripe::setApiKey(Config::get("stripe_key"));
+        $this->stripe = new StripeClient((Config::get("stripe_key")));
+    }
+
+    public function createCheckoutSession()
+    {
+        $userEmail = $_SESSION['user_email'];
+
+        $existingCustomers = $this->stripe->customers->search([
+            'query' => "email:'$userEmail'",
+        ]);
+
+        if (!empty($existingCustomers->data)) {
+            $customerId = $existingCustomers->data[0]->id;
+        } else {
+            $newCustomer = $this->stripe->customers->create([
+                'email' => $userEmail,
+            ]);
+            $customerId = $newCustomer->id;
+        }
+
+        $session = Session::create([
+            'customer' => $customerId, 
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'price' => 'price_1QBAtU01Olm6yDgOPUmJnGEf',
+                'quantity' => 1,
+            ]],
+            'mode' => 'subscription',
+            'success_url' => Config::get("server_url") . '/success?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => Config::get("server_url") . '/dashboard',
+            'client_reference_id' => $_SESSION['user_id'],
+        ]);
+
+        header("Location: " . $session->url);
+        exit();
+    }
+
+    public function success()
+    {
+        $sessionId = $_GET['session_id'] ?? null; 
+        if (!$sessionId) {
+            $_SESSION['error'] = "Erreur : Session ID manquant.";
+            header('Location: /dashboard');
+            exit;
+        }
+
+        try {
+            $session = Session::retrieve($sessionId);
+            $subscription = $this->stripe->subscriptions->retrieve($session->subscription);
+            $customer = $this->stripe->customers->retrieve($subscription->customer);
+
+            $memberId = $session->client_reference_id;
+            $startDate = date('Y-m-d', $subscription->current_period_start);
+            $endDate = date('Y-m-d', $subscription->current_period_end);
+            $amount = $subscription->plan->amount / 100;
+
+            $existingSubscription = Subscription::getActiveSubscription($memberId);
+
+            if ($existingSubscription) {
+                Subscription::updateSubscription(
+                    $memberId,
+                    $subscription->id,
+                    $subscription->plan->nickname,
+                    $startDate,
+                    $endDate,
+                    $amount
+                );
+                $_SESSION['message'] = "Votre abonnement a été mis à jour avec succès.";
+            } else {
+                Subscription::createSubscription(
+                    $memberId,
+                    $subscription->id,
+                    $subscription->plan->nickname,
+                    $startDate,
+                    $endDate,
+                    $amount
+                );
+                $_SESSION['message'] = "Merci pour votre abonnement ! Vous avez été abonné avec succès.";
+            }
+        } catch (\Exception $e) {
+            $_SESSION['error'] = "Une erreur est survenue lors de la gestion de l'abonnement : " . $e->getMessage();
+        }
+        
+        header('Location: /dashboard');
+        exit();
+    }
+
+    public function listInvoices() 
+    {
+        try {
+            $activeSubscription = Subscription::getStripeSubscriptionId($_SESSION['user_id']);
+            
+            if (!$activeSubscription) {
+                $_SESSION['error'] = "Aucun abonnement actif trouvé.";
+                echo "pas d'abonnement the fuck?";
+                exit;
+            }
+
+            $stripeSubscription = $this->stripe->subscriptions->retrieve($activeSubscription['stripe_subscription_id']);
+            $invoices = $this->stripe->invoices->all([
+                'customer' => $stripeSubscription->customer,
+                'limit' => 10,
+                'expand' => ['data.payment_intent']
+            ]);
+
+            $formattedInvoices = [];
+            foreach ($invoices->data as $invoice) {
+                $paymentMethod = null;
+                if ($invoice->payment_intent && $invoice->payment_intent->payment_method) {
+                    $paymentMethod = $this->stripe->paymentMethods->retrieve($invoice->payment_intent->payment_method);
+                }
+
+                $lastFourDigits = $paymentMethod ? $paymentMethod->card->last4 : 'N/A';
+                $cardBrand = $paymentMethod ? $paymentMethod->card->brand : 'N/A';
+
+                $formattedInvoices[] = [
+                    'id' => $invoice->id,
+                    'number' => $invoice->number,
+                    'amount_due' => $invoice->amount_due / 100,
+                    'currency' => strtoupper($invoice->currency),
+                    'status' => $invoice->status,
+                    'created' => date('d M Y', $invoice->created),
+                    'due_date' => date('d M Y', $invoice->due_date),
+                    'pdf_url' => $invoice->invoice_pdf,
+                    'last_four_digits' => $lastFourDigits,
+                    'card_brand' => $cardBrand
+                ];
+            }
+
+            echo View::render('dashboard/invoices', ['invoices' => $formattedInvoices]);
+        } catch (\Exception $e) {
+            echo "erreur lors de récupération: " . $e->getMessage();
+            exit;
+        }
+    }
+
+    public function cancelSubscription()
+    {
+        try {
+            $activeSubscription = Subscription::getActiveSubscription($_SESSION['user_id']);
+
+            if (!$activeSubscription) {
+                exit;
+            }
+
+            $stripeSubscription = $this->stripe->subscriptions->update(
+                $activeSubscription['stripe_subscription_id'],
+                ['cancel_at_period_end' => true]
+            );
+
+            Subscription::updateSubscriptionStatus($activeSubscription['stripe_subscription_id'], 'Cancelling');
+
+            $_SESSION['message'] = "Votre abonnement sera annulé à la fin de la période de facturation en cours.";
+        } catch (\Exception $e) {
+            $_SESSION['error'] = "Une erreur est survenue lors de l'annulation de l'abonnement : " . $e->getMessage();
+        }
+
+        header('Location: /dashboard');
+        exit;
+    }
+}
+
+--- End of ./src/Controllers/PaymentController.php ---
+
+
+--- Content of ./src/Controllers/TeamController.php: ---
+
+<?php
+
+namespace Controllers;
+
+use Core\View;
+use Models\User;
+use Models\Team;
+use Models\TeamParticipant;
+
+class TeamController
+{
+    public function create($event_id)
+    {
+        $members = User::getAll();
+        echo View::render('teams/create', ['event_id' => $event_id, 'members' => $members]);
+    }
+
+   
+    public function store($event_id)
+    {
+        $teamName = $_POST['team_name'];
+        $selectedMembers = $_POST['members'];
+
+        $team_id = Team::create($event_id, $teamName);
+
+        foreach ($selectedMembers as $member_id) {
+            TeamParticipant::addParticipant($team_id, $member_id);
+        }
+
+        header('Location: /events/' . $event_id); 
+        exit();
+    }
+
+    public function edit($team_id)
+    {
+        $team = Team::findById($team_id);
+        $membersInTeam = TeamParticipant::getMembersByTeam($team_id);
+        $allMembers = User::getAll(); 
+
+        echo View::render('teams/edit', [
+            'team' => $team,
+            'membersInTeam' => $membersInTeam,
+            'allMembers' => $allMembers
+        ]);
+    }
+
+    public function update($team_id)
+    {
+        $teamName = $_POST['team_name'];
+        $selectedMembers = $_POST['members'];
+
+        Team::update($team_id, $teamName);
+
+        TeamParticipant::deleteParticipantsByTeam($team_id);
+
+        foreach ($selectedMembers as $member_id) {
+            $teamParticipant = new TeamParticipant();
+            $teamParticipant->addParticipant($team_id, $member_id);
+        }
+
+        header('Location: /teams/' . $team_id);
+        exit();
+    }
+
+    public function delete($team_id)
+    {
+        TeamParticipant::deleteParticipantsByTeam($team_id);
+
+        Team::delete($team_id);
+
+        header('Location: /teams');
+        exit();
+    }
+}
+
+
+--- End of ./src/Controllers/TeamController.php ---
+
+
+--- Content of ./src/Controllers/AuthController.php: ---
+
+<?php
+
+namespace Controllers;
+
+use Models\User;
+use Core\Auth;
+use Core\View;
+use Google\Auth\OAuth2;
+use GuzzleHttp\Client;
+
+
+class AuthController
+{
+
+
+    public function showLoginForm()
+    {
+        echo View::render('auth/login');
+    }
+
+    public function showRegisterForm()
+    {
+        echo View::render('auth/register');
+    }
+
+    public function login()
+    {
+        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['error_message'] = "Format d'email invalide.";
+            header('Location: /login');
+            exit;
+        }
+
+        
+        $password = $_POST['password'] ?? '';
+        $user = User::login($email, $password);
+
+        if ($user) {
+            $_SESSION['user_id'] = $user['member_id'];
+            $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+            $_SESSION['user_email'] = $user['email'];
+            header('Location: /dashboard');
+            exit;
+        } else {
+            echo View::render('auth/login', ['error' => 'Email ou mot de passe incorrect.']);
+        }
+    }
+
+    public function logout()
+    {
+        $_SESSION = array();
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', 1,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+        
+        session_destroy();
+        header('Location: /login');
+        exit;
+    }
+
+    public function register()
+    {
+        $email = trim($_POST['email']);
+        $password = trim($_POST['password']);
+        $confirmPassword = trim($_POST['confirm_password']);
+
+        if (empty($email) || empty($password) || empty($confirmPassword)) {
+            $error = 'Tous les champs sont obligatoires.';
+            echo View::render('auth/login', ['error' => $error]);
+            return;
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Veuillez entrer un email valide.';
+            echo View::render('auth/login', ['error' => $error]);
+            return;
+        }
+
+        if ($password !== $confirmPassword) {
+            $error = 'Les mots de passe ne correspondent pas.';
+            echo View::render('auth/login', ['error' => $error]);
+            return;
+        }
+
+        if (User::findByEmail($email)) {
+            $error = 'Cet email est déjà utilisé.';
+            echo View::render('auth/login', ['error' => $error]);
+            return;
+        }
+
+        $newUser = [
+            'email' => $email,
+            'password' => $password,
+            'first_name' => 'DefaultFirst', 
+            'last_name' => 'DefaultLast',   
+            'birth_date' => null,           
+            'address' => null,              
+            'phone' => null                 
+        ];
+
+        if (User::create($newUser)) {
+            $message = "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception.";
+            echo View::render('auth/login', ['message' => $message]);
+        } else {
+            $error = "Erreur lors de l'inscription. Veuillez réessayer.";
+            echo View::render('auth/login', ['error' => $error]);
+        }
+    }
+
+    public function verifyEmail()
+    {
+        $token = $_GET['token'] ?? '';
+        if (User::verifyEmail($token)) {
+            $message = "Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.";
+        } else {
+            $message = "Le lien de vérification est invalide ou a expiré.";
+        }
+        View::render('auth/login', ['message' => $message]);
+    }
+
+    public function sendResetLink()
+    {
+        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+        
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo View::render('auth/forgot-password', ['error' => "Format d'email invalide."]);
+            return;
+        }
+
+        $user = User::findByEmail($email);
+        if ($user) {
+            $token = bin2hex(random_bytes(32));
+            if (User::storeResetToken($email, $token)) {
+                User::sendPasswordResetEmail($email, $token);
+                echo View::render('auth/forgot-password', ['message' => "Un lien de réinitialisation a été envoyé à votre adresse email."]);
+            } else {
+                echo View::render('auth/forgot-password', ['error' => "Une erreur est survenue. Veuillez réessayer."]);
+            }
+        } else {
+            echo View::render('auth/forgot-password', ['error' => "Aucun compte trouvé avec cet email."]);
+        }
+    }
+
+    public function showForgotPasswordForm()
+    {
+        echo View::render('auth/forgot-password');
+    }
+
+    public function showResetPasswordForm()
+    {
+        $token = $_GET['token'] ?? '';
+        if (empty($token)) {
+            header('Location: /login');
+            exit;
+        }
+        echo View::render('auth/reset-password', ['token' => $token]);
+    }
+
+    public function resetPassword()
+    {
+        $token = $_POST['token'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        if ($password !== $confirmPassword) {
+            echo View::render('auth/reset-password', ['error' => "Les mots de passe ne correspondent pas.", 'token' => $token]);
+            return;
+        }
+
+        if (User::resetPassword($token, $password)) {
+            echo View::render('auth/login', ['message' => "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter."]);
+        } else {
+            echo View::render('auth/reset-password', ['error' => "Le lien de réinitialisation est invalide ou a expiré.", 'token' => $token]);
+        }
+    }
+}
+
+--- End of ./src/Controllers/AuthController.php ---
+
+
+--- Content of ./src/Controllers/CoachBookingController.php: ---
+
+<?php
+
+namespace Controllers;
+
+use Core\View;
+use Models\CoachBooking;
+use Models\User;
+use Models\Team;
+
+class CoachBookingController
+{
+    public function index()
+    {
+        $coachBookings = CoachBooking::getAllBookings();
+        echo View::render('/dashboard/coaches/index', ['coachBookings' => $coachBookings]);
+    }
+
+    public function create()
+    {
+        $coaches = CoachBooking::getAllCoaches();
+        $teams = Team::getAll();
+        echo View::render('/dashboard/coaches/create', ['coaches' => $coaches, 'teams' => $teams]);
+    }
+
+    public function store()
+    {
+        $coach_id = $_POST['coach_id'];
+        $date = $_POST['reservation_date'];
+        $time = $_POST['reservation_time'];
+        $user_id = $_POST['user_id'] ?? null;
+        $team_id = $_POST['team_id'] ?? null; 
+
+        CoachBooking::createBooking($coach_id, $date, $time, $user_id, $team_id);
+        header('Location: /dashboard/coaches'); 
+        exit();
+    }
+
+    public function delete($booking_id)
+    {
+        CoachBooking::deleteBooking($booking_id);
+        header('Location: /dashboard/coaches');
+        exit();
+    }
+}
+
+
+--- End of ./src/Controllers/CoachBookingController.php ---
+
+
+--- Content of ./src/Controllers/TrainingController.php: ---
+
+<?php
+
+namespace Controllers;
+
+use Core\View;
+use Core\Config;
+use Core\APIResponse;
+use Models\User;
+use Gemini;
+use Models\Training;
+
+
+class TrainingController {
+
+    private $apiKey;
+
+    public function __construct() {
+        $this->apiKey = Config::get("gemini_key");
+    }
+
+    public function start() {
+        $memberId = $_SESSION['user_id'];
+        $existingPlan = Training::getExistingTrainingPlan($memberId);
+    
+        if ($existingPlan) {
+            header('Location: /dashboard/training');
+            exit;
+        }
+    
+        $_SESSION['training_data'] = [];
+        echo View::render('dashboard/training/start', [
+            'member' => User::getUserById($memberId)
+        ]);
+    }
+
+    public function apiGenerate() {
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+        $member = User::getUserById($currentUserId);
+    
+        $userInput = $_SESSION['training_data'] ?? [];
+        if (empty($userInput)) {
+            return $response->setStatusCode(400)->setData(['error' => 'No training data found'])->send();
+        }
+    
+        $data = [
+            'gender' => $userInput[1] ?? null,
+            'level' => $userInput[2] ?? null,
+            'goals' => $userInput[3] ?? null,
+            'weight' => $userInput[4] ?? null,
+            'height' => $userInput[5] ?? null,
+            'constraints' => $userInput[6] ?? null,
+            'preferences' => $userInput[7] ?? null,
+            'equipment' => $userInput[8] ?? null,
+        ];
+    
+        $client = Gemini::client($this->apiKey);
+        $prompt = Training::buildPrompt($data, $member);
+    
+        try {
+            $result = $client->geminiPro()->generateContent($prompt);
+            $generatedText = $result->text();
+    
+            $jsonStart = strpos($generatedText, '{');
+            $jsonEnd = strrpos($generatedText, '}');
+    
+            if ($jsonStart === false || $jsonEnd === false) {
+                throw new \Exception("Valid JSON not found in AI response.");
+            }
+    
+            $jsonString = substr($generatedText, $jsonStart, $jsonEnd - $jsonStart + 1);
+            $decodedPlan = json_decode($jsonString, true);
+    
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception("Failed to decode AI response: " . json_last_error_msg());
+            }
+    
+            if (isset($decodedPlan['days']) && is_array($decodedPlan['days'])) {
+                $data['planContent'] = json_encode($decodedPlan);
+                Training::saveTrainingPlan($member['member_id'], $data);
+                unset($_SESSION['training_data']);
+    
+                return $response->setStatusCode(200)->setData(['plan' => $data['planContent']])->send();
+            } else {
+                throw new \Exception("Unexpected AI response format.");
+            }
+        } catch (\Exception $e) {
+            error_log("Error in training plan generation: " . $e->getMessage());
+            return $response->setStatusCode(500)->setData(['error' => 'Failed to generate training plan. Please try again later.'])->send();
+        }
+    }
+    
+
+    public function apiProcessStep() {
+        $response = new APIResponse();
+    
+        $step = $_POST['step'] ?? null;
+        $data = $_POST['data'] ?? null;
+    
+        if ($step === null || $data === null) {
+            return $response->setStatusCode(400)->setData(['error' => 'Invalid data provided'])->send();
+        }
+    
+        $_SESSION['training_data'][$step] = $data;
+    
+        if ($step < 8) {
+            return $response->setStatusCode(200)->setData(['next_step' => $step + 1])->send();
+        } else {
+            return $response->setStatusCode(200)->setData(['next_step' => 'generate'])->send();
+        }
+    }
+    
+
+    public function dashboard() {
+        $memberId = $_SESSION['user_id'];
+        $existingPlan = Training::getExistingTrainingPlan($memberId);
+    
+        if ($existingPlan) {
+            echo View::render('dashboard/training/result', [
+                'plan' => $existingPlan['plan_content'],
+            ]);
+        } else {
+            header('Location: /dashboard/training/start');
+            exit;
+        }
+    }
+
+    public function train() {
+    
+        $memberId = $_SESSION['user_id'];
+        $existingPlan = Training::getExistingTrainingPlan($memberId);
+    
+        if ($existingPlan) {
+            $planData = json_decode($existingPlan['plan_content'], true);
+            $day = $_GET['day'] ?? 'Monday'; // Get the day from the query parameter
+    
+            // Find the data for the selected day
+            $dayContent = null;
+            foreach ($planData['days'] as $d) {
+                if ($d['day'] === $day) {
+                    $dayContent = $d;
+                    break;
+                }
+            }
+    
+            if ($dayContent) {
+                echo View::render('dashboard/training/train', [
+                    'dayContent' => $dayContent,
+                ]);
+            } else {
+                echo "Day not found in the training plan.";
+            }
+        } else {
+            header('Location: /dashboard/training/start');
+            exit;
+        }
+    }
+
+    public function edit() {
+        session_start();
+        $memberId = $_SESSION['user_id'] ?? null;
+    
+        if (!$memberId) {
+            header('Location: /login');
+            exit();
+        }
+    
+        $existingPlan = Training::getExistingTrainingPlan($memberId);
+    
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $inputs = $_POST;
+    
+            // Utiliser les nouvelles valeurs ou conserver les anciennes
+            $updatedData = [
+                'gender' => $inputs['gender'] ?: ($existingPlan['gender'] ?? null),
+                'level' => $inputs['level'] ?: ($existingPlan['level'] ?? null),
+                'goals' => $inputs['goals'] ?: ($existingPlan['goals'] ?? null),
+                'weight' => $inputs['weight'] ?: ($existingPlan['weight'] ?? null),
+                'height' => $inputs['height'] ?: ($existingPlan['height'] ?? null),
+                'constraints' => $inputs['constraints'] ?: ($existingPlan['constraints'] ?? null),
+                'preferences' => $inputs['preferences'] ?: ($existingPlan['preferences'] ?? null),
+                'equipment' => $inputs['equipment'] ?: ($existingPlan['equipment'] ?? null),
+            ];
+    
+            $prompt = Training::buildPrompt($updatedData);
+            $client = Gemini::client($this->apiKey);
+            $result = $client->geminiPro()->generateContent($prompt);
+            $generatedText = $result->text();
+    
+            $updatedData['planContent'] = $generatedText;
+            Training::updateTrainingPlan($memberId, $updatedData);
+    
+            header('Location: /dashboard/training');
+            exit();
+        }
+    
+        echo View::render('dashboard/training/edit', [
+            'existingPlan' => $existingPlan,
+        ]);
+    }
+}
+
+
+--- End of ./src/Controllers/TrainingController.php ---
+
+
+--- Content of ./src/Controllers/BookingController.php: ---
+
+<?php
+
+namespace Controllers;
+
+use Core\APIController;
+use Core\APIResponse;
+use Models\Booking;
+use Models\User;
+
+class BookingController extends APIController
+{
+
+    public function get($reservationId = null) {
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+    
+        if (!$currentUserId) {
+            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
+        }
+    
+        if ($reservationId === null) {
+            // Logic for getting all reservations
+            $user = User::getUserById($currentUserId);
+            $bookings = Booking::getAllReservations();
+    
+            return $response->setStatusCode(200)->setData([
+                'bookings' => $bookings,
+                'user' => $user
+            ])->send();
+        } else {
+            // Logic for getting a specific reservation
+            $reservation = Booking::getReservationById($reservationId);
+            $user = User::getUserById($currentUserId);
+    
+            if (!$reservation) {
+                return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
+            }
+    
+            if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+                return $response->setStatusCode(403)->setData(['error' => 'User not authorized to access this reservation'])->send();
+            }
+    
+            return $response->setStatusCode(200)->setData(['reservation' => $reservation])->send();
+        }
+    }
+
+    public function index()
+    {
+        return $this->handleRequest($_SERVER['REQUEST_METHOD']);
+    }
+
+    public function edit($reservationId)
+    {
+        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $reservationId);
+    }
+
+    public function update($reservationId)
+    {
+        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $reservationId);
+    }
+
+    public function store()
+    {
+        return $this->handleRequest($_SERVER['REQUEST_METHOD']);
+    }
+
+    public function delete($reservation_id = null)
+    {
+        return $this->handleRequest($_SERVER['REQUEST_METHOD'],$reservation_id);
+    }
+    
+    public function post() {
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+        $data = $_POST;
+
+        if (!$currentUserId) {
+            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
+        }
+
+        $member_id = $currentUserId; 
+        $court_id = $data['court_id'];
+        $reservation_date = $data['reservation_date'];
+        $start_time = $data['start_time'];
+        $end_time = $data['end_time'];
+
+        if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_time) || empty($end_time)) {
+            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
+        }
+
+        Booking::addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
+
+        return $response->setStatusCode(201)->setData(['message' => 'Reservation created successfully'])->send();
+    }
+    
+    public function put($reservationId = null) {
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+        $data = $_POST;
+
+        if (!$currentUserId) {
+            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
+        }
+
+        $reservation = Booking::getReservationById($reservationId);
+
+        if (!$reservation) {
+            return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
+        }
+
+        $user = User::getUserById($currentUserId);
+        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized to modify this reservation'])->send();
+        }
+
+        $reservation_date = $data['reservation_date'];
+        $start_time = $data['start_time'];
+        $end_time = $data['end_time'];
+
+        if (empty($reservation_date) || empty($start_time) || empty($end_time)) {
+            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
+        }
+
+        Booking::updateReservation($reservationId, $reservation_date, $start_time, $end_time);
+
+        return $response->setStatusCode(200)->setData(['message' => 'Reservation updated successfully'])->send();
+    }
+
+    public function postDelete($reservationId = null)
+    {
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+
+        if (!$currentUserId) {
+            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
+        }
+
+        $user = User::getUserById($currentUserId);
+        $reservation = Booking::getReservationById($reservationId);
+
+        if (!$reservation) {
+            return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
+        }
+
+        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized to delete this reservation'])->send();
+        }
+
+        Booking::deleteReservation($reservationId);
+
+        return $response->setStatusCode(200)->setData(['message' => 'Reservation deleted successfully'])->send();
+    }
+}
+
+--- End of ./src/Controllers/BookingController.php ---
+
+
+--- Content of ./src/Controllers/HomeController.php: ---
+
+<?php
+// src/Controllers/HomeController.php
+
+namespace Controllers;
+
+use Core\View;
+
+class HomeController
+{
+    public function index()
+    {
+        echo View::renderWithLayout('home/index', 'layouts/main', [
+            'title' => 'Accueil',
+            'content' => 'Bienvenue sur notre site'
+        ]);
+    }
+
+    public function notfound() 
+    {
+        echo View::render('404/404', ['title' => 'Erreur page non trouvée']);
+    }
+}
+
+--- End of ./src/Controllers/HomeController.php ---
+

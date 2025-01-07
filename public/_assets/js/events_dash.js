@@ -25,17 +25,14 @@ function initialize() {
         },
         onEventCreated: function (args) {
             var newEvent = args.event;
-            // Check if the event is in the past
             if (new Date(newEvent.end) < new Date()) {
                 calendar.removeEvent(newEvent);
                 showToast('Cannot create events in the past.', 'error');
                 return;
             }
             
-            tempEventId = newEvent.id; // Store the ID of the newly created event
-            // Check if the user is authorized to create events
+            tempEventId = newEvent.id; 
             if (memberStatus === 'coach' || memberStatus === 'admin') {
-                // Pre-fill the form fields with event data
                 $('#event_name').val(newEvent.title || '');
                 $('#event_date').val(formatDate(newEvent.start));
                 $('#start_time').val(formatTime(newEvent.start));
@@ -43,13 +40,11 @@ function initialize() {
                 $('#description').val(newEvent.description || '');
                 $('#location').val(newEvent.location || '');
 
-                // Show the create event popup
                 createEventPopup.style.display = 'block';
                 popupOverlay.style.display = 'block';
             }
         },
         onEventDeleted: function (args) {
-            // Handle event deletion via AJAX
             $.ajax({
                 url: '/api/events/' + args.event.id,
                 method: 'DELETE',
@@ -63,14 +58,12 @@ function initialize() {
             });
         }
     });
-    // Initialize datepicker for event_date
     mobiscroll.datepicker('#event_date', {
         controls: ['calendar'],
         display: 'center',
         dateFormat: 'YYYY-MM-DD',
     });
 
-    // Initialize timepickers with default constraints
     var startTimePicker = mobiscroll.datepicker('#start_time', {
         controls: ['time'],
         display: 'center',
@@ -78,7 +71,6 @@ function initialize() {
         minTime: '08:00',
         maxTime: '20:00',
         onSet: function(event, inst) {
-            // When start time is selected, update the minTime of end time picker
             endTimePicker.setOptions({ minTime: event.valueText });
         }
     });
@@ -90,12 +82,10 @@ function initialize() {
         minTime: '08:00',
         maxTime: '20:00',
         onSet: function(event, inst) {
-            // When end time is selected, update the maxTime of start time picker
             startTimePicker.setOptions({ maxTime: event.valueText });
         }
     });
 
-    // Event details popup
     const eventDetailsPopup = document.getElementById('eventDetailsPopup');
     const popupOverlay = document.getElementById('popupOverlay');
     const closeDetailsButton = document.getElementById('closeDetailsButton');
@@ -127,7 +117,6 @@ function initialize() {
     let eventDetailsCache = {}
     eventsData = JSON.parse(getCachedEvents());
 
-    // Function to show event details
     function showEventDetails(event) {
         const isAuthorizedToDelete = memberStatus === 'coach' || memberStatus === 'admin';
         const isEventCreator = event.created_by === currentUserId;
@@ -140,7 +129,6 @@ function initialize() {
                 method: 'GET',
                 dataType: 'json',
                 success: function(eventData) {
-                    // Cache the fetched event details
                     eventDetailsCache[event.id] = eventData;
                     populateEventDetailsPopup(eventData, isAuthorizedToDelete, isEventCreator);
                 },
@@ -202,10 +190,9 @@ function initialize() {
         popupOverlay.style.display = 'block';
     }
 
-    // Function to close event details popup
     function closeEventDetailsPopup() {
         eventDetailsPopup.style.display = 'none';
-        popupOverlay.style.display = 'none'; // Hide overlay
+        popupOverlay.style.display = 'none'; 
     }
 
     // Event create popup
@@ -213,29 +200,26 @@ function initialize() {
 
     window.closeCreateEventPopup = function() {
         createEventPopup.style.display = 'none';
-        popupOverlay.style.display = 'none'; // Hide overlay
-        $('#eventForm')[0].reset(); // Reset form on closing
-        // Remove the temporary event if it exists
+        popupOverlay.style.display = 'none'; 
+        $('#eventForm')[0].reset();
         if (tempEventId) {
             calendar.removeEvent(tempEventId);
             tempEventId = null;
         }
-        // Reset the time picker constraints when closing the popup
         startTimePicker.setOptions({ maxTime: '20:00' });
         endTimePicker.setOptions({ minTime: '08:00' });
     }
 
     $('#saveEvent').on('click', function() {
-        var eventName = $('#event_name').val();
-        var eventDate = $('#event_date').val();
-        var startTime = $('#start_time').val();
-        var endTime = $('#end_time').val();
-        var description = $('#description').val();
-        var maxParticipants = $('#max_participants').val();
-        var location = $('#location').val();
-        var invitations = $('#invitations').val();
+        const eventName = $('#event_name').val();
+        const eventDate = $('#event_date').val();
+        const startTime = $('#start_time').val();
+        const endTime = $('#end_time').val();
+        const description = $('#description').val();
+        const maxParticipants = $('#max_participants').val();
+        const location = $('#location').val();
+        const invitations = $('#invitations').val();
 
-        // Validate the duration of the event (max 2 hours)
         var start = new Date(eventDate + 'T' + startTime);
         var end = new Date(eventDate + 'T' + endTime);
         var durationInHours = (end - start) / 1000 / 60 / 60; // Duration in hours
