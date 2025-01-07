@@ -98,6 +98,11 @@ body, html {
     left: 0;
 }
 
+.sidebar a.selected {
+    background-color: #185a3f; /* or your desired color */
+    font-weight: bold;
+}
+
 .sidebar .logo {
     text-align: center;
     margin-bottom: 100px;

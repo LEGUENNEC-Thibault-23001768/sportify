@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
+        <script>
         // Check if jQuery is loaded before using it
         if (typeof jQuery === 'undefined') {
             console.error('jQuery is not loaded!');
@@ -62,164 +62,198 @@
         <!-- Dynamic content will be loaded here -->
     </div>
 
-    <script>
+ <script>
     $(document).ready(function() {
-    const loadedScripts = {};
-    const loadedCSS = {};
-    const contentCache = {}; // Cache HTML content
+        const loadedScripts = {};
+        const loadedCSS = {};
+        const contentCache = {}; // Cache HTML content
+        let currentView = null;
 
-    function loadContent(target, href = null) {
-        if (href) {
-            window.history.pushState({ target: target }, '', href);
-        }
+        function loadContent(target, href = null) {
+            if (href) {
+                window.history.pushState({ target: target }, '', href);
+            }
 
-        // Check if content is in cache
-        if (contentCache[target]) {
-            console.log("Content already cached for:", target);
-            showContent(target);
-            return;
-        }
+            // Check if content is in cache
+            if (contentCache[target]) {
+               console.log("Content already cached for:", target);
+                 showContent(target);
+                  highlightSidebar(target);
+                return;
+             }
+             $('#dynamic-content').fadeTo(200, 0.3); // Start fade-out
 
-        $.ajax({
-            url: '/dashboard/content/' + target,
-            method: 'GET',
-            success: function(response) {
-                // Cache the HTML content
-                contentCache[target] = response;
+           $.ajax({
+                url: '/dashboard/content/' + target,
+                method: 'GET',
+               success: function(response) {
+                   // Cache the HTML content
+                  contentCache[target] = response;
+                  const viewContainer = $(response).filter('[data-view]');
+                   if (viewContainer.length > 0) {
+                       const view = viewContainer.attr('data-view');
+                           console.log("View:", view);
 
-                $('#dynamic-content').html(response);
-                const viewContainer = $('#dynamic-content').find('[data-view]');
-
-                if (viewContainer.length > 0) {
-                    const view = viewContainer.attr('data-view');
-                    console.log("View:", view);
-
-                    // Load CSS (non-blocking)
-                    loadCSS('/_assets/css/' + view + '.css');
-
-                    // Load and execute scripts
-                    loadScript('/_assets/js/' + view + '.js', function() {
-                        if (view === "events_dash") {
-                            loadCSS('/_assets/css/mobiscroll.min.css');
-                            loadScript('/_assets/js/mobiscroll.min.js', () => {
-                                loadScript('/_assets/js/events_dash.js', function() {
+                         loadCSS('/_assets/css/' + view + '.css', function(){
+                            $('#dynamic-content').html(response).fadeTo(200, 1);  // Fade in
+                            loadScript('/_assets/js/' + view + '.js', function() {
+                                if (view === "events_dash") {
+                                    loadCSS('/_assets/css/mobiscroll.min.css', function(){
+                                        loadScript('/_assets/js/mobiscroll.min.js', () => {
+                                         loadScript('/_assets/js/events_dash.js', function() {
+                                                  if (typeof initialize === 'function') {
+                                                         initialize();
+                                                    }
+                                               });
+                                       });
+                                   });
+                                } else {
                                     if (typeof initialize === 'function') {
-                                        initialize();
-                                    }
-                                });
-                            });
-                        } else {
-                            if (typeof initialize === 'function') {
-                                initialize();
-                            }
-                        }
-                    });
-                } else {
-                    console.warn("No data-view attribute found for this content.");
-                }
-            },
+                                       initialize();
+                                     }
+                                   }
+                             });
+                          });
+                       }
+                        else{
+                        console.warn("No data-view attribute found for this content.");
+                      $('#dynamic-content').html(response).fadeTo(200, 1); // Fade in
+                   }
+                  highlightSidebar(target);
+             },
             error: function(xhr, status, error) {
-                console.error("Error: " + status + " - " + error);
-                $('#dynamic-content').html("<p>Error loading content.</p>");
-            }
+               console.error("Error: " + status + " - " + error);
+                  $('#dynamic-content').html("<p>Error loading content.</p>").fadeTo(200, 1);
+             }
+          });
+       }
+
+        function showContent(target) {
+             $('#dynamic-content').html(contentCache[target]).fadeTo(200, 1);
+             const viewContainer = $('#dynamic-content').find('[data-view]');
+             if (viewContainer.length > 0) {
+                 const view = viewContainer.attr('data-view');
+                 if (view === "events_dash") {
+                         loadCSS('/_assets/css/mobiscroll.min.css',function(){
+                              loadScript('/_assets/js/mobiscroll.min.js', () => {
+                                 loadScript('/_assets/js/events_dash.js', function() {
+                                       if (typeof initialize === 'function') {
+                                           initialize();
+                                        }
+                                });
+                           });
+                        });
+                    } else {
+                         if (typeof initialize === 'function') {
+                                initialize();
+                         }
+                     }
+                } else {
+                  console.warn("No data-view attribute found for this content.");
+                }
+        }
+     
+     function loadScript(src, cb) {
+            if (loadedScripts[src]) {
+               console.log('Script already loaded:', src);
+             if (typeof cb === 'function') {
+                  cb();
+               }
+            return;
+         }
+            const script = document.createElement('script');
+            script.src = src;
+             script.async = true;
+            script.onload = function() {
+                  loadedScripts[src] = true;
+                  console.log('Script loaded:', src);
+               if (typeof cb === 'function') {
+                   cb();
+                }
+             };
+             script.onerror = function() {
+                 console.error("Error loading script:", src);
+             };
+            document.body.appendChild(script);
+        }
+         function loadCSS(src, cb) {
+              if (loadedCSS[src]) {
+                    console.log('CSS already loaded:', src);
+                     if (typeof cb === 'function') {
+                        cb();
+                  }
+                  return;
+              }
+              const link = document.createElement('link');
+             link.rel = 'stylesheet';
+              link.href = src;
+              link.onload = function() {
+                  loadedCSS[src] = true;
+                  console.log('CSS loaded:', src);
+                  if (typeof cb === 'function') {
+                        cb();
+                  }
+              };
+              link.onerror = function() {
+                   console.error("Error loading CSS:", src);
+              };
+             document.head.appendChild(link);
+          }
+
+
+      function highlightSidebar(target) {
+            $('.sidebar a').removeClass('selected');
+           $('.sidebar a[data-target="' + target + '"]').addClass('selected');
+         $('.dropdown a[data-target="' + target + '"]').addClass('selected');
+       }
+
+        $('.sidebar a').click(function(e) {
+            e.preventDefault();
+          const target = $(this).data('target');
+             const href = $(this).attr('href');
+            if (target) {
+              loadContent(target, href);
+         }
         });
-    }
 
-    function showContent(target) {
-        $('#dynamic-content').html(contentCache[target]);
-        initialize(); // Re-run initialization for the target view
-    }
-
-    function loadScript(src, cb) {
-        if (loadedScripts[src]) {
-            console.log('Script already loaded:', src);
-            if (typeof cb === 'function') {
-                cb();
-            }
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = src;
-        script.async = true;
-        script.onload = function() {
-            loadedScripts[src] = true;
-            console.log('Script loaded:', src);
-            if (typeof cb === 'function') {
-                cb();
-            }
-        };
-        script.onerror = function() {
-            console.error("Error loading script:", src);
-        };
-        document.body.appendChild(script);
-    }
-
-    function loadCSS(src) {
-        if (loadedCSS[src]) {
-            console.log('CSS already loaded:', src);
-            return;
-        }
-
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = src;
-        link.onload = function() {
-            loadedCSS[src] = true;
-            console.log('CSS loaded:', src);
-        };
-        link.onerror = function() {
-            console.error("Error loading CSS:", src);
-        };
-        document.head.appendChild(link);
-    }
-
-    $('.sidebar a').click(function(e) {
-        e.preventDefault();
-        const target = $(this).data('target');
-        const href = $(this).attr('href');
-        if (target) {
-            loadContent(target, href);
-        }
-    });
-
-    $(window).on('popstate', function(event) {
-        const state = event.originalEvent.state;
+       $(window).on('popstate', function(event) {
+         const state = event.originalEvent.state;
         if (state && state.target) {
-            loadContent(state.target, window.location.pathname);
-        } else {
+             loadContent(state.target, window.location.pathname);
+          } else {
             loadContent('dashboard', '/dashboard');
-        }
-    });
+           }
+        });
 
-    const initialPath = window.location.pathname;
-    if (initialPath.startsWith('/dashboard/')) {
-        const initialContent = initialPath.split('/dashboard/')[1];
-        loadContent(initialContent, initialPath);
-    } else {
-        loadContent('dashboard', '/dashboard');
-    }
+        const initialPath = window.location.pathname;
+        let initialContent = null;
+        if (initialPath.startsWith('/dashboard/')) {
+             initialContent = initialPath.split('/dashboard/')[1];
+        } else {
+            initialContent = 'dashboard';
+       }
+    
+     loadContent(initialContent, initialPath);
 
-    $('#profile-icon').click(function() {
-        $('#dropdown').toggle();
-    });
+        $('#profile-icon').click(function() {
+             $('#dropdown').toggle();
+        });
 
     $(document).click(function(event) {
         if (!$(event.target).closest('#profile-icon, #dropdown').length) {
             $('#dropdown').hide();
         }
     });
-
-    // Handle dropdown "Mon profil" link click
-    $('#dropdown a[data-target]').click(function(e) {
-        e.preventDefault();
-        const target = $(this).data('target');
-        const href = $(this).attr('href');
-        $('#dropdown').hide();
-        loadContent(target, href);
+    
+   // Handle dropdown "Mon profil" link click
+      $('#dropdown a[data-target]').click(function(e) {
+            e.preventDefault();
+          const target = $(this).data('target');
+             const href = $(this).attr('href');
+              $('#dropdown').hide();
+               loadContent(target, href);
+         });
     });
-});
-
     </script>
 </body>
 </html>
