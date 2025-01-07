@@ -37,16 +37,18 @@ class DashboardController
             $subscriptionInfo = Subscription::getStripeSubscriptionId($userId);
         }
 
-        $hasActiveSubscription = $subscriptionInfo["status"];
-
-        $viewData = ['user' => $user, 'hasActiveSubscription' => $hasActiveSubscription, 'subscription' => [
-            'plan_name' => $subscriptionInfo["subscription_type"] ?? "Aucun",
-            'start_date' => $subscriptionInfo["start_date"] ?? "Aucun",
-            'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
-            'amount' => $subscriptionInfo["amount"] ?? 0,
-            'currency' => $subscriptionInfo["currency"] ?? '€',
-            'status' => $subscriptionInfo["status"] ?? "Aucun"
-        ]];
+        $viewData = [
+            'user' => $user,
+            'hasActiveSubscription' => $hasActiveSubscription,
+            'subscription' => [
+                'plan_name' => $subscriptionInfo["subscription_type"] ?? "Aucun",
+                'start_date' => $subscriptionInfo["start_date"] ?? "Aucun",
+                'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
+                'amount' => $subscriptionInfo["amount"] ?? 0,
+                'currency' => $subscriptionInfo["currency"] ?? '€',
+                'status' => $subscriptionInfo["status"] ?? "Aucun"
+            ]
+        ];
 
         if ($user['status'] === 'admin') {
             $totalUsers = Stats::getTotalUsers();
