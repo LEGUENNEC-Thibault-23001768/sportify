@@ -1,14 +1,31 @@
+/* --- General styles --- */
 body {
     font-family: Arial, sans-serif;
-    background-color: #000000; 
-    color: #FFFFFF; 
+    background-color: #000000;
+    color: #FFFFFF;
+}
+
+/* --- Modal Blur Effect --- */
+body.modal-open {
+    overflow: hidden;
+}
+
+body.modal-open .dashboard-content {
+    filter: blur(4px);
+    -webkit-filter: blur(4px);
+    pointer-events: none;
+    user-select: none;
+}
+
+.dashboard-content {
+    transition: filter 0.3s ease-out;
 }
 
 h2 {
     font-size: 60px;
     margin-bottom: 20px;
     font-weight: bold;
-     background: linear-gradient(to right, #ffffff, #000000);
+    background: linear-gradient(to right, #ffffff, #000000);
     -webkit-background-clip: text;
     -moz-background-clip: text;
     -ms-background-clip: text;
@@ -22,30 +39,30 @@ h2 {
     position: relative;
     width: 80%;
     margin: 20px auto;
-    border: 5px solid #000000; 
-    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2); 
+    border: 5px solid #000000;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
     border-radius: 10px;
-    background-color: #000000; 
+    background-color: #000000;
 }
 
 .gym-image {
     width: 100%;
     display: block;
     border-radius: 10px;
-    border: 5px solid #000000; 
+    border: 5px solid #000000;
 }
 
 .room {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.7); 
+    background-color: rgba(0, 0, 0, 0.7);
     color: #FFFFFF;
     padding: 10px;
     border-radius: 5px;
     cursor: pointer;
     text-align: center;
     font-weight: bold;
-    font-size: 0.9em; 
-    transition: transform 0.2s ease, background-color 0.2s ease; 
+    font-size: 0.9em;
+    transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .room:hover {
@@ -53,7 +70,7 @@ h2 {
     background-color: rgba(0, 0, 0, 0.8);
 }
 
-/* Positionnement des zones*/
+/* --- Room Positions --- */
 .room.tennis {
     top: 16%;
     left: 9%;
@@ -96,6 +113,7 @@ h2 {
     height: 10%;
 }
 
+/* --- Buttons --- */
 button {
     background-color: #C1FF72;
     color: #000000;
@@ -112,37 +130,37 @@ button:hover {
     background-color: #A0E65E;
 }
 
-#reservation-form {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #FFFFFF;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    border: 2px solid #C1FF72;
-}
-
+/* --- Reservation List --- */
 #reservations {
     text-align: center;
     margin-top: 20px;
 }
 
 #reservations h3 {
-    color: #1d1c1c96;
+    color: #FFFFFF;
+    /* White text for the heading */
+    font-size: 1.5em;
+    /* Increased font size */
+    font-weight: bold;
+    /* Bold font weight */
+    margin-bottom: 15px;
+    /* Added margin bottom */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    /* Added text shadow */
 }
 
 #reservation-list li {
-    margin: 10px 0;
-    background-color: #f0f0f0;
+    margin: 10px auto;
+    /* Centered the list items */
+    background-color: #4e4949;
     padding: 10px;
     border-radius: 5px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 1em;
+    color: #fff;
+    width: 79%;
 }
 
 #reservation-list li button {
@@ -158,25 +176,41 @@ button:hover {
     background-color: #ff1f1f;
 }
 
-#reservation-container {
+/* --- Reservation & Edit Form Containers --- */
+#reservation-container,
+#edit-reservation-container {
     display: none;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #FFFFFF;
+    background-color: #282828;
+    /* Dark background */
     padding: 20px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
     border-radius: 10px;
     border: 2px solid #C1FF72;
+    /* Green border */
     max-width: 400px;
     width: 100%;
+    z-index: 1001;
 }
 
+#reservation-container h3,
+#edit-reservation-container h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #C1FF72;
+    /* Green text */
+    font-size: 1.5em;
+}
+
+/* --- Form Styles --- */
 label {
     font-size: 1em;
     margin-bottom: 5px;
-    color: #666161;
+    color: #C1FF72;
+    /* Green text */
 }
 
 input[type="text"],
@@ -184,9 +218,12 @@ input[type="date"],
 input[type="time"] {
     padding: 10px;
     border: 1px solid #C1FF72;
+    /* Green border */
     border-radius: 5px;
-    background-color: #ece4e4;
-    color: #4d4949;
+    background-color: #4d4949;
+    /* Dark background */
+    color: #eee;
+    /* Light text */
     font-size: 1em;
 }
 
@@ -194,22 +231,60 @@ input[type="text"]:focus,
 input[type="date"]:focus,
 input[type="time"]:focus {
     border-color: #A0E65E;
+    /* Lighter green on focus */
     outline: none;
 }
 
-#reservation-container h3 {
-    text-align: center;
-    margin-bottom: 10px;
-    color: #807e7e;
-}
-
-#form {
+#reservation-form,
+#edit-reservation-form {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-#reservation-list li {
-    background-color: #4e4949;
-    width: 79%;
+/* --- Edit and Delete Buttons --- */
+.edit-button,
+.delete-button {
+    margin: 0 5px;
+    background-color: #A0E65E;
+    /* Initial background color similar to hover effect */
+    color: #000000;
+    /* Black text color for contrast */
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    /* Smooth transition for hover effect */
+}
+
+#reservation-list li .edit-button:hover,
+#reservation-list li .delete-button:hover {
+    background-color: #ff1f1f;
+}
+
+/* --- Toast Container --- */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.toast {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    opacity: 0.9;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.toast.success {
+    background-color: #28a745;
+}
+
+.toast.error {
+    background-color: #dc3545;
 }

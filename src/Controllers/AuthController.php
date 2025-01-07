@@ -5,24 +5,21 @@ namespace Controllers;
 use Models\User;
 use Core\Auth;
 use Core\View;
+use Google\Auth\OAuth2;
+use GuzzleHttp\Client;
+
 
 class AuthController
 {
+
+
     public function showLoginForm()
     {
-        if (Auth::isLoggedIn()) {
-            header('Location: /dashboard');
-            exit;
-        }
         echo View::render('auth/login');
     }
 
     public function showRegisterForm()
     {
-        if (Auth::isLoggedIn()) {
-            header('Location: /dashboard');
-            exit;
-        }
         echo View::render('auth/register');
     }
 

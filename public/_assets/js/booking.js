@@ -1,132 +1,201 @@
 function initialize() {
-    let reservations = [];
-    const rooms = document.querySelectorAll('.room');
-    const form_res = document.getElementById('reservation-container');
-    const reservationList = document.getElementById('reservation-list');
+    console.log("Booking view initialized");
+    loadReservations();
+    // Other initialization code for booking view, if any
     
-    function displayRoomReservations(roomName) {
-        reservationList.innerHTML = '';
-    
-        const roomReservations = reservations.filter(reservation => reservation.room === roomName);
-    
-        if (roomReservations.length === 0) {
-            const noReservationItem = document.createElement('li');
-            noReservationItem.textContent = `Aucune réservation pour la salle ${roomName}.`;
-            reservationList.appendChild(noReservationItem);
-        } else {
-            roomReservations.forEach(reservation => {
-                const reservationItem = document.createElement('li');
-                reservationItem.textContent = `${reservation.name} a réservé pour le ${reservation.date} de ${reservation.startTime} à ${reservation.endTime}`;
-    
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Supprimer';
-                deleteButton.onclick = function() {
-                    reservations = reservations.filter(r => r !== reservation);
-                    displayRoomReservations(roomName); 
-                };
-    
-                reservationItem.appendChild(deleteButton);
-                reservationList.appendChild(reservationItem);
+}
+let currentUserId = null;
+let userStatus = null;
+let userName = null;
+let memberId = null;
+
+function setUserData(userData) {
+    currentUserId = userData.member_id;
+    userName = userData.first_name;
+    userStatus = userData.status;
+    memberId = userData.member_id;
+}
+
+function openReservationForm(roomElement) {
+    const courtId = roomElement.getAttribute('data-court-id');
+    document.getElementById('court_id').value = courtId;
+    document.getElementById('member_name').value = userName;
+    document.getElementById('member_id').value = memberId;
+    document.getElementById('reservation-container').style.display = 'block';
+
+    $('.gym-map, #reservations, .dashboard-content > h2').addClass('modal-open');
+}
+
+function closeReservationForm() {
+    document.getElementById('reservation-container').style.display = 'none';
+    document.getElementById('reservation-form').reset();
+
+    $('.gym-map, #reservations, .dashboard-content > h2').removeClass('modal-open');
+}
+
+$(document).ready(function() {
+    $('#reserve-button').click(function() {
+        const formData = {
+            court_id: $('#court_id').val(),
+            member_id: memberId,
+            reservation_date: $('#date').val(),
+            start_time: $('#start-time').val(),
+            end_time: $('#end-time').val()
+        };
+
+        $.ajax({
+            url: '/api/booking',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                showSuccessToast('Réservation ajoutée avec succès!');
+                closeReservationForm();
+                loadReservations();
+            },
+            error: function(xhr, status, error) {
+                showErrorToast("Erreur lors de l'ajout de la réservation.");
+                console.error("Error: " + status + " - " + error);
+            }
+        });
+    });
+
+    $('#update-button').click(function() {
+        const reservationId = $('#edit_reservation_id').val();
+        const formData = {
+            reservation_date: $('#edit_date').val(),
+            start_time: $('#edit_start-time').val(),
+            end_time: $('#edit_end-time').val()
+        };
+
+        $.ajax({
+            url: '/api/booking/' + reservationId,
+            type: 'PUT',
+            data: formData,
+            success: function(response) {
+                showSuccessToast('Réservation mise à jour avec succès!');
+                hideEditForm();
+                loadReservations();
+            },
+            error: function(xhr, status, error) {
+                showErrorToast("Erreur lors de la mise à jour de la réservation.");
+                console.error("Error: " + status + " - " + error);
+            }
+        });
+    });
+});
+
+function loadReservations() {
+    $.ajax({
+        url: '/api/booking',
+        type: 'GET',
+        success: function(response) {
+            console.log("Reservations data:", response);
+            setUserData(response.user);
+            displayReservations(response.bookings);
+        },
+        error: function(xhr, status, error) {
+            console.error("Error: " + status + " - " + error);
+        }
+    });
+}
+
+function displayReservations(bookings) {
+    const list = $('#reservation-list');
+    list.empty();
+
+    if (bookings.length === 0) {
+        list.append('<li>Aucune réservation trouvée.</li>');
+        return;
+    }
+
+    bookings.forEach(booking => {
+        let listItem = $('<li></li>');
+        listItem.text(`${booking.reservation_date} - ${booking.start_time} à ${booking.end_time} - ${booking.court_name} (Réservé par ${booking.member_name})`);
+
+        if (booking.member_id == currentUserId || userStatus === 'admin') {
+            let editButton = $(`<button class="edit-button" data-id="${booking.reservation_id}">Modifier</button>`);
+            editButton.click(function() {
+                editReservation(booking.reservation_id);
             });
+
+            let deleteButton = $(`<button class="delete-button" data-id="${booking.reservation_id}">Supprimer</button>`);
+            deleteButton.click(function() {
+                deleteReservation(booking.reservation_id);
+            });
+
+            listItem.append(editButton);
+            listItem.append(deleteButton);
         }
-    
-        form_res.style.display = 'block';
-        document.getElementById('form_res').setAttribute('data-room', roomName);
+
+        list.append(listItem);
+    });
+}
+
+function editReservation(reservationId) {
+    $.ajax({
+        url: '/api/booking/' + reservationId,
+        type: 'GET',
+        success: function(response) {
+            console.log(response);
+            showEditForm(response.reservation);
+        },
+        error: function(xhr, status, error) {
+            showErrorToast("Erreur lors de la récupération des détails de la réservation.");
+            console.error("Error: " + status + " - " + error);
+        }
+    });
+}
+
+function deleteReservation(reservationId) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette réservation?')) {
+        return;
     }
-    
-    rooms.forEach(room => {
-        room.addEventListener('click', () => {
-            const roomName = room.getAttribute('data-room');
-            displayRoomReservations(roomName); 
-        });
-    });
-    
-    function closeReservationForm() {
-        form_res.style.display = 'none';
-    }
-    
-    document.getElementById('form').addEventListener('submit', function(event) {
-    
-        const name = document.getElementById('member_name').value;  // Utiliser 'member_name'
-        const date = document.getElementById('date').value;
-        const startTime = document.getElementById('start-time').value;
-        const endTime = document.getElementById('end-time').value;
-        const room = document.getElementById('form').getAttribute('data-room');
-    
-        if (new Date(`1970-01-01T${startTime}:00`) >= new Date(`1970-01-01T${endTime}:00`)) {
-            alert("L'heure de début doit être antérieure à l'heure de fin.");
-            return;
-        }
-    
-        const isReserved = reservations.some(reservation =>
-            reservation.room === room && reservation.date === date &&
-            (reservation.startTime < endTime && reservation.endTime > startTime)
-        );
-    
-        if (isReserved) {
-            alert(`La salle ${room} est déjà réservée pour le ${date} de ${startTime} à ${endTime}.`);
-        } else {
-            // Ajouter la réservation à votre tableau local
-            reservations.push({ name, date, startTime, endTime, room });
-            
-            // Réinitialiser le formulaire et afficher la réservation dans l'interface
-            form_res.reset();
-            displayRoomReservations(room);
+
+    $.ajax({
+        url: '/api/booking/' + reservationId,
+        type: 'DELETE',
+        success: function(response) {
+            showSuccessToast('Réservation supprimée avec succès!');
+            loadReservations(); // Refresh the list after deletion
+        },
+        error: function(xhr, status, error) {
+            showErrorToast("Erreur lors de la suppression de la réservation.");
+            console.error("Error: " + status + " - " + error);
         }
     });
-    
-    
-    document.getElementById('cancel-button').addEventListener('click', function() {
-        closeReservationForm();
-    });
-    
-    rooms.forEach(room => {
-        room.addEventListener('click', () => {
-            const roomName = room.getAttribute('data-room');
-            const courtId = room.getAttribute('data-court-id');
-            
-            document.getElementById('court_id').value = courtId;
-            displayRoomReservations(roomName); 
-        });
-    });
-    
-    
-    const form = document.getElementById('form');
+}
 
-    form.addEventListener('submit', function(event) {
-        event.preventDefault(); 
+function showEditForm(reservation) {
+    $('#edit_reservation_id').val(reservation.reservation_id);
+    $('#edit_member_name').val(userName);
+    $('#edit_date').val(reservation.reservation_date);
+    $('#edit_start-time').val(reservation.start_time);
+    $('#edit_end-time').val(reservation.end_time);
 
-        const formData = new FormData(form);
+    $('#edit-reservation-container').show();
 
-        fetch('/dashboard/booking/store', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'Accept': 'application/json'  
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error); 
-            } else {
-                const newReservation = document.createElement('li');
-                newReservation.innerHTML = `
-                    ${data.reservation_date} - ${data.start_time} à ${data.end_time} - ${data.court_name} (Réservé par ${data.member_name})
-                    <form action="/dashboard/booking/delete" method="POST" style="display:inline;">
-                        <button type="submit">Supprimer</button>
-                    </form>
-                `;
+    $('.gym-map, #reservations, .dashboard-content > h2').addClass('modal-open');
+}
 
-                reservationList.appendChild(newReservation);
+function hideEditForm() {
+    $('#edit-reservation-container').hide();
+    $('.gym-map, #reservations, .dashboard-content > h2').removeClass('modal-open');
+}
 
-                form.reset();
-            }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            alert('Une erreur est survenue. Veuillez réessayer.');
-        });
-    });
+function cancelEditReservation() {
+    hideEditForm();
+}
 
+function showSuccessToast(message) {
+    const toastContainer = $('#toast-container');
+    const toast = $(`<div class="toast success">${message}</div>`);
+    toastContainer.append(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function showErrorToast(message) {
+    const toastContainer = $('#toast-container');
+    const toast = $(`<div class="toast error">${message}</div>`);
+    toastContainer.append(toast);
+    setTimeout(() => toast.remove(), 3000);
 }

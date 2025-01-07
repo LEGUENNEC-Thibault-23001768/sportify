@@ -2,171 +2,152 @@
 
 namespace Controllers;
 
-use Core\View;
+use Core\APIController;
+use Core\APIResponse;
 use Models\Booking;
 use Models\User;
 
-class BookingController {
+class BookingController extends APIController
+{
 
-
-    public function __construct()
-    {
-        $this->view = new View();
-        $this->userModel = new User();
-        $this->bookingModel = new Booking();
-    }
-
-    public function index() {
-
-        $bookingModel = new Booking();
-
-        session_start();
+    public function get($reservationId = null) {
+        $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
-
-        if (!$currentUserId) {
-            header('Location: /login');
-            exit();
-        }
-
-        $user = $this->userModel->getUserById($currentUserId);
-
-        $bookings = $bookingModel->getAllReservations();  
-        $courts = $bookingModel->getAllCourts();
-
-        echo $this->view->render('dashboard/booking/index', [
-            'bookings' => $bookings,
-            'user' => $user
-        ]);
-    }
-
-    public function store() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-            $bookingModel = new Booking();
-
-            $member_id = $_POST['member_id'];
-            $court_id = $_POST['court_id'];
-            $reservation_date = $_POST['reservation_date'];
-            $start_time = $_POST['start_time'];
-            $end_time = $_POST['end_time'];
     
-
-            if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_time) || empty($end_time)) {
-                echo "noob";
-                return;
+        if (!$currentUserId) {
+            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
+        }
+    
+        if ($reservationId === null) {
+            // Logic for getting all reservations
+            $user = User::getUserById($currentUserId);
+            $bookings = Booking::getAllReservations();
+    
+            return $response->setStatusCode(200)->setData([
+                'bookings' => $bookings,
+                'user' => $user
+            ])->send();
+        } else {
+            // Logic for getting a specific reservation
+            $reservation = Booking::getReservationById($reservationId);
+            $user = User::getUserById($currentUserId);
+    
+            if (!$reservation) {
+                return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
             }
-            
-            var_dump($_POST);
-
-            $bookingModel->addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
     
-            header('Location: /dashboard/booking');
-            exit;
+            if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+                return $response->setStatusCode(403)->setData(['error' => 'User not authorized to access this reservation'])->send();
+            }
+    
+            return $response->setStatusCode(200)->setData(['reservation' => $reservation])->send();
         }
     }
-    
-    
-    public function delete($reservation_id) {
-        session_start();
-        $currentUserId = $_SESSION['user_id'];
-    
-        if (!$currentUserId) {
-            header('Location: /login');
-            exit();
-        }
-    
-        $user = $this->userModel->getUserById($currentUserId);
-        $reservation = $this->bookingModel->getReservationById($reservation_id);
-    
-        if (!$reservation) {
-            $_SESSION['error'] = 'Réservation introuvable.';
-            header('Location: /dashboard/booking');
-            exit();
-        }
-    
-        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
-            $_SESSION['error'] = 'Vous n\'avez pas les droits pour supprimer cette réservation.';
-            header('Location: /dashboard/booking');
-            exit();
-        }
-    
-        $this->bookingModel->deleteReservation($reservation_id);
-        $_SESSION['success'] = 'Réservation supprimée avec succès.';
-        header('Location: /dashboard/booking');
-        exit();
+
+    public function index()
+    {
+        return $this->handleRequest($_SERVER['REQUEST_METHOD']);
     }
 
-    public function edit($reservation_id) {
-        session_start();
-        $currentUserId = $_SESSION['user_id'];
-    
-        if (!$currentUserId) {
-            header('Location: /login');
-            exit();
-        }
-    
-        $reservation = $this->bookingModel->getReservationById($reservation_id);
-        $user = $this->userModel->getUserById($currentUserId);
-    
-        //var_dump($reservation);
+    public function edit($reservationId)
+    {
+        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $reservationId);
+    }
 
-        if (!$reservation) {
-            $_SESSION['error'] = 'Réservation introuvable.';
-            header('Location: /dashboard/booking');
-            exit();
-        }
-    
-        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
-            $_SESSION['error'] = 'Vous n\'avez pas les droits pour modifier cette réservation.';
-            header('Location: /dashboard/booking');
-            exit();
-        }
-        
-   
-        echo $this->view->render('dashboard/booking/edit', ['reservation' => $reservation,'user' => $user]);
+    public function update($reservationId)
+    {
+        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $reservationId);
+    }
+
+    public function store()
+    {
+        return $this->handleRequest($_SERVER['REQUEST_METHOD']);
+    }
+
+    public function delete($reservation_id = null)
+    {
+        return $this->handleRequest($_SERVER['REQUEST_METHOD'],$reservation_id);
     }
     
-    public function update($reservation_id) {
-        session_start();
+    public function post() {
+        $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
-    
+        $data = $_POST;
+
         if (!$currentUserId) {
-            header('Location: /login');
-            exit();
+            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
         }
+
+        $member_id = $currentUserId; 
+        $court_id = $data['court_id'];
+        $reservation_date = $data['reservation_date'];
+        $start_time = $data['start_time'];
+        $end_time = $data['end_time'];
+
+        if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_time) || empty($end_time)) {
+            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
+        }
+
+        Booking::addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
+
+        return $response->setStatusCode(201)->setData(['message' => 'Reservation created successfully'])->send();
+    }
     
-        $reservation = $this->bookingModel->getReservationById($reservation_id);
-    
+    public function put($reservationId = null) {
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+        $data = $_POST;
+
+        if (!$currentUserId) {
+            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
+        }
+
+        $reservation = Booking::getReservationById($reservationId);
+
         if (!$reservation) {
-            $_SESSION['error'] = 'Réservation introuvable.';
-            header('Location: /dashboard/booking');
-            exit();
+            return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
         }
-    
-        $user = $this->userModel->getUserById($currentUserId);
+
+        $user = User::getUserById($currentUserId);
         if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
-            $_SESSION['error'] = 'Vous n\'avez pas les droits pour modifier cette réservation.';
-            header('Location: /dashboard/booking');
-            exit();
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized to modify this reservation'])->send();
         }
-    
-        $reservation_date = $_POST['reservation_date'];
-        $start_time = $_POST['start_time'];
-        $end_time = $_POST['end_time'];
-    
+
+        $reservation_date = $data['reservation_date'];
+        $start_time = $data['start_time'];
+        $end_time = $data['end_time'];
+
         if (empty($reservation_date) || empty($start_time) || empty($end_time)) {
-            $_SESSION['error'] = 'Tous les champs sont requis.';
-            header("Location: /dashboard/booking/{$reservation_id}/edit");
-            exit();
+            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
         }
-    
-        $this->bookingModel->updateReservation($reservation_id, $reservation_date, $start_time, $end_time);
-        $_SESSION['success'] = 'Réservation mise à jour avec succès.';
-        header('Location: /dashboard/booking');
-        exit();
-    }
-    
-    
-    
 
+        Booking::updateReservation($reservationId, $reservation_date, $start_time, $end_time);
+
+        return $response->setStatusCode(200)->setData(['message' => 'Reservation updated successfully'])->send();
+    }
+
+    public function postDelete($reservationId = null)
+    {
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+
+        if (!$currentUserId) {
+            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
+        }
+
+        $user = User::getUserById($currentUserId);
+        $reservation = Booking::getReservationById($reservationId);
+
+        if (!$reservation) {
+            return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
+        }
+
+        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized to delete this reservation'])->send();
+        }
+
+        Booking::deleteReservation($reservationId);
+
+        return $response->setStatusCode(200)->setData(['message' => 'Reservation deleted successfully'])->send();
+    }
 }

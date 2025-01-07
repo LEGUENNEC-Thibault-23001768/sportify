@@ -29,8 +29,7 @@ Router::get('/dashboard/profile', 'DashboardController@showProfile', Auth::requi
 Router::post('/dashboard/profile', 'DashboardController@updateUserProfile', Auth::requireLogin());
 
 // --- Event Routes ---
-Router::get('/dashboard/events', 'EventController@index', Auth::requireLogin());
-Router::get('/api/events', 'EventController@getEvents');
+Router::get('/api/events', 'EventController@getEvents',Auth::requireLogin());  
 Router::get('/api/events/{id}', 'EventController@show');
 Router::post('/api/events', 'EventController@storeApi', [Auth::isAdmin(), Auth::isCoach()]);
 Router::post('/api/events/join/{id}', 'EventController@join', Auth::requireLogin());
@@ -39,12 +38,11 @@ Router::delete('/api/events/{id}', 'EventController@deleteApi', [Auth::isAdmin()
 Router::post('/api/events/{id}/invite', 'EventController@sendInviteApi', [Auth::isAdmin(), Auth::isCoach()]);
 
 // --- Booking Routes ---
-Router::get('/dashboard/booking', 'BookingController@index', Auth::requireLogin());
-Router::get('/dashboard/booking/create', 'BookingController@create', Auth::requireLogin());
-Router::post('/dashboard/booking/store', 'BookingController@store', Auth::requireLogin());
-Router::post('/dashboard/booking/{reservation_id}/delete', 'BookingController@delete', Auth::requireLogin());
-Router::get('/dashboard/booking/{reservation_id}/edit', 'BookingController@edit', Auth::requireLogin());
-Router::post('/dashboard/booking/{reservation_id}/update', 'BookingController@update', Auth::requireLogin());
+Router::get('/api/booking', 'BookingController@index', Auth::requireLogin());
+Router::post('/api/booking', 'BookingController@store', Auth::requireLogin());
+Router::delete('/api/booking/{reservation_id}', 'BookingController@delete', Auth::requireLogin());
+Router::get('/api/booking/{reservation_id}', 'BookingController@edit', Auth::requireLogin());
+Router::put('/api/booking/{reservation_id}', 'BookingController@update', Auth::requireLogin());
 
 // --- Admin Routes ---
 Router::get('/dashboard/admin/users', 'DashboardController@manageUsers', Auth::isAdmin());

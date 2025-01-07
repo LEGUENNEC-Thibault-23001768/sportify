@@ -16,6 +16,12 @@ class Router
         self::addRoute('POST', $url, $handler, $middleware);
     }
 
+    public static function put($url, $handler, $middleware = null)
+    {
+        self::addRoute('POST', $url, $handler, $middleware);
+    }
+
+
     public static function delete($url, $handler, $middleware = null)
     {
         self::addRoute('DELETE', $url, $handler, $middleware);
@@ -115,11 +121,15 @@ class Router
 
         $controllerInstance = new $controller();
 
-        if (!method_exists($controllerInstance, $action)) {
-            throw new \Exception("Action: $action not found in controller: $controller");
+        if ($controllerInstance instanceof \Core\APIController) {
+            return $controllerInstance->handleRequest($_SERVER['REQUEST_METHOD'], ...$params);
+        } else {
+            if (!method_exists($controllerInstance, $action)) {
+                throw new \Exception("Action: $action not found in controller: $controller");
+            }
+            return call_user_func_array([$controllerInstance, $action], $params);
         }
 
-        return call_user_func_array([$controllerInstance, $action], $params);
     }
 
     private static function executeMiddleware($middleware)

@@ -174,7 +174,6 @@
         document.head.appendChild(link);
     }
 
-    // Sidebar navigation
     $('.sidebar a').click(function(e) {
         e.preventDefault();
         const target = $(this).data('target');
@@ -184,7 +183,6 @@
         }
     });
 
-    // Handle back/forward navigation
     $(window).on('popstate', function(event) {
         const state = event.originalEvent.state;
         if (state && state.target) {
@@ -194,7 +192,6 @@
         }
     });
 
-    // Initial content load
     const initialPath = window.location.pathname;
     if (initialPath.startsWith('/dashboard/')) {
         const initialContent = initialPath.split('/dashboard/')[1];
@@ -203,7 +200,6 @@
         loadContent('dashboard', '/dashboard');
     }
 
-    // Dropdown profile
     $('#profile-icon').click(function() {
         $('#dropdown').toggle();
     });

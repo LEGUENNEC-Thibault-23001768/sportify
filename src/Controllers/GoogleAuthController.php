@@ -70,8 +70,6 @@ class GoogleAuthController
                 ];
 
                 User::create($userData);
-                // Assuming create() is a static method in User model
-                // If not, instantiate User and call create on the instance
             }
 
             $_SESSION['user'] = [
