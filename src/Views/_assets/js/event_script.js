@@ -1,67 +1,86 @@
-$(document).ready(function() {
+$(document).ready(function () {
+    const endTimePicker = mobiscroll.datepicker('#end_time', {
+        controls: ['time'],
+        display: 'center',
+        timeFormat: 'HH:mm',
+        minTime: '08:00',
+        maxTime: '20:00',
+        onSet: function (event, inst) {
+            // When end time is selected, update the maxTime of start time picker
+            startTimePicker.setOptions({maxTime: event.valueText});
+        }
+    });
     mobiscroll.setOptions({
         theme: 'ios',
         themeVariant: 'dark'
     });
 
-    var eventsData = JSON.parse(getCachedEvents());
-    var calendar = mobiscroll.eventcalendar('#myCalendar', {
+    function getCalendarData() {
+        var eventsData = JSON.parse(getCachedEvents());
+        var bookingsData = JSON.parse(getBookings());
+        return eventsData.concat(bookingsData);
+    }
+
+    const calendarData = getCalendarData();
+    console.log(calendarData);
+
+    const calendar = mobiscroll.eventcalendar('#myCalendar', {
         view: {
-            schedule: { 
+            schedule: {
                 type: 'week',
                 startTime: '08:00',
                 endTime: '20:00',
-             }
+                startDay: 1,
+                endDay: 0
+            }
         },
-        data: eventsData,
-        clickToCreate: 'double',
-        dragToCreate: true,
-        dragToMove: true,
-        dragToResize: true,
+        data: calendarData,
+        clickToCreate: false,
+        dragToCreate: false,
+        dragToMove: false,
+        dragToResize: false,
         eventDelete: true,
+        onEventCreated: function (args) {
+            console.log(args.event);
+        },
         onEventClick: function (args) {
+            console.log(args.event.type);
             showEventDetails(args.event);
         },
-        onEventCreated: function (args) {
-            var newEvent = args.event;
-            // Check if the event is in the past
-            if (new Date(newEvent.end) < new Date()) {
-                calendar.removeEvent(newEvent);
-                showToast('Cannot create events in the past.', 'error');
-                return;
-            }
-            
-            tempEventId = newEvent.id; // Store the ID of the newly created event
-            // Check if the user is authorized to create events
-            if (memberStatus === 'coach' || memberStatus === 'admin') {
-                // Pre-fill the form fields with event data
-                $('#event_name').val(newEvent.title || '');
-                $('#event_date').val(formatDate(newEvent.start));
-                $('#start_time').val(formatTime(newEvent.start));
-                $('#end_time').val(formatTime(newEvent.end));
-                $('#description').val(newEvent.description || '');
-                $('#location').val(newEvent.location || '');
-
-                // Show the create event popup
-                createEventPopup.style.display = 'block';
-                popupOverlay.style.display = 'block';
-            }
-        },
+        // onEventCreated: onEventCreated,
         onEventDeleted: function (args) {
             // Handle event deletion via AJAX
             $.ajax({
                 url: '/api/events/' + args.event.id,
                 method: 'DELETE',
-                success: function(response) {
+                success: function (response) {
                     console.log("Event deleted successfully");
                 },
-                error: function(error) {
+                error: function (error) {
                     console.error("Error deleting event:", error);
                     showToast("Error deleting event", 'error');
                 }
             });
         }
     });
+
+    window.openCreateEventPopup = function () {
+        // Check if the user is authorized to create events
+        if (memberStatus === 'coach' || memberStatus === 'admin') {
+            // Pre-fill the form fields with event data
+            $('#event_name').val('');
+            $('#event_date').val(formatDate(new Date()));
+            $('#start_time').val(formatTime(new Date().getTime()));
+            $('#end_time').val(formatTime(new Date().getTime()));
+            $('#description').val('');
+            $('#location').val('');
+
+            // Show the create event popup
+            createEventPopup.style.display = 'block';
+            popupOverlay.style.display = 'block';
+        }
+    }
+
     // Initialize datepicker for event_date
     mobiscroll.datepicker('#event_date', {
         controls: ['calendar'],
@@ -70,29 +89,18 @@ $(document).ready(function() {
     });
 
     // Initialize timepickers with default constraints
-    var startTimePicker = mobiscroll.datepicker('#start_time', {
+    const startTimePicker = mobiscroll.datepicker('#start_time', {
         controls: ['time'],
         display: 'center',
         timeFormat: 'HH:mm',
         minTime: '08:00',
         maxTime: '20:00',
-        onSet: function(event, inst) {
+        onSet: function (event, inst) {
             // When start time is selected, update the minTime of end time picker
-            endTimePicker.setOptions({ minTime: event.valueText });
+            endTimePicker.setOptions({minTime: event.valueText});
         }
     });
 
-    var endTimePicker = mobiscroll.datepicker('#end_time', {
-        controls: ['time'],
-        display: 'center',
-        timeFormat: 'HH:mm',
-        minTime: '08:00',
-        maxTime: '20:00',
-        onSet: function(event, inst) {
-            // When end time is selected, update the maxTime of start time picker
-            startTimePicker.setOptions({ maxTime: event.valueText });
-        }
-    });
 
     // Event details popup
     const eventDetailsPopup = document.getElementById('eventDetailsPopup');
@@ -106,49 +114,75 @@ $(document).ready(function() {
     // caching events
 
     function getCachedEvents() {
+        let eventsData;
         $.ajax({
             url: '/api/events',
             method: 'GET',
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
+                eventsData = data;
                 localStorage.setItem('eventsData', JSON.stringify(data));
-                calendar.setEvents(data);
+                // calendar.setEvents(data);
             },
-            error: function(error) {
+            error: function (error) {
                 console.error("Error fetching events data:", error);
                 showToast("Error fetching events data", 'error');
             }
         });
-        return localStorage.getItem('eventsData');
+        return eventsData || localStorage.getItem('eventsData');
+    }
+
+    function getBookings() {
+        let bookingsData;
+        $.ajax({
+            url: '/api/booking',
+            method: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                console.log(data);
+                bookingsData = data;
+                localStorage.setItem('bookingsData', JSON.stringify(data));
+                // calendar.setEvents(data);
+            },
+            error: function (error) {
+                console.error("Error fetching bookings data:", error);
+                showToast("Error fetching bookings data", 'error');
+            }
+        });
+        return bookingsData || localStorage.getItem('bookingsData');
     }
 
 
     let eventDetailsCache = {}
-    eventsData = JSON.parse(getCachedEvents());
 
     // Function to show event details
     function showEventDetails(event) {
         const isAuthorizedToDelete = memberStatus === 'coach' || memberStatus === 'admin';
         const isEventCreator = event.created_by === currentUserId;
 
-        if (eventDetailsCache[event.id]) {
-            populateEventDetailsPopup(eventDetailsCache[event.id], isAuthorizedToDelete, isEventCreator);
-        } else {
-            $.ajax({
-                url: '/api/events/' + event.id,
-                method: 'GET',
-                dataType: 'json',
-                success: function(eventData) {
-                    // Cache the fetched event details
-                    eventDetailsCache[event.id] = eventData;
-                    populateEventDetailsPopup(eventData, isAuthorizedToDelete, isEventCreator);
-                },
-                error: function(error) {
-                    console.error("Error fetching event details:", error);
-                    showToast("Error fetching event details", 'error');
-                }
-            });
-        }
+        console.log(event);
+        console.log(eventDetailsCache[event.id]);
+
+        populateEventDetailsPopup(event, isAuthorizedToDelete, isEventCreator);
+
+        // if (eventDetailsCache[event.id]) {
+        //     populateEventDetailsPopup(eventDetailsCache[event.id], isAuthorizedToDelete, isEventCreator);
+        // } else {
+        //     $.ajax({
+        //         url: '/api/events/' + event.id,
+        //         method: 'GET',
+        //         dataType: 'json',
+        //         success: function (eventData) {
+        //             // Cache the fetched event details
+        //             eventDetailsCache[event.id] = eventData;
+        //             populateEventDetailsPopup(eventData, isAuthorizedToDelete, isEventCreator);
+        //         },
+        //         error: function (error) {
+        //             console.error("Error fetching event details:", error);
+        //             showToast("Error fetching event details", 'error');
+        //         }
+        //     });
+        // }
     }
 
 
@@ -181,11 +215,15 @@ $(document).ready(function() {
             </div>
         ` : '';
 
+        const startDate = new Date(eventData.start);
+        const startTime = new Date(eventData.start).getTime();
+        const endTime = new Date(eventData.end).getTime();
+
         const eventContent = `
-            <h2>${eventData.event_name}</h2>
-            <p><strong>Date:</strong> ${eventData.event_date}</p>
-            <p><strong>Start Time:</strong> ${eventData.start_time}</p>
-            <p><strong>End Time:</strong> ${eventData.end_time}</p>
+            <h2>${eventData.title}</h2>
+            <p><strong>Date:</strong> ${formatDate(startDate)}</p>
+            <p><strong>Start Time:</strong> ${formatTime(startTime)}</p>
+            <p><strong>End Time:</strong> ${formatTime(endTime)}</p>
             <p><strong>Location:</strong> ${eventData.location}</p>
             <p><strong>Description:</strong> ${eventData.description}</p>
             <p><strong>Max Participants:</strong> ${eventData.max_participants}</p>
@@ -210,21 +248,21 @@ $(document).ready(function() {
     // Event create popup
     const createEventPopup = document.getElementById('createEventPopup');
 
-    function closeCreateEventPopup() {
+    window.closeCreateEventPopup = function () {
         createEventPopup.style.display = 'none';
         popupOverlay.style.display = 'none'; // Hide overlay
         $('#eventForm')[0].reset(); // Reset form on closing
         // Remove the temporary event if it exists
-        if (tempEventId) {
-            calendar.removeEvent(tempEventId);
-            tempEventId = null;
-        }
+        // if (tempEventId) {
+        //     calendar.removeEvent(tempEventId);
+        //     tempEventId = null;
+        // }
         // Reset the time picker constraints when closing the popup
-        startTimePicker.setOptions({ maxTime: '20:00' });
-        endTimePicker.setOptions({ minTime: '08:00' });
+        startTimePicker.setOptions({maxTime: '20:00'});
+        endTimePicker.setOptions({minTime: '08:00'});
     }
 
-    $('#saveEvent').on('click', function() {
+    $('#saveEvent').on('click', function () {
         var eventName = $('#event_name').val();
         var eventDate = $('#event_date').val();
         var startTime = $('#start_time').val();
@@ -234,21 +272,26 @@ $(document).ready(function() {
         var location = $('#location').val();
         var invitations = $('#invitations').val();
 
-        // Validate the duration of the event (max 2 hours)
-        var start = new Date(eventDate + 'T' + startTime);
-        var end = new Date(eventDate + 'T' + endTime);
-        var durationInHours = (end - start) / 1000 / 60 / 60; // Duration in hours
-
-        if (durationInHours > 2) {
-            showToast('Error: Event duration cannot exceed 2 hours.', 'error');
-            return;
-        }
-
-        // Validate max_participants
-        if (maxParticipants < 5) {
-            showToast('Error: Maximum participants must be at least 5.', 'error');
-            return;
-        }
+        // // Validate the duration of the event (max 2 hours)
+        // var start = new Date(eventDate + 'T' + startTime);
+        // if (start < new Date()) {
+        //     showToast('Error: Event start time cannot be in the past.', 'error');
+        //     return;
+        // }
+        // var end = new Date(eventDate + 'T' + endTime);
+        // var durationInHours = (end - start) / 1000 / 60 / 60; // Duration in hours
+        // console.log(durationInHours);
+        //
+        // if (durationInHours > 2) {
+        //     showToast('Error: Event duration cannot exceed 2 hours.', 'error');
+        //     return;
+        // }
+        //
+        // // Validate max_participants
+        // if (maxParticipants < 5) {
+        //     showToast('Error: Maximum participants must be at least 5.', 'error');
+        //     return;
+        // }
 
         $.ajax({
             url: '/api/events',
@@ -264,8 +307,9 @@ $(document).ready(function() {
                 location: location,
                 invitations: invitations
             },
-            success: function(response) {
+            success: function (response) {
                 if (response && response.id) {
+                    console.log(response)
                     calendar.addEvent({
                         id: response.id,
                         title: response.title,
@@ -274,30 +318,30 @@ $(document).ready(function() {
                         description: response.description,
                         location: response.location
                     });
-                    
+
                     closeCreateEventPopup();
                     location.reload();
                 } else {
                     console.error("Error: Invalid response format", response);
                 }
             },
-            error: function(error) {
+            error: function (error) {
                 console.error("Error creating event:", error);
                 showToast("Error creating event: " + error.responseJSON.error, 'error');
             }
         });
     });
 
-    $('#cancelEvent').on('click', function() {
+    $('#cancelEvent').on('click', function () {
         closeCreateEventPopup();
-        if (tempEventId) {
-            calendar.removeEvent(tempEventId);
-            tempEventId = null;
-        }
+        // if (tempEventId != null) {
+        //     calendar.removeEvent(tempEventId);
+        //     tempEventId = null;
+        // }
     });
 
     // Function to delete an event
-    window.deleteEvent = function(eventId) {
+    window.deleteEvent = function (eventId) {
         if (!confirm('Are you sure you want to delete this event?')) {
             return;
         }
@@ -305,13 +349,13 @@ $(document).ready(function() {
         $.ajax({
             url: '/api/events/' + eventId,
             method: 'DELETE',
-            success: function(response) {
+            success: function (response) {
                 console.log("Event deleted successfully");
                 calendar.removeEvent(eventId);
                 closeEventDetailsPopup();
                 location.reload();
             },
-            error: function(error) {
+            error: function (error) {
                 console.error("Error deleting event:", error);
                 showToast("Error deleting event: " + error.responseJSON.error, 'error');
             }
@@ -319,21 +363,21 @@ $(document).ready(function() {
     }
 
     // Function to send an invitation
-    window.sendInvite = function(eventId) {
+    window.sendInvite = function (eventId) {
         var email = $('#invite_email').val();
         if (email) {
             $.ajax({
                 url: '/api/events/' + eventId + '/invite',
                 method: 'POST',
                 dataType: 'json',
-                data: { email: email },
-                success: function(response) {
+                data: {email: email},
+                success: function (response) {
                     console.log("Invitation sent successfully");
                     $('#invite_email').val('');
                     showToast("Invitation sent successfully", 'success');
                     closeEventDetailsPopup();
                 },
-                error: function(error) {
+                error: function (error) {
                     console.error("Error sending invitation:", error);
                     showToast("Error sending invitation: " + error.responseJSON.error, 'error');
                 }
@@ -343,34 +387,34 @@ $(document).ready(function() {
         }
     }
 
-    window.joinEvent = function(eventId) {
+    window.joinEvent = function (eventId) {
         $.ajax({
             url: '/api/events/join/' + eventId,
             method: 'POST',
-            success: function(response) {
+            success: function (response) {
                 console.log("Joined event successfully");
                 calendar.removeEvent(eventId);
                 calendar.addEvent(response.event);
                 closeEventDetailsPopup();
             },
-            error: function(error) {
+            error: function (error) {
                 console.error("Error joining event:", error);
                 showToast("Error joining event", 'error');
             }
         });
     };
 
-    window.leaveEvent = function(eventId) {
+    window.leaveEvent = function (eventId) {
         $.ajax({
             url: '/api/events/leave/' + eventId,
             method: 'POST',
-            success: function(response) {
+            success: function (response) {
                 console.log("Left event successfully");
                 calendar.removeEvent(eventId);
                 calendar.addEvent(response.event);
                 closeEventDetailsPopup();
             },
-            error: function(error) {
+            error: function (error) {
                 console.error("Error leaving event:", error);
                 showToast("Error leaving event", 'error');
             }
@@ -384,9 +428,9 @@ $(document).ready(function() {
             day = '' + d.getDate(),
             year = d.getFullYear();
 
-        if (month.length < 2) 
+        if (month.length < 2)
             month = '0' + month;
-        if (day.length < 2) 
+        if (day.length < 2)
             day = '0' + day;
 
         return [year, month, day].join('-');
@@ -398,16 +442,16 @@ $(document).ready(function() {
             hours = '' + d.getHours(),
             minutes = '' + d.getMinutes();
 
-        if (hours.length < 2) 
+        if (hours.length < 2)
             hours = '0' + hours;
-        if (minutes.length < 2) 
+        if (minutes.length < 2)
             minutes = '0' + minutes;
 
         return [hours, minutes].join(':');
     }
 
-        // Function to show a toast notification
-        function showToast(message, type = 'success') {
+    // Function to show a toast notification
+    function showToast(message, type = 'success') {
         // Create toast element
         var toast = $(`<div class="toast-message toast-${type}">` + message + '<span class="close-toast">×</span></div>');
 
@@ -415,12 +459,12 @@ $(document).ready(function() {
         $('#toast-container').append(toast);
 
         // Show the toast
-        toast.fadeIn(400).delay(3000).fadeOut(400, function() {
+        toast.fadeIn(400).delay(3000).fadeOut(400, function () {
             $(this).remove();
         });
 
         // Close button functionality
-        toast.find('.close-toast').click(function() {
+        toast.find('.close-toast').click(function () {
             toast.remove();
         });
     }

@@ -27,22 +27,22 @@ body, html {
 }
 
 .navbar .logo {
-    margin-right: auto; /* Pousse le logo à l'extrême gauche */
+    margin-right: auto;
 }
 
 .navbar .profile-info {
     display: flex;
     flex-direction: row-reverse;
     align-items: center;
-    margin-right: 20px; /* Ajout d'une marge à droite pour séparer du profil */
+    margin-right: 20px;
 }
 
 .navbar .profile-name {
     padding: 0 10px;
     font-size: 16px;
-    color: #ffffff; 
-    background: none; 
-    border: none; 
+    color: #ffffff;
+    background: none;
+    border: none;
 }
 
 .navbar .profile-icon {
@@ -51,8 +51,8 @@ body, html {
 }
 
 .navbar .profile-icon img {
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     cursor: pointer;
     transition: transform 0.3s ease;
@@ -66,7 +66,7 @@ body, html {
 .navbar .dropdown {
     display: none;
     position: absolute;
-    top: 60px;
+    top: 50px;
     right: 0;
     background-color: rgba(0, 0, 0, 0.8);
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
@@ -174,7 +174,7 @@ body, html {
 
 .dashboard-content {
     padding: 20px;
-    margin-left: 240px; 
+    margin-left: 240px;
 }
 
 h1 {
@@ -183,73 +183,65 @@ h1 {
     -webkit-background-clip: text;
     color: transparent;
     margin-bottom: 20px;
-    
 }
 
-.coach-panel, .admin-panel {
-    min-height: 165px;
-    width: 45%;
-    margin: 20px 20px 30px; /* Espace autour de chaque panneau (haut, droite, bas) */
-    padding: 20px; 
-    background-color: #111;
+.coach-panel, .admin-panel, .card {
+    padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    display: inline-block; 
-    vertical-align: top; 
+    background: linear-gradient(145deg, rgba(47, 47, 47, 0.9), rgba(9, 9, 9, 0.8));
+    width: 45%;
+    margin: 15px;
+    display: inline-block;
+    vertical-align: top;
+    height: auto; /* La hauteur s'adapte automatiquement au contenu */
 }
 
 .coach-panel h2, .admin-panel h2 {
-    font-size: 28px;
+    font-size: 22px;
     color: #C1FF72;
-    margin-bottom: 10px;
-}
-
-.card {
-    width: 45%;
-    height: 195px;
-    margin: 20px; 
-    padding: 25px;
-    background-color: #222; 
-    color: #fff; 
-    border-radius: 8px; 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    display: inline-block; 
-    vertical-align: top; 
+    margin-bottom: 8px;
 }
 
 .card-row {
     display: flex;
-    justify-content: flex-start; 
-    gap: 5px; 
-    margin-top: 20px;
+    justify-content: flex-start;
+    gap: 5px;
+    margin-top: 15px;
 }
 
 .small-card {
-    min-height: 115px;
-    width: 735px; 
-    background-color: #333; 
+    min-height: 130px;
+    width: 735px;
     border-radius: 8px;
     color: #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    padding: 10px; 
-    margin: 19px; 
+    padding: 10px;
+    margin: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
-
+.small-card canvas {
+    max-height: 300px;
+    max-width: 100%;
+    margin-bottom: 10px;
+}
 
 .card-title {
-    font-size: 28px; 
-    color: #C1FF72; 
-    margin-bottom: 10px;
+    font-size: 22px;
+    color: #C1FF72;
+    margin-bottom: 8px;
     font-weight: bold;
 }
 
 .btn {
-    display: inline-block; 
+    display: inline-block;
     margin: 5px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    padding: 12px 20px; 
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 10px 15px;
     background-color: #C1FF72;
     color: #000;
     text-align: center;
@@ -269,72 +261,76 @@ h1 {
 }
 
 .alert {
-    padding: 20px;
+    padding: 15px;
     background-color: #a1e55e;
     color: rgb(0, 0, 0);
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     border-radius: 8px;
     text-align: center;
 }
 
 .rapport-activite,
 .prochaines-reservations {
-    font-size: 28px; 
-    color: #C1FF72; 
-    margin-bottom: 10px; 
+    font-size: 22px;
+    color: #C1FF72;
+    margin-bottom: 8px;
 }
 
 .card-value {
     padding-left: 10px;
     padding-top: 8px;
-    font-size: 16px; /* Réduit la taille de police */
-    color: #ffffff; /* Garde la couleur verte, ou change selon tes préférences */
+    font-size: 14px;
+    color: #ffffff;
 }
 
 .card ul {
-    list-style-type: none; 
-    padding-left: 0; 
-    margin: 10px 0; 
+    list-style-type: none;
+    padding-left: 0;
+    margin: 5px 0;
+    overflow: hidden;
 }
 
 .card ul li {
-    padding: 7px; 
-    border-radius: 5px; 
-    margin-bottom: 10px; 
-    border: none; 
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    border: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .card ul li button {
     background-color: #C1FF72;
     color: #000;
-    border: none; 
-    padding: 10px 15px; 
-    border-radius: 5px; 
-    cursor: pointer; 
-    transition: background-color 0.3s ease; 
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 .card ul li button:hover {
-    background-color: #a1e55e; 
-    outline: none; 
+    background-color: #a1e55e;
+    outline: none;
 }
 
 .subscription-status {
     display: flex;
     align-items: center;
-    margin-right: 20px; /* Ajoute une marge à droite */
+    margin-right: 10px;
 }
 
 .subscribe-button {
     background-color: #C1FF72;
     color: #000;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 15px;
     border-radius: 5px;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    margin-right: 20px;
+    margin-right: 10px;
 }
 
 .subscribe-button:hover {
@@ -343,11 +339,56 @@ h1 {
 
 .active-subscription {
     color: #C1FF72;
-    margin-right: 20px;
-    font-size: 18px;
+    margin-right: 10px;
+    font-size: 16px;
 }
 
 #registrationsChart, #topActivitiesChart {
-    margin-top: 20px;
-    margin-bottom: 40px;
+    margin-top: 15px;
+    margin-bottom: 30px;
+}
+
+.emoji-image {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+    vertical-align: middle;
+    display: inline-block;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 10px rgba(193, 255, 114, 0.5);
+    padding: 5px;
+}
+
+.card h3 .emoji-image,
+.card-title .emoji-image {
+    background-color: rgba(135, 206, 250, 0.9);
+    box-shadow: 0 0 10px rgba(135, 206, 250, 0.5);
+}
+
+.card-row .small-card .emoji-image {
+    background-color: rgba(255, 127, 127, 0.9);
+    box-shadow: 0 0 10px rgba(255, 127, 127, 0.5);
+}
+
+.coach-panel h2 .emoji-image,
+.admin-panel h2 .emoji-image {
+    background-color: rgba(255, 239, 168, 0.9);
+    box-shadow: 0 0 10px rgba(255, 239, 168, 0.5);
+}
+
+.coach-panel {
+    background: linear-gradient(145deg, rgba(47, 47, 47, 0.9), rgba(9, 9, 9, 0.8));
+}
+
+.admin-panel {
+    background: linear-gradient(145deg, rgba(47, 47, 47, 0.9), rgba(9, 9, 9, 0.8));
+}
+
+.card {
+    background: linear-gradient(145deg, rgba(47, 47, 47, 0.9), rgba(9, 9, 9, 0.8));
+}
+
+.small-card {
+    background: linear-gradient(145deg, rgba(47, 47, 47, 0.9), rgba(9, 9, 9, 0.8));
 }

@@ -5,377 +5,331 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Manage Users</title>
     <style>
-        /* General Styling */
-        body {
-            font-family: sans-serif;
-            background-color: #181818;
-            color: #eee;
-            margin: 0;
-            padding: 0;
-        }
+body {
+    font-family: 'League Spartan', sans-serif;
+    background-color: #000000;
+    color: #eeeeee;
+    margin: 0;
+    padding: 0;
+}
 
-        .container {
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #282828;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
+.container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 30px;
+    background-color: #000000;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
 
-        h1, h3 {
-            color: #eee;
-        }
+h1, h3 {
+    color: #C1FF72;
+}
 
-        /* Search Form */
-        .search-form {
-            margin-bottom: 20px;
-        }
+.search-form {
+    margin-bottom: 20px;
+}
 
-        .search-form label {
-            display: block;
-            margin-bottom: 5px;
-        }
+.search-form label {
+    display: block;
+    margin-bottom: 5px;
+    color: #aaaaaa;
+}
 
-        .search-form input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            background-color: #333;
-            color: #eee;
-        }
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-        .search-form button {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            background-color: #0077cc;
-            color: #fff;
-            cursor: pointer;
-        }
+.search-container .form-control {
+    width: 300px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #222222;
+    color: #eeeeee;
+}
 
-        /* Table */
-        .user-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+.search-container .form-control:focus {
+    outline: none;
+}
 
-        .user-table th,
-        .user-table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #555;
-        }
+.search-container .btn-primary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #C1FF72;
+    color: #000000;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
 
-        .user-table th {
-            background-color: #333;
-        }
+.search-container .btn-primary:hover {
+    background-color: #eeeeee;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+}
 
-        /* Action Buttons */
-        .user-table .btn {
-            display: inline-block;
-            padding: 6px 12px;
-            margin-right: 5px;
-            text-decoration: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+.user-table {
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    border-collapse: collapse;
+}
 
-        .user-table .btn-edit {
-            background-color: #ffaa00;
-            color: #fff;
-            border: none;
-        }
+.user-table th, .user-table td {
+    padding: 20px 25px;
+    text-align: left;
+    border-bottom: 1px solid #333333;
+    color: #eeeeee;
+}
 
-        .user-table .btn-delete {
-            background-color: #cc0000;
-            color: #fff;
-            border: none;
-        }
+.user-table th {
+    background: linear-gradient(to bottom, rgb(25, 25, 25), rgb(51, 51, 51));
+    color: #C1FF72;
+    font-weight: bold;
+    font-size: 16px;
+    padding: 15px 10px;
+    text-align: left;
+}
 
-        /* Alerts */
-        .alert {
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
+.user-table th, .user-table td {
+    white-space: nowrap;
+}
 
-        .alert-success {
-            background-color: #008800;
-            color: #fff;
-        }
+.user-table {
+    table-layout: auto;
+}
 
-        .alert-danger {
-            background-color: #880000;
-            color: #fff;
-        }
+.user-table tr:hover {
+    background-color: #222222;
+}
 
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
+/* Action Buttons */
+.user-table .btn {
+    display: inline-block;
+    padding: 10px 15px;
+    margin-right: 5px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
 
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #282828;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 90%;
-        }
+.user-table .btn-edit {
+    background-color: #ffaa33;
+    color:rgb(255, 255, 255);
+    border: none;
+}
 
-        .modal-header {
-            border-bottom: 1px solid #555;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            position: relative; /* Added for absolute positioning of close button */
-        }
+.user-table .btn-edit:hover {
+    background-color: #ffcc66;
+    box-shadow: 0 0 10px rgba(255, 204, 102, 0.8);
+}
 
-        .modal-title {
-            color: #eee;
-            margin: 0;
-            text-align: center;
-            width: 100%;
-            font-size: 24px; /* Increased title size */
-        }
+.user-table .btn-delete {
+    background-color: #ff3d3d;
+    color: #ffffff;
+    border: none;
+}
 
-        .modal-close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: #aaa;
-            cursor: pointer;
-        }
+.user-table .btn-delete:hover {
+    background-color: #ff6666;
+    box-shadow: 0 0 10px rgba(255, 102, 102, 0.8);
+}
 
-        .modal-form label {
-            display: block;
-            margin-bottom: 5px;
-        }
+/* Alerts */
+.alert {
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
 
-        .modal-form input,
-        .modal-form select {
-            width: 95%;
-            padding: 8px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            background-color: #333;
-            color: #eee;
-            margin-bottom: 10px;
-        }
+.alert-success {
+    background-color: #008000;
+    color: #ffffff;
+}
 
-        .modal-form .form-group {
-            margin-bottom: 15px;
-        }
+.alert-danger {
+    background-color: #ff0000;
+    color: #ffffff;
+}
 
-        .modal-footer {
-            text-align: right;
-            margin-top: 20px;
-        }
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
 
-        .modal-footer .btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            color: #fff;
-            cursor: pointer;
-        }
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #000000;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 600px;
+}
 
-        .modal-footer .btn-secondary {
-            background-color: #555;
-            margin-right: 10px;
-        }
+.modal-header {
+    border-bottom: 1px solid #333333;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
 
-        .modal-footer .btn-primary {
-            background-color: #0077cc;
-        }
+.modal-title {
+    color: #C1FF72;
+    text-align: center;
+    font-size: 24px;
+}
 
-        /* Modal Form */
-        .modal-form label {
-            display: block;
-            margin-bottom: 5px;
-        }
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #aaaaaa;
+    cursor: pointer;
+}
 
-        .modal-form input,
-        .modal-form select {
-            width: 95%;
-            padding: 8px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            background-color: #333;
-            color: #eee;
-            margin-bottom: 10px;
-        }
+/* Modal Form */
+.modal-form label {
+    color: #aaaaaa;
+    display: block;
+    margin-bottom: 5px;
+}
 
-        .modal-form .form-group {
-            margin-bottom: 15px;
-        }
+.modal-form input, .modal-form select {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #222222;
+    color: #eeeeee;
+    margin-bottom: 15px;
+}
 
-        /* Modal Animation */
-        .modal.show {
-            display: block;
-            animation: fadeIn 0.3s ease-out;
-        }
+.modal-form input:focus, .modal-form select:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(193, 255, 114, 0.5);
+}
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+.modal-footer {
+    text-align: right;
+}
 
-        /* Blurred Background */
-        body.modal-open {
-            overflow: hidden;
-        }
+.modal-footer .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
 
-        body.modal-open .main-content {
-            filter: blur(4px);
-            pointer-events: none;
-            user-select: none;
-        }
+.modal-footer .btn-primary {
+    background-color: #C1FF72;
+    color: #000000;
+}
 
-        .main-content {
-            transition: filter 0.3s ease-out;
-        }
+.modal-footer .btn-primary:hover {
+    background-color: #eeeeee;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
 
-        .modal-tab-buttons {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
-            margin-bottom: 10px; /* Reduced margin */
-        }
+.modal-footer .btn-secondary {
+    background-color: #444444;
+    color: #eeeeee;
+}
 
-        .modal-tab-buttons button {
-            background: none;
-            border: none;
-            padding: 0;
-            font-size: 16px;
-            color: #aaa;
-            cursor: pointer;
-            margin: 0 10px;
-            border-bottom: 2px solid transparent;
-            transition: border-bottom-color 0.3s ease, color 0.3s ease;
-        }
+.modal-footer .btn-secondary:hover {
+    background-color: #666666;
+}
 
-        .modal-tab-buttons button.active {
-            color: #eee;
-            border-bottom-color: #0077cc;
-        }
+.sort-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-left: -40px;
+}
 
-        .modal-tab-content {
-            display: none;
-            opacity: 0; /* Initially hidden for transition */
-            transition: opacity 0.3s ease; /* Added transition */
-        }
+.dropdown {
+    display: inline-block;
+    position: relative;
+    margin-left: 5px;
+}
 
-        .modal-tab-content.active {
-            display: block;
-            opacity: 1; /* Make visible when active */
-        }
+.dropdown-btn {
+    background: none;
+    color: #eeeeee;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 5px 10px;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
 
-        .error-message {
-            color: red;
-            margin-top: 10px;
-        }
-        .modal-form button, .modal-footer button {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            color: #fff;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+.dropdown-btn:hover {
+    background-color: #333333;
+    color: #C1FF72;
+}
 
-        .modal-form button:hover, .modal-footer button:hover {
-            opacity: 0.8;
-        }
+.arrow-down {
+    font-size: 10px;
+    margin-left: 5px;
+}
 
-        .modal-form button.btn-primary, .modal-footer button.btn-primary {
-            background-color: #0077cc;
-        }
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #222222;
+    border: 1px solid #444444;
+    border-radius: 5px;
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    min-width: 150px;
+}
 
-        .modal-form button.btn-secondary, .modal-footer button.btn-secondary {
-            background-color: #555;
-        }
+.dropdown-menu li {
+    padding: 10px 15px;
+    cursor: pointer;
+    color: #eeeeee;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
 
-        .modal-form button.btn-danger, .modal-footer button.btn-danger {
-            background-color: #cc0000;
-        }
+.dropdown-menu li:hover {
+    background-color: #333333;
+    color: #C1FF72;
+}
 
-        .modal-form button.btn-success, .modal-footer button.btn-success {
-            background-color: #008800;
-        }
+.dropdown.open .dropdown-menu {
+    display: block;
+}
 
-        .modal-form input, .modal-form select {
-            width: 95%;
-            padding: 8px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            background-color: #333;
-            color: #eee;
-            margin-bottom: 10px;
-            transition: border-color 0.3s ease;
-        }
-
-        .modal-form input:focus, .modal-form select:focus {
-            border-color: #0077cc;
-            outline: none;
-        }
-
-        #subscription-tab .form-group input {
-            width: 95%;
-            padding: 8px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            background-color: #333;
-            color: #eee;
-            margin-bottom: 10px;
-            transition: border-color 0.3s ease;
-        }
-
-        #subscription-tab .form-group input:focus {
-            border-color: #0077cc;
-            outline: none;
-        }
-
-        #subscription-tab .btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            color: #fff;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 10px; /* Added some space above buttons */
-        }
-
-        #subscription-tab .btn:hover {
-            opacity: 0.8;
-        }
-
-        #subscription-tab .btn-primary {
-            background-color: #0077cc;
-        }
-
-        #subscription-tab .btn-danger {
-            background-color: #cc0000;
-        }
-
-        #subscription-tab .btn-success {
-            background-color: #008800;
-        }
     </style>
 </head>
 <body>
@@ -398,26 +352,38 @@
         <h1 class="mt-5">Gestion des Utilisateurs</h1>
 
         <form method="GET" action="" class="search-form">
-            <div class="form-group">
-                <label for="search">Rechercher par nom, prénom ou email :</label>
-                <input type="text" name="search" id="search" class="form-control" placeholder="Rechercher un utilisateur" value="<?= htmlspecialchars($searchTerm) ?>">
-            </div>
-            <button type="submit" class="btn btn-primary mt-2">Rechercher</button>
-        </form>
+    <label for="search">Rechercher par nom, prénom ou email :</label>
+    <div class="search-container">
+        <input type="text" name="search" id="search" class="form-control" placeholder="Rechercher un utilisateur" value="<?= htmlspecialchars($searchTerm) ?>">
+        <button type="submit" class="btn btn-primary">Rechercher</button>
+    </div>
+</form>
+
 
         <?php if (!empty($searchTerm)): ?>
             <h3 class="mt-4">Résultats de la recherche pour : "<?= htmlspecialchars($searchTerm) ?>"</h3>
         <?php endif; ?>
 
         <table class="user-table mt-4">
-            <thead>
-                <tr>
-                    <th>Nom</th>
-                    <th>Prenom</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Actions</th>
+            <th class="sort-header">
+                <div class="dropdown">
+                    <button class="dropdown-btn">Trier <span class="arrow-down">▼</span></button>
+                    <ul class="dropdown-menu">
+                        <li data-sort="last_name">Nom</li>
+                        <li data-sort="first_name">Prénom</li>
+                        <li data-sort="email">Email</li>
+                        <li data-sort="status">Status</li>
+                    </ul>
+                </div>
+            </th>
+        </tr>
             </thead>
             <tbody>
                 <?php if (!empty($users)): ?>
@@ -443,7 +409,6 @@
     </div>
 </div>
 
-<!-- Edit User Modal -->
 <div class="modal" id="editUserModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -563,7 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         document.querySelector('.modal-tab-buttons button[data-tab="user-tab"]').classList.add('active');
         document.getElementById('user-tab').classList.add('active');
-        document.getElementById('user-tab').style.opacity = 1; // Make sure it's visible
+        document.getElementById('user-tab').style.opacity = 1;
     }
 
     function clearForm() {
@@ -623,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('subscription-error').textContent = data.error;
                 } else {
                     alert(data.message || 'Subscription updated successfully.');
-                    fetchUserSubscription(userId); // Refresh the subscription data
+                    fetchUserSubscription(userId);
                 }
             })
             .catch(error => {
@@ -651,11 +616,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('phone').value = user.phone;
                     document.getElementById('status').value = user.status;
     
-                    // Show user tab by default
                     document.getElementById('user-tab').classList.add('active');
                     document.getElementById('subscription-tab').classList.remove('active');
     
-                    // Highlight the User Details tab button
                     document.querySelector('.modal-tab-buttons button[data-tab="user-tab"]').classList.add('active');
                     document.querySelector('.modal-tab-buttons button[data-tab="subscription-tab"]').classList.remove('active');
                 })
@@ -717,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('subscription-error').textContent = data.error;
                 } else {
                     alert(data.message);
-                    fetchUserSubscription(userId); // Refresh the subscription data
+                    fetchUserSubscription(userId); 
                 }
             })
             .catch(error => {
@@ -738,7 +701,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('subscription-error').textContent = data.error;
                 } else {
                     alert(data.message);
-                    fetchUserSubscription(userId); // Refresh the subscription data
+                    fetchUserSubscription(userId);
                 }
             })
             .catch(error => {
@@ -750,26 +713,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const tabButtons = document.querySelectorAll('.modal-tab-buttons button');
         tabButtons.forEach(button => {
             button.addEventListener('click', function() {
-                // Remove active class from all buttons and hide all tabs
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 document.querySelectorAll('.modal-tab-content').forEach(tab => {
                     tab.classList.remove('active');
-                    tab.style.opacity = 0; // Reset opacity for the transition
+                    tab.style.opacity = 0;
                 });
     
-                // Add active class to the clicked button and show the corresponding tab
                 this.classList.add('active');
                 const tabId = this.dataset.tab;
                 const activeTab = document.getElementById(tabId);
                 activeTab.classList.add('active');
     
-                // Force a reflow to ensure the opacity reset takes effect before adding the new opacity
                 activeTab.offsetWidth;
     
-                // Fade in the active tab
                 activeTab.style.opacity = 1;
     
-                // If the subscription tab is active, fetch the subscription data
                 if (tabId === 'subscription-tab') {
                     fetchUserSubscription(currentUserId);
                 }
@@ -788,6 +746,45 @@ document.addEventListener('DOMContentLoaded', function() {
             resumeUserSubscription(currentUserId);
         });
 });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropdown = document.querySelector('.dropdown');
+        const dropdownBtn = dropdown.querySelector('.dropdown-btn');
+        const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+        const tableBody = document.querySelector('.user-table tbody');
+
+        dropdownBtn.addEventListener('click', function () {
+            dropdown.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        });
+
+        dropdownMenu.addEventListener('click', function (e) {
+            if (e.target.tagName === 'LI') {
+                const sortKey = e.target.dataset.sort;
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const aText = a.querySelector(`td:nth-child(${getColumnIndex(sortKey) + 1})`).textContent.trim();
+                    const bText = b.querySelector(`td:nth-child(${getColumnIndex(sortKey) + 1})`).textContent.trim();
+                    return aText.localeCompare(bText, undefined, { numeric: true, sensitivity: 'base' });
+                });
+
+                tableBody.innerHTML = '';
+                rows.forEach(row => tableBody.appendChild(row));
+                dropdown.classList.remove('open');
+            }
+        });
+
+        function getColumnIndex(column) {
+            const columns = ['last_name', 'first_name', 'email', 'status'];
+            return columns.indexOf(column);
+        }
+    });
 
 </script>
 

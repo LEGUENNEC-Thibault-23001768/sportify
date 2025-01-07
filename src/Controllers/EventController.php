@@ -7,6 +7,8 @@ use Core\Config;
 use Core\View;
 use DateMalformedStringException;
 use Exception;
+use DateTime;
+use Models\Booking;
 use Models\Event;
 use Models\EventInvitation;
 use Models\EventRegistration;
@@ -94,11 +96,11 @@ class EventController
             return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
         }
 
-        $start = new \DateTime($eventData['event_date'] . 'T' . $eventData['start_time']);
-        $end = new \DateTime($eventData['event_date'] . 'T' . $eventData['end_time']);
+        $start = new DateTime($eventData['event_date'] . 'T' . $eventData['start_time']);
+        $end = new DateTime($eventData['event_date'] . 'T' . $eventData['end_time']);
         $duration = $start->diff($end);
 
-        if ($duration->h >= 2) {
+        if ($duration->h > 2) {
             return $response->setStatusCode(400)->setData(['error' => 'Event duration cannot exceed 2 hours'])->send();
         }
 
@@ -107,6 +109,27 @@ class EventController
         }
 
         $eventData['created_by'] = $currentUserId;
+
+        $reservations = Booking::getAllReservations();
+        $myResa = null;
+        foreach ($reservations as $reservation) {
+            if ($reservation['court_name'] == $eventData['location'] && $reservation['reservation_date'] == $eventData['event_date']) {
+                $myResa = $reservation;
+                break;
+            }
+        }
+        if (!isset($myResa)) {
+            return $response->setStatusCode(500)->setData(['error' => 'Location was not found'])->send();
+        }
+
+        if ($myResa['event_id'] != null) {
+            return $response->setStatusCode(500)->setData(['error' => 'Location is already booked'])->send();
+        }
+
+        if ($myResa['start_time'] > $eventData['start_time'] || $myResa['end_time'] < $eventData['end_time']) {
+            return $response->setStatusCode(500)->setData(['error' => 'Event is starting too early or ending too late'])->send();
+        }
+
         $eventId = Event::createEvent($eventData);
 
         if (!empty($eventData['invitations'])) {
@@ -121,9 +144,15 @@ class EventController
             }
         }
 
+        if (!isset($eventData['participants'])) {
+            $eventData['participants'] = [];
+        }
+
         if (!$eventId) {
             return $response->setStatusCode(500)->setData(['error' => 'Failed to create event'])->send();
         }
+
+        Booking::updateReservation($myResa['reservation_id'], $myResa['reservation_date'], $myResa['start_time'], $myResa['end_time'], $eventId);
 
         $mobiscrollEvent = [
             'id' => $eventId,
@@ -135,6 +164,7 @@ class EventController
             'max_participants' => $eventData['max_participants'],
             'created_by' => $eventData['created_by'],
             'is_registered' => false,
+            'participants' => $eventData['participants'] || [],
         ];
 
         return $response->setStatusCode(201)->setData($mobiscrollEvent)->send();
@@ -242,19 +272,34 @@ class EventController
         $event = Event::findEvents($eventId);
 
         if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
-            $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
-            return;
+            return $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
         }
 
         if (!$event) {
-            $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
-            return;
+            return $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+        }
+
+        $reservations = Booking::getAllReservations();
+        $myResa = null;
+        foreach ($reservations as $reservation) {
+            if ($reservation['court_name'] == $event['location'] && $reservation['reservation_date'] == $event['event_date']) {
+                $myResa = $reservation;
+                break;
+            }
+        }
+
+        if (isset($myResa)) {
+            if ($myResa['event_id'] == null) return null;
+
+            if ($myResa['event_id'] == $eventId) {
+                Booking::updateReservation($myResa['reservation_id'], $myResa['reservation_date'], $myResa['start_time'], $myResa['end_time'], null);
+            }
         }
 
         if (Event::deleteEvent($eventId)) {
-            $response->setData(['message' => 'Event deleted successfully'])->send();
+            return $response->setData(['message' => 'Event deleted successfully'])->send();
         } else {
-            $response->setStatusCode(500)->setData(['error' => 'Failed to delete event'])->send();
+            return $response->setStatusCode(500)->setData(['error' => 'Failed to delete event'])->send();
         }
     }
 
@@ -319,13 +364,21 @@ class EventController
             return $response->setStatusCode(400)->setData(['error' => 'You are already registered for this event'])->send();
         }
 
-        if ($event['participants_count'] >= $event['max_participants']) {
-            return $response->setStatusCode(400)->setData(['error' => 'The event is already full'])->send();
+        $updatedEvent = Event::findEvents($eventId);
+        $participantsCount = 0;
+        if (isset($event['participants'])) $participantsCount = count($event['participants']);
+
+        if ($participantsCount >= $updatedEvent['max_participants']) {
+//        if ($event['participants_count'] >= $event['max_participants']) {
+        return $response->setStatusCode(400)->setData(['error' => 'The event is already full'])->send();
         }
 
         EventRegistration::registerUserToEvent($eventId, $currentUserId);
+        $registrations = EventRegistration::getParticipantsByEvent($eventId);
+        foreach ($registrations as $registration) {
+            $updatedEvent['participants'][] = User::getUserById($registration['member_id']);
+        }
 
-        $updatedEvent = Event::findEvents($eventId);
         $updatedEventData = [
             'id' => $updatedEvent['event_id'],
             'title' => $updatedEvent['event_name'],
@@ -335,6 +388,7 @@ class EventController
             'location' => $updatedEvent['location'],
             'max_participants' => $updatedEvent['max_participants'],
             'created_by' => $updatedEvent['created_by'],
+            'participants' => $updatedEvent['participants'],
             'is_registered' => true
         ];
 
@@ -371,6 +425,7 @@ class EventController
             'location' => $updatedEvent['location'],
             'max_participants' => $updatedEvent['max_participants'],
             'created_by' => $updatedEvent['created_by'],
+            'participants' => EventRegistration::getParticipantsByEvent($eventId),
             'is_registered' => false
         ];
 

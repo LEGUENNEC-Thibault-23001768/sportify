@@ -2,6 +2,7 @@
 
 namespace Controllers;
 
+use Core\APIResponse;
 use Core\View;
 use Exception;
 use Models\Booking;
@@ -9,6 +10,10 @@ use Models\User;
 
 class BookingController
 {
+
+    private View $view;
+    private User $userModel;
+    private Booking $bookingModel;
 
     private View $view;
     private User $userModel;
@@ -26,6 +31,7 @@ class BookingController
      * @throws Exception
      */
     public function index(): void
+
     {
 
         $bookingModel = new Booking();
@@ -53,6 +59,7 @@ class BookingController
      * @return void
      */
     public function store(): void
+
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -188,9 +195,36 @@ class BookingController
             return;
         }
 
-        $this->bookingModel->updateReservation($reservation_id, $reservation_date, $start_time, $end_time);
+        Booking::updateReservation($reservation_id, $reservation_date, $start_time, $end_time, null);
         $_SESSION['success'] = 'Réservation mise à jour avec succès.';
         header('Location: /dashboard/booking');
+    }
+
+    public function getBookings()
+    {
+        $currentUserId = $_SESSION['user_id'];
+        $member = User::getUserById($currentUserId);
+        $bookings = Booking::getAllReservations();
+
+//        return $bookings;
+        $mobiscrollBookings = [];
+        foreach ($bookings as $booking) {
+
+            $mobiscrollBookings[] = [
+                'type' => 'booking',
+                'id' => "booking_" . $booking['reservation_id'],
+                'title' => $booking['court_name'],
+                'start' => $booking['reservation_date'] . 'T' . $booking['start_time'],
+                'end' => $booking['reservation_date'] . 'T' . $booking['end_time'],
+                'location' => $booking['court_name'],
+                'created_by' => $booking['member_id'],
+                'color' => 'orange',
+//                'is_registered' => EventRegistration::isUserRegistered($booking['event_id'], $currentUserId),
+            ];
+        }
+
+        $response = new APIResponse();
+        $response->setStatusCode(200)->setData($mobiscrollBookings)->send();
     }
 
 }
