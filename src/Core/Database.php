@@ -14,7 +14,7 @@ define('DB_NAME', 'sportify_db');
 
 class Database
 {
-    private static PDO $conn;
+    private static ?PDO $conn = null;
 
     private function __construct()
     {
