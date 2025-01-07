@@ -98,18 +98,8 @@ Router::get('/dashboard/training/train', 'TrainingController@train', Auth::requi
 Router::post('/api/training/process-step', 'TrainingController@apiProcessStep', Auth::requireLogin());
 Router::post('/api/training/generate', 'TrainingController@apiGenerate', Auth::requireLogin());
 
-// --- Coach Booking Routes ---
-Router::get('/dashboard/coach-bookings', 'CoachBookingController@index', Auth::requireLogin());
-Router::get('/dashboard/coach-bookings/create', 'CoachBookingController@create', Auth::requireLogin());
-Router::post('/dashboard/coach-bookings/store', 'CoachBookingController@store', Auth::requireLogin());
-Router::post('/dashboard/coach-bookings/{booking_id}/delete', 'CoachBookingController@delete', Auth::requireLogin());
-Router::get('/dashboard/coach-bookings/{booking_id}/edit', 'CoachBookingController@edit', Auth::requireLogin());
-Router::post('/dashboard/coach-bookings/{booking_id}/update', 'CoachBookingController@update', Auth::requireLogin());
-Router::get('/api/coaches', 'CoachBookingController@getCoaches'); // Ajout de la route API pour récupérer les coachs
-
+// reservation de coach
 use Controllers\TrainerController;
-
-// Route pour obtenir les informations d'un coach
 Router::get('/api/trainers/{id}', function($id) {
     $controller = new TrainerController();
     $controller->show($id);
@@ -117,22 +107,14 @@ Router::get('/api/trainers/{id}', function($id) {
 
 Router::post('/api/reservation', 'TrainerController@saveReservation', Auth::requireLogin());
 Router::get('/api/reservations/{coachId}', 'TrainerController@getReservations');
+Router::delete('/api/reservation/delete/{reservationId}', 'TrainerController@deleteReservation', Auth::requireLogin());
+Router::post('/api/reservation/update/{reservationId}', 'TrainerController@updateReservation', Auth::requireLogin());
 
-
-
-
-
-
-
-// --- CONTENT LOADER ---
 Router::get('/dashboard/content/{category}/*', 'DashboardController@contentLoader', Auth::requireLogin());
 
 $url = $_SERVER['REQUEST_URI'];
 try {
     Router::dispatch($url);
 } catch (Exception $e) {
-    //http_response_code(404);
-    //header("Location: /404");
-    //exit();
     echo "Page not found: " . $e->getMessage();
 }

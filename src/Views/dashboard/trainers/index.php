@@ -8,7 +8,7 @@ $user_id = $_SESSION['user_id'] ?? null;
 ?>
 
 <script>
-    const memberId = <?= json_encode($user_id) ?>; // Injecte l'ID utilisateur dans JavaScript
+    const memberId = <?= json_encode($user_id) ?>; 
 </script>
 <?php
 use Core\Database;

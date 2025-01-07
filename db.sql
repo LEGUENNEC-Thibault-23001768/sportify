@@ -42,7 +42,7 @@ CREATE TABLE COACH (
 CREATE TABLE AVAILABILITY (
     availability_id INT AUTO_INCREMENT PRIMARY KEY,
     coach_id INT NOT NULL,
-    day_of_week VARCHAR(10) NOT NULL, -- Ex : 'Monday', 'Tuesday'
+    day_of_week VARCHAR(10) NOT NULL, 
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     FOREIGN KEY (coach_id) REFERENCES COACH(coach_id) ON DELETE CASCADE

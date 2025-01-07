@@ -63,8 +63,6 @@ function showTrainerDetails(trainer, user) {
 
     $(`#reserve-btn-${trainer.coach_id}`).on('click', function() {
         const selectedTrainer = trainer;
-        console.log("Coach sélectionné :", selectedTrainer);
-    
         if (user) {
             const clientName = `${user.first_name} ${user.last_name}`;
             console.log("Nom du client :", clientName);
@@ -94,6 +92,8 @@ function showTrainerDetails(trainer, user) {
                             <div class="color-option" data-color="#ffa726" style="background-color: #ffa726; width: 20px; height: 20px; display: inline-block;"></div>
                         </div>
                         <button id="save-btn" style="margin-top: 10px;">Enregistrer la réservation</button>
+                        <button id="delete-reservation" class="delete-reservation" >Supprimer la réservation</button>
+                        <button id="update-reservation" class="update-reservation" >Modifier la réservation</button>
                     </div>
                     <button class="back-btn" style="margin-top: 20px;">Retour</button>
                 </div>
@@ -109,11 +109,17 @@ function showTrainerDetails(trainer, user) {
                 console.log("Fermeture du formulaire...");
                 form.style.display = 'none';
             });
+            function closeForm() {
+                const form = document.getElementById('event-form');
+                console.log("Fermeture du formulaire...");
+                form.style.display = 'none';
+            }
     
             document.getElementById('save-btn').addEventListener('click', function () {
+
                 const eventDateValue = document.getElementById('event-date').value;
                 console.log("Valeur de la date de réservation :", eventDateValue);
-            
+
                 if (!eventDateValue || !eventDateValue.includes('T')) {
                     console.error("Format invalide ou champ vide pour #event-date:", eventDateValue);
                     alert("Veuillez sélectionner une date et une heure valides.");
@@ -139,8 +145,10 @@ function showTrainerDetails(trainer, user) {
                     return;
                 }
             
-                const now = new Date(); 
+                const now = new Date();
                 const reservationDateTime = new Date(`${reservationDate}T${startTime}`);
+                console.log("Date actuelle :", now);
+                console.log("Date de réservation :", reservationDateTime);
             
                 if (reservationDateTime < now) {
                     alert("Impossible de réserver dans le passé. Veuillez choisir une date et une heure valides.");
@@ -148,66 +156,82 @@ function showTrainerDetails(trainer, user) {
                 }
             
                 const activity = document.getElementById('event-activity').value;
-                const coachId = trainer.coach_id;
+                const coachId = trainer?.coach_id || null; 
                 const selectedColor = document.querySelector('.color-option.selected')?.getAttribute('data-color');
-    
+            
+                console.log("Activité :", activity);
+                console.log("Coach ID :", coachId);
                 console.log("Couleur sélectionnée :", selectedColor);
-                console.log("Données de réservation :", {
-                    memberId, activity, reservationDate, startTime, endTime, coachId, selectedColor
-                });
+            
+                if (!coachId) {
+                    console.error("Coach ID non défini. Vérifiez que 'trainer' est correctement initialisé.");
+                    alert("Erreur interne : Coach non défini.");
+                    return;
+                }
+            
+                const reservationData = {
+                    member_id: memberId,
+                    activity,
+                    reservation_date: reservationDate,
+                    start_time: startTime,
+                    end_time: endTime,
+                    coach_id: coachId,
+                    color: selectedColor || '#4981d6'
+                };
+            
+                console.log("Données envoyées au serveur :", reservationData);
             
                 fetch('/api/reservation', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        member_id: memberId, 
-                        activity,
-                        reservation_date: reservationDate,
-                        start_time: startTime,
-                        end_time: endTime,
-                        coach_id: coachId,
-                        color: selectedColor || '#4981d6'
-                    }),
+                    body: JSON.stringify(reservationData),
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Réservation enregistrée avec succès !');
-                
-                        const newEvent = {
-                            title: `Réservation: ${activity}`,
-                            start: `${reservationDate}T${startTime}`,
-                            end: `${reservationDate}T${endTime}`,
-                            color: selectedColor || '#4981d6'
-                        };
-                        inst.addEvent(newEvent);
-                        console.log("Événement ajouté au calendrier : ", newEvent);
-                
-                        const form = document.getElementById('event-form');
-                        if (form) {
-                            console.log('Formulaire trouvé, fermeture...');
-                            form.style.display = 'none';
+                    .then(response => {
+                        console.log("Réponse brute du serveur :", response);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Réponse JSON du serveur :", data);
+            
+                        if (data.success) {
+                            alert('Réservation enregistrée avec succès !');
+            
+                            const newEvent = {
+                                title: `Réservation: ${activity}`,
+                                start: `${reservationDate}T${startTime}`,
+                                end: `${reservationDate}T${endTime}`,
+                                color: selectedColor || '#4981d6'
+                            };
+            
+                            console.log("Événement à ajouter au calendrier :", newEvent);
+                            inst.addEvent(newEvent);
+            
+                            const form = document.getElementById('event-form');
+                            if (form) {
+                                console.log("Formulaire trouvé, fermeture...");
+                                form.style.display = 'none';
+                            } else {
+                                console.error("Formulaire introuvable.");
+                            }
                         } else {
-                            console.error('Formulaire introuvable ! Vérifiez l\'ID #event-form.');
+                            if (data.message === 'Ce créneau est déjà réservé.') {
+                                alert('Ce créneau est déjà réservé. Veuillez choisir un autre créneau.');
+                            } else {
+                                alert('Erreur lors de la réservation. Veuillez réessayer.');
+                            }
+                            console.error("Erreur côté serveur :", data);
                         }
-                    } else {
-                        if (data.message === 'Ce créneau est déjà réservé.') {
-                            alert('Ce créneau est déjà réservé. Veuillez choisir un autre créneau.');
-                        } else {
-                            alert('Erreur lors de la réservation. Veuillez réessayer.');
-                        }
-                        console.error("Erreur serveur :", data);
-                    }
-                })
-                .catch(error => {
-                    console.error("Erreur réseau :", error);
-                    alert('Impossible de contacter le serveur.');
-                });
-                
+                    })
+                    .catch(error => {
+                        console.error("Erreur réseau :", error);
+                        alert('Impossible de contacter le serveur.');
+                    });
             });
-    
+            
+            
+
             const inst = mobiscroll.eventcalendar('#demo-mobile-day-view', {
                 view: {
                     schedule: {
@@ -229,18 +253,11 @@ function showTrainerDetails(trainer, user) {
                     const endDateTime = args.event.end;
                     const startDateFormatted = startDateTime.toISOString().slice(0, 16);
                     const endTimeFormatted = endDateTime.toTimeString().slice(0, 5);
-   
 
-
-
-            
-
-                    // Remplir les champs du formulaire
                     document.getElementById('event-title').value = args.event.title === "Nom du client" ? clientName : args.event.title;
-                    document.getElementById('event-date').value = startDateFormatted; // Remplit le champ datetime-local
-                    document.getElementById('event-end-time').value = endTimeFormatted; // Remplit le champ time
+                    document.getElementById('event-date').value = startDateFormatted; 
+                    document.getElementById('event-end-time').value = endTimeFormatted; 
             
-                    // Gestion des couleurs
                     document.querySelectorAll('.color-option').forEach(option => {
                         if (option.getAttribute('data-color') === args.event.color) {
                             option.classList.add('selected');
@@ -248,14 +265,24 @@ function showTrainerDetails(trainer, user) {
                             option.classList.remove('selected');
                         }
                     });
+                    const saveBtn = document.getElementById('save-btn'); 
+                    const eventId = args.event.id;
+
+                    const eventIdStr = String(eventId);
             
-                    // Mise à jour dynamique du titre de l'événement
+                    if (eventIdStr && !eventIdStr.startsWith('mbsc_')) { 
+                        console.log(`Réservation existante trouvée avec l'ID : ${eventIdStr}`);
+                        if (saveBtn) saveBtn.style.display = 'none'; 
+                    } else {
+                        console.log("Aucun ID valide de réservation trouvé. Nouveau formulaire actif.");
+                        if (saveBtn) saveBtn.style.display = 'block';
+                    }
+        
                     document.getElementById('event-title').oninput = function () {
                         args.event.title = this.value;
                         inst.updateEvent(args.event);
                     };
-            
-                    // Mise à jour dynamique de la couleur de l'événement
+
                     document.querySelectorAll('.color-option').forEach(option => {
                         option.onclick = function () {
                             document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
@@ -264,11 +291,26 @@ function showTrainerDetails(trainer, user) {
                             inst.updateEvent(args.event);
                         };
                     });
+                    const deleteButton = document.getElementById('delete-reservation');
+                    if (deleteButton && args.event.id) {
+                        deleteButton.setAttribute('data-id', args.event.id); 
+                        console.log('ID de la réservation assigné au bouton de suppression:', args.event.id);
+                    } else {
+                        console.error('Erreur : L\'ID de la réservation est manquant ou le bouton de suppression est introuvable.');
+                    }
+                    const updateButton = document.getElementById('update-reservation');
+                    if (updateButton && args.event.id) {
+                        updateButton.setAttribute('data-id', args.event.id); 
+                        console.log('ID de la réservation assigné au bouton de modif:', args.event.id);
+                    } else {
+                        console.error('Erreur : L\'ID de la réservation est manquant ou le bouton de modif est introuvable.');
+                    }
+    
+
                 },
                 data: [] 
             });
-            
-    
+
             console.log("Coach ID:", selectedTrainer.coach_id);
     
             $.ajax({
@@ -277,17 +319,18 @@ function showTrainerDetails(trainer, user) {
                 dataType: 'json',
                 success: function(data) {
                     console.log("Réponse du serveur :", data);
-    
+            
                     if (Array.isArray(data) && data.length > 0) {
                         const events = data.map(reservation => ({
+                            id: reservation.id, 
                             title: ` ${reservation.title}`,
-                            start: new Date(reservation.start), 
+                            start: new Date(reservation.start),
                             end: new Date(reservation.end),
-                            color: reservation.color || '#4981d6'     
+                            color: reservation.color || '#4981d6'
                         }));
-                        
+            
                         console.log("Événements formatés :", events);
-    
+            
                         if (typeof inst !== 'undefined' && inst.setEvents) {
                             inst.setEvents(events);
                             console.log("Événements ajoutés au calendrier");
@@ -303,9 +346,107 @@ function showTrainerDetails(trainer, user) {
                     console.log('Réponse complète du serveur :', xhr.responseText);
                 }
             });
+            
         } else {
             alert('Utilisateur non connecté');
         }
+
+        document.addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete-reservation')) {
+                const reservationId = event.target.getAttribute('data-id');
+                console.log('ID de la réservation à supprimer:', reservationId);
+            
+                if (!reservationId) {
+                    console.error('Erreur : Aucun ID trouvé pour cette réservation.');
+                    alert('Impossible de supprimer : ID de réservation manquant.');
+                    return;
+                }
+            
+                if (confirm('Êtes-vous sûr de vouloir supprimer cette réservation ?')) {
+                    fetch(`/api/reservation/delete/${reservationId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                    })
+                        .then(response => response.text())  
+                        .then(data => {
+                            console.log('Réponse brute du serveur:', data);  
+                            try {
+                                const jsonData = JSON.parse(data);  
+                                if (jsonData.success) {
+                                    console.log('Réservation supprimée avec succès :', jsonData);
+                                    alert('Réservation supprimée avec succès.');
+                                } else {
+                                    console.error('Erreur API :', jsonData.message);
+                                    alert('Erreur : ' + jsonData.message);
+                                }
+                            } catch (err) {
+                                console.error('Erreur de parsing JSON :', err);
+                                alert('Erreur serveur ou format de réponse invalide.');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Erreur réseau :', err);
+                            alert('Erreur de connexion avec le serveur.');
+                        });
+                }
+            }
+
+        });
+
+        document.getElementById('update-reservation').addEventListener('click', function() {
+            const reservationId = this.getAttribute('data-id'); 
+            
+            const newStartDate = document.getElementById('event-date').value; 
+            const newEndDate = document.getElementById('event-end-time').value; 
+            const selectedColorOption = document.querySelector('.color-option.selected');
+            let newColor = null;
+            
+            if (selectedColorOption) {
+                newColor = selectedColorOption.dataset.color;
+            } else {
+                console.error('Aucune option de couleur sélectionnée.');
+                alert('Veuillez sélectionner une couleur.');
+                return;
+            }
+
+            if (!newStartDate || !newEndDate || !newColor) {
+                alert('Veuillez remplir tous les champs.');
+                return;
+            }
+
+            const requestData = {
+                reservation_date: newStartDate, 
+                start_time: newStartDate,      
+                end_time: newEndDate,          
+                color: newColor               
+            };
+            fetch(`/api/reservation/update/${reservationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData) 
+            })
+            .then(response => response.text()) 
+            .then(text => {
+                console.log('Réponse brute du serveur:', text); 
+                return JSON.parse(text);  
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Réservation mise à jour avec succès!');
+                    closeForm();  
+                } else {
+                    alert('Erreur lors de la mise à jour de la réservation.');
+                }
+            })
+            .catch(err => {
+                console.error('Erreur de connexion:', err);
+                alert('Erreur de connexion avec le serveur.');
+            });
+        });
+        
+
     });
     
 }

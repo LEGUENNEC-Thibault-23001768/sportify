@@ -3,6 +3,8 @@ namespace Controllers;
 
 use Core\Database;
 use Models\User; 
+use Controllers\AuthController;
+
 
 class TrainerController
 {
@@ -15,15 +17,12 @@ class TrainerController
     $stmt->execute(['coach_id' => $coachId]);
     $trainer = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-    // Si un coach est trouvé, récupérer les informations de l'utilisateur
     if ($trainer) {
-        // Récupérer les informations de l'utilisateur connecté
         if (isset($_SESSION['user_id'])) {
             $memberId = $_SESSION['user_id'];
-            $user = User::getUserById($memberId);  // Utilisez votre méthode existante pour récupérer l'utilisateur
+            $user = User::getUserById($memberId);  
         }
 
-        // Envoyer les informations du coach et de l'utilisateur en JSON
         header('Content-Type: application/json');
         echo json_encode([
             'trainer' => $trainer,
@@ -36,38 +35,38 @@ class TrainerController
 }
 
 
-    public function getReservations($coachId)
-    {
-        $pdo = Database::getConnection();
+public function getReservations($coachId)
+{
+    $pdo = Database::getConnection();
+    $sql = "SELECT 
+                r.reservation_id, 
+                r.activity, 
+                r.reservation_date, 
+                r.start_time, 
+                r.end_time, 
+                r.color, 
+                m.first_name, 
+                m.last_name 
+            FROM RESERVATION_HISTORY r
+            JOIN MEMBER m ON r.member_id = m.member_id
+            WHERE r.coach_id = :coach_id";
 
-        // Ajouter une jointure pour récupérer les noms et prénoms des membres
-        $sql = "SELECT 
-                    r.activity, 
-                    r.reservation_date, 
-                    r.start_time, 
-                    r.end_time, 
-                    r.color, 
-                    m.first_name, 
-                    m.last_name 
-                FROM RESERVATION_HISTORY r
-                JOIN MEMBER m ON r.member_id = m.member_id
-                WHERE r.coach_id = :coach_id";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(['coach_id' => $coachId]);
-        $reservations = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['coach_id' => $coachId]);
+    $reservations = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    $events = array_map(function($reservation) {
+        return [
+            'id' => $reservation['reservation_id'],
+            'title' => $reservation['first_name'] . ' ' . $reservation['last_name'],
+            'start' => $reservation['reservation_date'] . 'T' . $reservation['start_time'],
+            'end' => $reservation['reservation_date'] . 'T' . $reservation['end_time'],
+            'color' => $reservation['color'],
+        ];
+    }, $reservations);
 
-        $events = array_map(function($reservation) {
-            return [
-                'title' => '' . $reservation['first_name'] . ' ' . $reservation['last_name'],
-                'start' => $reservation['reservation_date'] . 'T' . $reservation['start_time'],
-                'end' => $reservation['reservation_date'] . 'T' . $reservation['end_time'],
-                'color' => $reservation['color'],
-            ];
-        }, $reservations);
-
-        header('Content-Type: application/json');
-        echo json_encode($events);
-    }
+    header('Content-Type: application/json');
+    echo json_encode($events);
+}
 
     public function saveReservation()
 {
@@ -104,7 +103,6 @@ class TrainerController
         return;
     }
 
-    // Vérification des conflits
     $sqlConflict = "SELECT * FROM RESERVATION_HISTORY 
                     WHERE coach_id = :coach_id 
                     AND reservation_date = :reservation_date 
@@ -127,7 +125,6 @@ class TrainerController
     }
 
     try {
-        // Enregistrer la réservation
         $sql = "INSERT INTO RESERVATION_HISTORY 
                 (member_id, activity, reservation_date, start_time, end_time, coach_id, color) 
                 VALUES (:member_id, :activity, :reservation_date, :start_time, :end_time, :coach_id, :color)";
@@ -155,5 +152,69 @@ class TrainerController
         echo json_encode(['success' => false, 'message' => 'Erreur lors de l\'enregistrement : ' . $e->getMessage()]);
     }
 }
+public function deleteReservation($reservationId)
+{
+    $memberId = $_SESSION['user_id'];
+    $pdo = Database::getConnection();
+
+    try {
+        $sql = "DELETE FROM RESERVATION_HISTORY 
+                WHERE reservation_id = :reservationId AND member_id = :memberId";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'reservationId' => $reservationId,
+            'memberId' => $memberId,
+        ]);
+
+        if ($stmt->rowCount() > 0) {
+            echo json_encode(['success' => true, 'message' => 'Réservation supprimée avec succès.']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Réservation introuvable ou accès non autorisé.']);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Erreur serveur : ' . $e->getMessage()]);
+    }
+    exit; 
+}
+
+
+public function updateReservation($reservationId) {
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    if (!$data) {
+        echo json_encode(['success' => false, 'message' => 'Données manquantes']);
+        return;
+    }
+
+    $reservation_date = $data['reservation_date'];
+    $start_time = $data['start_time'];
+    $end_time = $data['end_time'];
+    $color = $data['color'];
+    $reservation_date = explode('T', $reservation_date)[0]; 
+    $start_time = explode('T', $start_time)[1]; 
+    $end_time = str_pad($end_time, 5, ':00');
+    $reservation_id = $reservationId; 
+    $pdo = Database::getConnection();
+    $query = "UPDATE RESERVATION_HISTORY SET 
+                reservation_date = :reservation_date, 
+                start_time = :start_time, 
+                end_time = :end_time, 
+                color = :color 
+              WHERE reservation_id = :reservation_id";
+    $stmt = $pdo->prepare($query);
+    $stmt->bindParam(':reservation_date', $reservation_date);
+    $stmt->bindParam(':start_time', $start_time);
+    $stmt->bindParam(':end_time', $end_time);
+    $stmt->bindParam(':color', $color);
+    $stmt->bindParam(':reservation_id', $reservation_id);
+    if ($stmt->execute()) {
+        echo json_encode(['success' => true, 'message' => 'Réservation mise à jour']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Erreur lors de la mise à jour']);
+    }
+}
+
 
 }
