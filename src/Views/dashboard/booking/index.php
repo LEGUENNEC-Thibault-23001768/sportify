@@ -33,22 +33,22 @@
     </div>
 
     <div id="reservation-container" style="display: none;">
-        <h3>Réserver une salle</h3>
+    <h3>Réserver une salle</h3>
         <form action="/dashboard/booking/store" method="POST" id="form">
-            <label for="member_name">Votre Nom:</label>
             <input type="hidden" id="court_id" name="court_id">
-            <input type="text" id="member_name" name="member_name" value="<?php echo htmlspecialchars($user['last_name']); ?>" readonly>
             <input type="hidden" name="member_id" value="<?php echo $user['member_id']; ?>">
+            <label for="member_name">Votre Nom:</label>
+            <input type="text" id="member_name" name="member_name" value="<?php echo htmlspecialchars($user['last_name']); ?>" readonly>
 
             <label for="date">Date:</label>
-            <input type="date" id="date" name="reservation_date" required>
+            <input type="date" id="date" name="reservation_date" required onchange="generateHours()">
 
-            <label for="start-time">Heure de Début:</label>
-            <input type="time" id="start-time" name="start_time" required>
+            <label>Veuillez sélectionner vos horaires :</label> 
+            <div id="available-hours">
+            </div>
 
-            <label for="end-time">Heure de Fin:</label>
-            <input type="time" id="end-time" name="end_time" required>
-
+            <input type="hidden" id="selected-time" name="start_time">
+            <input type="hidden" id="duration" name="duration">
             <button type="submit">Réserver</button>
             <button type="button" onclick="closeReservationForm()">Annuler</button>
         </form>
@@ -87,5 +87,71 @@
         }
     </script>
 
+    <script>
+
+           
+    function handleHourClick(event) {
+        const clickedButton = event.target;
+        const startHour = parseInt(clickedButton.dataset.hour);
+        const selectedButtons = document.querySelectorAll('#available-hours button.selected');
+        selectedButtons.forEach(btn => btn.classList.remove('selected'));
+        clickedButton.classList.add('selected');
+        document.getElementById('selected-time').value = `${startHour.toString().padStart(2, '0')}:00`;
+        document.getElementById('duration').value = 1;
+        if (startHour <= 21) {
+            const nextButton = clickedButton.nextElementSibling;
+            if (nextButton) {
+                if (confirm("Cliquez sur annuler pour réserver 1h et ok pour un créneau de 2h !")) {
+                    document.getElementById('duration').value = 2;
+                    nextButton.classList.add('selected');
+                }
+            }
+        }
+    }
+        
+
+    function generateHours() {
+        const selectedDate = document.getElementById('date').value;
+        const availableHoursDiv = document.getElementById('available-hours');
+        availableHoursDiv.innerHTML = '';
+
+        if (selectedDate) {
+            for (let hour = 8; hour <= 22; hour++) {
+                const button = document.createElement('button');
+                button.textContent = `${hour.toString().padStart(2, '0')}:00`;
+                button.type = 'button';
+                button.dataset.hour = hour;
+                button.addEventListener('click', handleHourClick); 
+                availableHoursDiv.appendChild(button);
+            }
+        }
+    }
+        function openReservationForm(roomElement) {
+        const courtId = roomElement.getAttribute('data-court-id');
+        document.getElementById('court_id').value = courtId;
+        document.getElementById('reservation-container').style.display = 'block';
+        const dateInput = document.getElementById('date');
+        if (!dateInput.value) {
+            dateInput.valueAsDate = new Date();
+        }
+        generateHours();
+    }
+
+    function closeReservationForm() {
+            document.getElementById('reservation-container').style.display = 'none';
+            document.getElementById('form').reset();
+        }
+
+            document.getElementById('form').addEventListener('submit', function(event) {
+            const selectedTime = document.getElementById('selected-time').value;
+            if (!selectedTime) {
+                alert("Veuillez sélectionner une heure.");
+                event.preventDefault(); 
+                return;
+            }
+        });
+    </script>
+
 </body>
 </html>
+

@@ -5,7 +5,7 @@ body {
 }
 
 h2 {
-    font-size: 60px;
+    font-size: 43px;
     margin-bottom: 20px;
     font-weight: bold;
      background: linear-gradient(to right, #ffffff, #000000);
@@ -53,7 +53,6 @@ h2 {
     background-color: rgba(0, 0, 0, 0.8);
 }
 
-/* Positionnement des zones*/
 .room.tennis {
     top: 16%;
     left: 9%;
@@ -212,4 +211,22 @@ input[type="time"]:focus {
 #reservation-list li {
     background-color: #4e4949;
     width: 79%;
+}
+
+#available-hours {
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); 
+    gap: 5px; 
+    margin-top: 10px;
+}
+
+#available-hours button {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+}
+#available-hours button.selected {
+    background-color: #C1FF72; 
 }
