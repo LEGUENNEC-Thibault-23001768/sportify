@@ -9,6 +9,8 @@ use Models\Event;
 use Models\User;
 use Models\EventRegistration;
 use Models\EventInvitation;
+use Models\Booking;
+use DateTime;
 
 class EventController extends APIController
 {
@@ -23,7 +25,7 @@ class EventController extends APIController
 
     public function get($eventId = null)
     {
-        $currentUserId = $_SESSION['user_id'];
+          $currentUserId = $_SESSION['user_id'];
         $member = User::getUserById($currentUserId);
     
         if ($eventId === null) {
@@ -59,20 +61,20 @@ class EventController extends APIController
             $response->setStatusCode(200)->setData($mobiscrollEvents)->send();
         } else {
             $event = Event::findEvents($eventId);
-        
+    
             if (!$event) {
                 return (new APIResponse)->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
             }
-        
-            $isRegistered = EventRegistration::isUserRegistered($eventId, $currentUserId);
+    
+           $isRegistered = EventRegistration::isUserRegistered($eventId, $currentUserId);
             $canViewParticipants = ($member['status'] === 'coach' || $member['status'] === 'admin' || $event['created_by'] == $currentUserId);
         
-            $participants = [];
+          $participants = [];
             if ($canViewParticipants) {
-                $registrations = EventRegistration::getParticipantsByEvent($eventId);
-                foreach ($registrations as $registration) {
-                    $participants[] = User::getUserById($registration['member_id']);
-                }
+                 $registrations = EventRegistration::getParticipantsByEvent($eventId);
+                 foreach ($registrations as $registration) {
+                      $participants[] = User::getUserById($registration['member_id']);
+                 }
             }
         
             $eventData = [
@@ -82,17 +84,17 @@ class EventController extends APIController
                 'start_time' => $event['start_time'],
                 'end_time' => $event['end_time'],
                 'description' => $event['description'],
-                'location' => $event['location'],
+               'location' => $event['location'],
                 'max_participants' => $event['max_participants'],
                 'created_by' => $event['created_by'],
                 'participants' => $canViewParticipants ? $participants : [],
                 'is_registered' => $isRegistered
-            ];
-        
+             ];
             $response = new APIResponse();
             $response->setStatusCode(200)->setData($eventData)->send();
         }
     }
+
 
     public function storeApi()
     {
@@ -101,122 +103,179 @@ class EventController extends APIController
 
     public function post()
     {
-        // Your existing code for storeApi with APIResponse
         $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
+         $currentUser = User::getUserById($currentUserId);
 
-        $eventData = $_POST;
-
-        if (
-            empty($eventData['event_name']) || empty($eventData['event_date']) || empty($eventData['start_time']) || empty($eventData['end_time']) || empty($eventData['max_participants']) || empty($eventData['location'])
-        ) {
-            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
+        if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
         }
 
+      $eventData = $_POST;
+
+        if (
+             empty($eventData['event_name']) || empty($eventData['event_date']) || empty($eventData['start_time']) || empty($eventData['end_time']) || empty($eventData['max_participants']) || empty($eventData['location'])
+        ) {
+             return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
+       }
+
         $start = new \DateTime($eventData['event_date'] . 'T' . $eventData['start_time']);
-        $end = new \DateTime($eventData['event_date'] . 'T' . $eventData['end_time']);
+         $end = new \DateTime($eventData['event_date'] . 'T' . $eventData['end_time']);
         $duration = $start->diff($end);
 
-        if ($duration->h >= 2) {
+        if ($duration->h > 2) {
             return $response->setStatusCode(400)->setData(['error' => 'Event duration cannot exceed 2 hours'])->send();
         }
 
-        if (!is_numeric($eventData['max_participants']) || $eventData['max_participants'] < 5) {
-            return $response->setStatusCode(400)->setData(['error' => 'Maximum participants must be a number and at least 5'])->send();
+
+         if (!is_numeric($eventData['max_participants']) || $eventData['max_participants'] < 5) {
+             return $response->setStatusCode(400)->setData(['error' => 'Maximum participants must be a number and at least 5'])->send();
         }
+         $eventData['created_by'] = $currentUserId;
 
-        $eventData['created_by'] = $currentUserId;
-        $eventId = Event::createEvent($eventData);
-
-        if (!empty($eventData['invitations'])) {
-            $emails = explode(',', $eventData['invitations']);
-            $emails = array_map('trim', $emails);
-            foreach ($emails as $email) {
-                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $token = EventInvitation::createInvitation($eventId, $email);
-                    $eventData['event_id'] = $eventId;
-                    $this->sendInvitationEmail($email, $token, $eventData);
-                }
+        $reservations = Booking::getAllReservations();
+        $myResa = null;
+        foreach ($reservations as $reservation) {
+            if ($reservation['court_name'] == $eventData['location'] && $reservation['reservation_date'] == $eventData['event_date']) {
+                $myResa = $reservation;
+                break;
             }
         }
-
-        if (!$eventId) {
-            return $response->setStatusCode(500)->setData(['error' => 'Failed to create event'])->send();
+        if (!isset($myResa)) {
+            return $response->setStatusCode(500)->setData(['error' => 'Location was not found'])->send();
         }
+
+        if ($myResa['event_id'] != null) {
+            return $response->setStatusCode(500)->setData(['error' => 'Location is already booked'])->send();
+        }
+
+        if ($myResa['start_time'] > $eventData['start_time'] || $myResa['end_time'] < $eventData['end_time']) {
+            return $response->setStatusCode(500)->setData(['error' => 'Event is starting too early or ending too late'])->send();
+        }
+
+         $eventId = Event::createEvent($eventData);
+          if (!empty($eventData['invitations'])) {
+              $emails = explode(',', $eventData['invitations']);
+             $emails = array_map('trim', $emails);
+             foreach ($emails as $email) {
+                 if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                      $token = EventInvitation::createInvitation($eventId, $email);
+                      $eventData['event_id'] = $eventId;
+                     $this->sendInvitationEmail($email, $token, $eventData);
+                  }
+            }
+        }
+        
+        if (!isset($eventData['participants'])) {
+            $eventData['participants'] = [];
+        }
+        
+     if (!$eventId) {
+         return $response->setStatusCode(500)->setData(['error' => 'Failed to create event'])->send();
+         }
+
+          Booking::updateReservation($myResa['reservation_id'], $myResa['reservation_date'], $myResa['start_time'], $myResa['end_time'], $eventId);
 
         $mobiscrollEvent = [
             'id' => $eventId,
-            'title' => $eventData['event_name'],
+           'title' => $eventData['event_name'],
             'start' => $eventData['event_date'] . 'T' . $eventData['start_time'],
-            'end' => $eventData['event_date'] . 'T' . $eventData['end_time'],
+           'end' => $eventData['event_date'] . 'T' . $eventData['end_time'],
             'description' => $eventData['description'],
-            'location' => $eventData['location'],
-            'max_participants' => $eventData['max_participants'],
-            'created_by' => $eventData['created_by'],
-            'is_registered' => false,
+          'location' => $eventData['location'],
+           'max_participants' => $eventData['max_participants'],
+          'created_by' => $eventData['created_by'],
+          'is_registered' => false,
+            'participants' => $eventData['participants'] || [],
         ];
-
         return $response->setStatusCode(201)->setData($mobiscrollEvent)->send();
     }
 
-    public function deleteApi($eventId)
+
+   public function deleteApi($eventId)
     {
-        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
+       return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
     }
 
-    public function delete($eventId = null)
+  public function delete($eventId = null)
     {
-        // Your existing code for deleteApi with APIResponse
-        $response = new APIResponse();
+      // Your existing code for deleteApi with APIResponse
+          $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
+         $currentUser = User::getUserById($currentUserId);
         $event = Event::findEvents($eventId);
 
-        if (!$event) {
-            $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
-            return;
+        if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
+        }
+
+          if (!$event) {
+              $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+                return;
+           }
+
+         $reservations = Booking::getAllReservations();
+        $myResa = null;
+        foreach ($reservations as $reservation) {
+            if ($reservation['court_name'] == $event['location'] && $reservation['reservation_date'] == $event['event_date']) {
+                $myResa = $reservation;
+                break;
+            }
+        }
+
+        if (isset($myResa)) {
+            if ($myResa['event_id'] == null) return null;
+
+            if ($myResa['event_id'] == $eventId) {
+                Booking::updateReservation($myResa['reservation_id'], $myResa['reservation_date'], $myResa['start_time'], $myResa['end_time'], null);
+            }
         }
 
         if (Event::deleteEvent($eventId)) {
-            $response->setData(['message' => 'Event deleted successfully'])->send();
-        } else {
-            $response->setStatusCode(500)->setData(['error' => 'Failed to delete event'])->send();
-        }
+               $response->setData(['message' => 'Event deleted successfully'])->send();
+           } else {
+                $response->setStatusCode(500)->setData(['error' => 'Failed to delete event'])->send();
+          }
     }
 
     public function join($eventId) {
-        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
+       return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
     }
-    
-    public function leave($eventId) {
-        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
-    }
+
+     public function leave($eventId) {
+         return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
+     }
 
     public function sendInviteApi($eventId)
-    {
-        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
+     {
+         return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
     }
+     public function postJoin($eventId) {
+          $response = new APIResponse();
+          $currentUserId = $_SESSION['user_id'];
+            $event = Event::findEvents($eventId);
 
-    public function postJoin($eventId) {
-        $response = new APIResponse();
-        $currentUserId = $_SESSION['user_id'];
-        $event = Event::findEvents($eventId);
-    
         if (!$event) {
             return $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
         }
-    
-        if (EventRegistration::isUserRegistered($eventId, $currentUserId)) {
-            return $response->setStatusCode(400)->setData(['error' => 'You are already registered for this event'])->send();
-        }
-    
-        if ($event['participants_count'] >= $event['max_participants']) {
-            return $response->setStatusCode(400)->setData(['error' => 'The event is already full'])->send();
-        }
-    
-        EventRegistration::registerUserToEvent($eventId, $currentUserId);
-    
+
+       if (EventRegistration::isUserRegistered($eventId, $currentUserId)) {
+           return $response->setStatusCode(400)->setData(['error' => 'You are already registered for this event'])->send();
+       }
         $updatedEvent = Event::findEvents($eventId);
-        $updatedEventData = [
+          $participantsCount = 0;
+        if (isset($event['participants'])) $participantsCount = count($event['participants']);
+
+        if ($participantsCount >= $updatedEvent['max_participants']) {
+         return $response->setStatusCode(400)->setData(['error' => 'The event is already full'])->send();
+        }
+
+        EventRegistration::registerUserToEvent($eventId, $currentUserId);
+           $registrations = EventRegistration::getParticipantsByEvent($eventId);
+           foreach ($registrations as $registration) {
+               $updatedEvent['participants'][] = User::getUserById($registration['member_id']);
+           }
+           $updatedEventData = [
             'id' => $updatedEvent['event_id'],
             'title' => $updatedEvent['event_name'],
             'start' => $updatedEvent['event_date'] . 'T' . $updatedEvent['start_time'],
@@ -225,27 +284,27 @@ class EventController extends APIController
             'location' => $updatedEvent['location'],
             'max_participants' => $updatedEvent['max_participants'],
             'created_by' => $updatedEvent['created_by'],
+               'participants' => $updatedEvent['participants'],
             'is_registered' => true
         ];
-    
-        return $response->setStatusCode(200)->setData(['message' => 'Successfully joined the event', 'event' => $updatedEventData])->send();
-    }
+     
+          return $response->setStatusCode(200)->setData(['message' => 'Successfully joined the event', 'event' => $updatedEventData])->send();
+   }
 
-    public function postLeave($eventId) {
+     public function postLeave($eventId) {
         $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
-        $event = Event::findEvents($eventId);
-    
-        if (!$event) {
-            return $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
-        }
-    
-        if (!EventRegistration::isUserRegistered($eventId, $currentUserId)) {
+      $event = Event::findEvents($eventId);
+
+      if (!$event) {
+           return $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+       }
+       if (!EventRegistration::isUserRegistered($eventId, $currentUserId)) {
             return $response->setStatusCode(400)->setData(['error' => 'You are not registered for this event'])->send();
-        }
-    
-        EventRegistration::unregisterUserFromEvent($eventId, $currentUserId);
-    
+       }
+
+       EventRegistration::unregisterUserFromEvent($eventId, $currentUserId);
+
         $updatedEvent = Event::findEvents($eventId);
         $updatedEventData = [
             'id' => $updatedEvent['event_id'],
@@ -256,85 +315,81 @@ class EventController extends APIController
             'location' => $updatedEvent['location'],
             'max_participants' => $updatedEvent['max_participants'],
             'created_by' => $updatedEvent['created_by'],
+             'participants' => EventRegistration::getParticipantsByEvent($eventId),
             'is_registered' => false
         ];
-    
         return $response->setStatusCode(200)->setData(['message' => 'Successfully left the event', 'event' => $updatedEventData])->send();
-    }
+     }
+
 
     public function postSendInviteApi($eventId) {
-        $response = new APIResponse();
-        $currentUserId = $_SESSION['user_id'];
-        $currentUser = User::getUserById($currentUserId);
+         $response = new APIResponse();
+         $currentUserId = $_SESSION['user_id'];
+          $currentUser = User::getUserById($currentUserId);
         $event = Event::findEvents($eventId);
-    
-        if (!$event) {
-            $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
-            return;
-        }
-    
+          if (!$event) {
+              $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+               return;
+          }
+
         // Check if the user is authorized to send invitations
-        if ($event['created_by'] != $currentUserId) {
-            $response->setStatusCode(403)->setData(['error' => 'You are not authorized to send invitations'])->send();
-            return;
-        }
-    
+          if ($event['created_by'] != $currentUserId && $currentUser['status'] !== "coach" && $currentUser['status'] !== "admin") {
+                $response->setStatusCode(403)->setData(['error' => 'You are not authorized to send invitations'])->send();
+              return;
+         }
         $email = $_POST['email'];
-    
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $response->setStatusCode(400)->setData(['error' => 'Invalid email format'])->send();
-            return;
+           return;
         }
-    
-        $user = User::getUserByEmail($email);
-        if ($user && EventRegistration::isUserRegistered($eventId, $user['member_id'])) {
-            $response->setStatusCode(400)->setData(['error' => 'User is already registered for this event'])->send();
-            return;
+
+          $user = User::getUserByEmail($email);
+         if ($user && EventRegistration::isUserRegistered($eventId, $user['member_id'])) {
+             $response->setStatusCode(400)->setData(['error' => 'User is already registered for this event'])->send();
+           return;
         }
-    
-        $existingInvitation = EventInvitation::findInvitationsByEventIdAndEmail($eventId, $email);
-        if ($existingInvitation) {
+
+      $existingInvitation = EventInvitation::findInvitationsByEventIdAndEmail($eventId, $email);
+      if ($existingInvitation) {
             $response->setStatusCode(400)->setData(['error' => 'User is already invited to this event'])->send();
-            return;
+           return;
         }
-    
-        $token = EventInvitation::createInvitation($eventId, $email);
-    
+
+         $token = EventInvitation::createInvitation($eventId, $email);
         if ($this->sendInvitationEmail($email, $token, $event)) {
-            $response->setStatusCode(200)->setData(['message' => 'Invitation sent successfully'])->send();
-        } else {
-            $response->setStatusCode(500)->setData(['error' => 'Failed to send invitation'])->send();
+             $response->setStatusCode(200)->setData(['message' => 'Invitation sent successfully'])->send();
+         } else {
+             $response->setStatusCode(500)->setData(['error' => 'Failed to send invitation'])->send();
         }
     }
 
-    private function sendInvitationEmail($email, $token, $event)
-    {
+    private function sendInvitationEmail($email, $token, $event) {
         $mail_parts = Config::get("mail_parts");
-        $invitationLink = Config::get("server_url") . "/event/invitation/" . $token;
+       $invitationLink = Config::get("server_url") . "/event/invitation/" . $token;
         $eventName = $event['event_name'];
 
-        $title = "Invitation to " . $eventName;
-        $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
+       $title = "Invitation to " . $eventName;
+         $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
         $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "You have been invited to the following event: " . $eventName, $mail_parts['mail_body']);
         $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", $invitationLink, $mail_parts['mail_body']);
-        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Accept Invitation", $mail_parts['mail_body']);
+       $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Accept Invitation", $mail_parts['mail_body']);
 
         $subject = $title;
         $message = $mail_parts['mail_head'] .
-            $mail_parts['mail_title'] .
-            $mail_parts['mail_head_end'] .
-            $mail_parts['mail_body'] .
-            $mail_parts['mail_footer'];
-
-        $headers = "From: sportify@alwaysdata.net\r\n";
-        $headers .= "MIME-Version: 1.0\r\n";
+           $mail_parts['mail_title'] .
+           $mail_parts['mail_head_end'] .
+           $mail_parts['mail_body'] .
+           $mail_parts['mail_footer'];
+          $headers = "From: sportify@alwaysdata.net\r\n";
+          $headers .= "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
         if (mail($email, $subject, $message, $headers)) {
-            return true;
-        } else {
-            error_log("Error sending invitation email to $email: " . error_get_last());
-            return false;
+          return true;
+      } else {
+          error_log("Error sending invitation email to $email: " . error_get_last());
+           return false;
         }
-    }
+  }
 }

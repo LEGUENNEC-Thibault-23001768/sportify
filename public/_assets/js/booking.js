@@ -66,18 +66,27 @@ $(document).ready(function() {
             start_time: $('#edit_start-time').val(),
             end_time: $('#edit_end-time').val()
         };
-
+   
         $.ajax({
             url: '/api/booking/' + reservationId,
             type: 'PUT',
-            data: formData,
+            contentType: 'application/json', 
+            data: JSON.stringify(formData), 
             success: function(response) {
-                showSuccessToast('Réservation mise à jour avec succès!');
+              if(response.data && response.data.message){
+                  showSuccessToast(response.data.message);
+                }else{
+                    showSuccessToast('Réservation mise à jour avec succès!');
+                }
                 hideEditForm();
                 loadReservations();
             },
             error: function(xhr, status, error) {
-                showErrorToast("Erreur lors de la mise à jour de la réservation.");
+              let errorMessage = "Erreur lors de la mise à jour de la réservation.";
+              if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.error) {
+                  errorMessage = xhr.responseJSON.data.error;
+              }
+              showErrorToast(errorMessage);
                 console.error("Error: " + status + " - " + error);
             }
         });
@@ -155,6 +164,7 @@ function deleteReservation(reservationId) {
         url: '/api/booking/' + reservationId,
         type: 'DELETE',
         success: function(response) {
+            console.log(response)
             showSuccessToast('Réservation supprimée avec succès!');
             loadReservations(); // Refresh the list after deletion
         },

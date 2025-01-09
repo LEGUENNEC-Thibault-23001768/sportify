@@ -58,9 +58,9 @@ class UserController extends APIController
 
     public function updateProfile()
     {
-         $response = new APIResponse();
+        $response = new APIResponse();
         $userId = $_SESSION['user_id'];
-         $json = file_get_contents('php://input');
+        $json = file_get_contents('php://input');
         $data = json_decode($json, true);
         
         error_log("Received Data: " . print_r($data, true));

@@ -34,7 +34,7 @@ class Router
         self::post($url, "$controller@post", $middleware);
         self::put($url, "$controller@put", $middleware);
         self::put($url . '/{id}', "$controller@put", $middleware);
-         self::delete($url . '/{id}', "$controller@delete", $middleware);
+        self::delete($url . '/{id}', "$controller@delete", $middleware);
     }
 
     private static function addRoute($method, $url, $handler, $middleware = null)

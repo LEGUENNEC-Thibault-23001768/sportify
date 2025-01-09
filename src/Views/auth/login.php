@@ -85,7 +85,7 @@
     </div>
 
     <div class="image-container">
-      <img src="https://i.postimg.cc/YS5WypdJ/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.png" alt="Image de fond" class="background-img">
+      <img src="https://i.postimg.cc/yN23RqfV/pixelcut-export-1.png" alt="Image de fond" class="background-img">
     </div>
   </div>
 
