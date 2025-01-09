@@ -74,8 +74,11 @@ class Booking {
         $params = [$reservation_date, $start_time, $end_time, $reservation_id];
         return Database::query($sql, $params)->rowCount() > 0;
     }
-
     
+    public function getCourtById($court_id) {
+        $sql = "SELECT * FROM COURT WHERE court_id = :court_id";
+        $params = ['court_id' => $court_id];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
     
 }
-?>

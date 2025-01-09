@@ -196,6 +196,21 @@ function generateHours() {
             dateInput.valueAsDate = new Date();
         }
         generateHours();
+
+        fetch(`/dashboard/booking/getCourtName/${courtId}`) 
+        .then(response => response.json())
+        .then(data => {
+            if (data.courtName) {
+                document.querySelector('#reservation-container h3').textContent = `Réserver la salle de ${data.courtName}`;
+            } else {
+                console.error("Nom du court non trouvé.");
+                document.querySelector('#reservation-container h3').textContent = "Réserver une salle"; // Message par défaut
+            }
+        })
+        .catch(error => {
+            console.error("Erreur lors de la récupération du nom du court :", error);
+            document.querySelector('#reservation-container h3').textContent = "Réserver une salle"; // Message par défaut en cas d'erreur
+        });
     }
 
     function closeReservationForm() {

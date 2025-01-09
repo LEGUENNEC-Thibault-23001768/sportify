@@ -53,6 +53,7 @@ Router::get('/dashboard/booking/{reservation_id}/edit', 'BookingController@edit'
 Router::post('/dashboard/booking/{reservation_id}/update', 'BookingController@update', Auth::requireLogin());
 Router::get('/dashboard/booking/getBookingsByCourtAndDate', 'BookingController@getBookingsByCourtAndDate', Auth::requireLogin());
 Router::get('/dashboard/booking/getReservations', 'BookingController@getReservations', Auth::requireLogin());
+Router::get('/dashboard/booking/getCourtName/{court_id}', 'BookingController@getCourtName', Auth::requireLogin());
 
 // --- Admin Routes ---
 Router::get('/dashboard/admin/users', 'DashboardController@manageUsers', Auth::isAdmin());

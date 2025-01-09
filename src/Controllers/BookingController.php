@@ -227,4 +227,24 @@ class BookingController {
             exit;
         }
     }
+
+    public function getCourtName($court_id) {
+        try {
+            $court = $this->bookingModel->getCourtById($court_id);
+            if ($court) {
+                header('Content-Type: application/json');
+                echo json_encode(['courtName' => $court['court_name']]);
+                exit;
+            } else {
+                http_response_code(404); 
+                echo json_encode(['error' => 'Court not found']);
+                exit;
+            }
+        } catch (\Exception $e) {
+            Log::error("Error fetching court name: " . $e->getMessage());
+            http_response_code(500); 
+            echo json_encode(['error' => 'Server error']);
+            exit;
+        }
+    }
 }
