@@ -6,6 +6,7 @@ namespace Controllers;
 use Core\View;
 use Models\Booking;
 use Models\User;
+use Core\Database;
 
 
 class BookingController {
@@ -54,7 +55,7 @@ class BookingController {
             $duration = $_POST['duration'] ?? 1;
     
             error_log("Données reçues : ");
-            error_log("member_id: " . ($member_id ?? 'NULL')); // Use null coalescing for logging as well
+            error_log("member_id: " . ($member_id ?? 'NULL')); 
             error_log("court_id: " . ($court_id ?? 'NULL'));
             error_log("reservation_date: " . ($reservation_date ?? 'NULL'));
             error_log("start_time: " . ($start_time ?? 'NULL'));
@@ -63,12 +64,10 @@ class BookingController {
     
             if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_time)) {
                 error_log("Erreur : au moins un champ obligatoire est vide.");
-                $_SESSION['error'] = "Tous les champs sont requis."; // Set session error
-                header('Location: /dashboard/booking'); // Redirect to booking page
-                exit; // Stop further execution
+                $_SESSION['error'] = "Tous les champs sont requis."; 
+                header('Location: /dashboard/booking'); 
             }
     
-            // Validate start_time format before using strtotime
             if (!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/', $start_time)) {
                 error_log("Erreur : Format de start_time invalide.");
                 $_SESSION['error'] = "Format d'heure invalide.";
@@ -90,12 +89,12 @@ class BookingController {
             $bookingModel->addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
     
             error_log("Réservation ajoutée avec succès.");
-            $_SESSION['success'] = "Réservation effectuée avec succès."; // Set success message
+            $_SESSION['success'] = "Réservation effectuée avec succès.";
             header('Location: /dashboard/booking');
             exit;
         }
     }
-    
+
     public function delete($reservation_id) {
         session_start();
         $currentUserId = $_SESSION['user_id'];
@@ -138,7 +137,6 @@ class BookingController {
         $reservation = $this->bookingModel->getReservationById($reservation_id);
         $user = $this->userModel->getUserById($currentUserId);
     
-        //var_dump($reservation);
 
         if (!$reservation) {
             $_SESSION['error'] = 'Réservation introuvable.';
@@ -196,4 +194,49 @@ class BookingController {
         exit();
     }
 
+    public function getBookingsByCourtAndDate() {
+        try {
+            $courtId = $_GET['court_id'] ?? null;
+            $date = $_GET['date'] ?? null;
+            if (!isset($courtId) || !isset($date) || !is_numeric($courtId) || empty($date)) {
+                header('Content-Type: application/json'); 
+                http_response_code(400);
+                echo json_encode(['error' => 'Données invalides : court_id doit être un nombre et la date ne peut pas être vide.']);
+                exit;
+            }
+
+            $pdo = Database::getConnection();
+
+            $stmt = $pdo->prepare("SELECT cr.start_time, cr.end_time, cr.reservation_date, c.court_name, m.last_name as member_name FROM COURT_RESERVATION cr JOIN COURT c ON cr.court_id = c.court_id JOIN MEMBER m ON cr.member_id = m.member_id WHERE cr.court_id = :court_id AND cr.reservation_date = :date");
+            $stmt->execute(['court_id' => $courtId, 'date' => $date]);
+            $bookings = $stmt->fetchAll();
+            header('Content-Type: application/json');
+            echo json_encode($bookings);
+            exit;
+
+        } catch (\Exception $e) {
+            Log::error("Erreur lors de la récupération des réservations : " . $e->getMessage());
+            header('Content-Type: application/json');
+            http_response_code(500);
+            echo json_encode(['error' => 'Une erreur serveur est survenue. Veuillez consulter les logs.']);
+            exit;
+        }
+    }
+
+    public function getReservations() {
+        try {
+            $bookings = Booking::getAllReservations();
+
+            header('Content-Type: application/json');
+            echo json_encode($bookings);
+            exit;
+
+        } catch (\Exception $e) {
+            Log::error("Error fetching all reservations: " . $e->getMessage());
+            header('Content-Type: application/json');
+            http_response_code(500);
+            echo json_encode(['error' => 'A server error occurred.']);
+            exit;
+        }
+    }
 }

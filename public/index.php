@@ -51,6 +51,8 @@ Router::post('/dashboard/booking/store', 'BookingController@store', Auth::requir
 Router::post('/dashboard/booking/{reservation_id}/delete', 'BookingController@delete', Auth::requireLogin());
 Router::get('/dashboard/booking/{reservation_id}/edit', 'BookingController@edit', Auth::requireLogin());
 Router::post('/dashboard/booking/{reservation_id}/update', 'BookingController@update', Auth::requireLogin());
+Router::get('/dashboard/booking/getBookingsByCourtAndDate', 'BookingController@getBookingsByCourtAndDate', Auth::requireLogin());
+Router::get('/dashboard/booking/getReservations', 'BookingController@getReservations', Auth::requireLogin());
 
 // --- Admin Routes ---
 Router::get('/dashboard/admin/users', 'DashboardController@manageUsers', Auth::isAdmin());

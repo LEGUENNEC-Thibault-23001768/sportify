@@ -27,9 +27,8 @@ class Booking {
         return Database::query($sql, $params)->fetchColumn() == 0;
     }
 
-    public static function getAllReservations()
-    {
-        $sql = "SELECT cr.*, u.last_name AS member_name, c.court_name 
+    public static function getAllReservations() {
+        $sql = "SELECT cr.*, u.last_name AS member_name, c.court_name, cr.member_id AS reservation_member_id  
                 FROM COURT_RESERVATION cr
                 JOIN MEMBER u ON cr.member_id = u.member_id
                 JOIN COURT c ON cr.court_id = c.court_id
@@ -75,6 +74,8 @@ class Booking {
         $params = [$reservation_date, $start_time, $end_time, $reservation_id];
         return Database::query($sql, $params)->rowCount() > 0;
     }
+
+    
     
 }
 ?>

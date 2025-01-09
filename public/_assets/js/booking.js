@@ -112,9 +112,8 @@ function initialize() {
     function isTimeConflict(existingStart, existingEnd, newStart, newEnd) {
         return existingStart < newEnd && existingEnd > newStart;
     }
+
+    
 }
-
-
-
 
 document.addEventListener('DOMContentLoaded', initialize);

@@ -52,44 +52,29 @@
             <button type="submit">Réserver</button>
             <button type="button" onclick="closeReservationForm()">Annuler</button>
         </form>
-    </div>
 
-    <div id="reservations">
-        <h3>Historique des Réservations</h3>
-        <ul id="reservation-list">
-        <?php foreach ($bookings as $booking): ?>
-            <li>
-                <?= $booking['reservation_date'] ?> - <?= $booking['start_time'] ?> à <?= $booking['end_time'] ?> - 
-                <?= $booking['court_name'] ?> (Réservé par <?= $booking['member_name'] ?>)
-                <?php if ($booking['member_id'] == $user['member_id'] || $user['status'] === 'admin'): ?>
-                    <a href="/dashboard/booking/<?= $booking['reservation_id'] ?>/edit">Modifier</a>
-                    <form action="/dashboard/booking/<?= $booking['reservation_id'] ?>/delete" method="POST" style="display:inline;">
+        <div id="reservations" class="reservations-container"> <h3>Historique de mes réservations</h3>
+            <ul id="reservation-list">
+                <?php foreach ($bookings as $booking): ?>
+                <li>
+                    <?= $booking['reservation_date'] ?> - <?= $booking['start_time'] ?> à <?= $booking['end_time'] ?> -
+                    <?= $booking['court_name'] ?> (Réservé par <?= $booking['member_name'] ?>)
+                    <?php if ($booking['member_id'] == $user['member_id'] || $user['status'] === 'admin'): ?>
+                            <a href="/dashboard/booking/<?= $booking['reservation_id'] ?>/edit">Modifier</a>
+                            <form action="/dashboard/booking/<?= $booking['reservation_id'] ?>/delete" method="POST" style="display:inline;">
                         <button type="submit">Supprimer</button>
                     </form>
-                <?php endif; ?>
-            </li>
+                    <?php endif; ?>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+            </div>
+        </div>
 
-        <?php endforeach; ?>
+    <script>   
+    const idUtilisateurActuel = <?= $_SESSION['user_id'] ?? 'null' ?>;
+    const estAdmin = <?= ($user['status'] === 'admin') ? 'true' : 'false' ?>;
 
-        </ul>
-    </div>
-
-    <script>
-        function openReservationForm(roomElement) {
-            const courtId = roomElement.getAttribute('data-court-id');
-            document.getElementById('court_id').value = courtId;
-            document.getElementById('reservation-container').style.display = 'block';
-        }
-
-        function closeReservationForm() {
-            document.getElementById('reservation-container').style.display = 'none';
-            document.getElementById('form').reset();
-        }
-    </script>
-
-    <script>
-
-           
     function handleHourClick(event) {
         const clickedButton = event.target;
         const startHour = parseInt(clickedButton.dataset.hour);
@@ -101,7 +86,7 @@
         if (startHour <= 21) {
             const nextButton = clickedButton.nextElementSibling;
             if (nextButton) {
-                if (confirm("Cliquez sur annuler pour réserver 1h et ok pour un créneau de 2h !")) {
+                if (confirm("Cliquez sur ok pour réserver un créneau de 2h annuler sinon !")) {
                     document.getElementById('duration').value = 2;
                     nextButton.classList.add('selected');
                 }
@@ -110,22 +95,85 @@
     }
         
 
-    function generateHours() {
-        const selectedDate = document.getElementById('date').value;
-        const availableHoursDiv = document.getElementById('available-hours');
-        availableHoursDiv.innerHTML = '';
+function generateHours() {
+    const selectedDate = document.getElementById('date').value;
+    const courtId = document.getElementById('court_id').value; 
+    const availableHoursDiv = document.getElementById('available-hours');
+    availableHoursDiv.innerHTML = '';
 
-        if (selectedDate) {
-            for (let hour = 8; hour <= 22; hour++) {
-                const button = document.createElement('button');
-                button.textContent = `${hour.toString().padStart(2, '0')}:00`;
-                button.type = 'button';
-                button.dataset.hour = hour;
-                button.addEventListener('click', handleHourClick); 
-                availableHoursDiv.appendChild(button);
-            }
+    if (selectedDate && courtId) {
+        console.log("Date sélectionnée :", selectedDate);
+        console.log("ID du court :", courtId); 
+        const today = new Date();
+        const selectedDateObj = new Date(selectedDate);
+
+        if (selectedDateObj < today.setHours(0, 0, 0, 0)) {
+            alert("Vous ne pouvez pas réserver pour une date dans le passé.");
+            document.getElementById('date').value = '';
+            return;
         }
-    }
+
+        fetch('/dashboard/booking/getBookingsByCourtAndDate?court_id=' + courtId + '&date=' + selectedDate) 
+        .then(response => {
+                console.log("Réponse brute :", response); 
+
+                if (!response.ok) { 
+                    console.error("Erreur HTTP :", response.status, response.statusText);
+                    return Promise.reject(new Error(`Erreur HTTP : ${response.status} ${response.statusText}`)); 
+                }
+
+                return response.text();
+            })
+            .then(text => { 
+                console.log("Texte de la réponse :", text);
+
+                let existingBookings;
+
+                try {
+                    existingBookings = JSON.parse(text);
+                    console.log("Réservations existantes :", existingBookings);
+                } catch (error) {
+                    console.error("Erreur lors du parsing JSON :", error);
+                    console.error("Texte qui n'a pas pu être parsé :", text);
+                    availableHoursDiv.innerHTML = "<p>Une erreur est survenue lors du chargement des disponibilités.</p>";
+                    return; 
+                }
+                if (!Array.isArray(existingBookings)) {
+                    console.error("La réponse du serveur n'est pas un tableau :", existingBookings);
+                    availableHoursDiv.innerHTML = "<p>Une erreur est survenue lors du chargement des disponibilités.</p>";
+                    return;
+                    }
+
+                    if (existingBookings.length === 0) {
+                        console.log("Aucune réservation existante pour cette date et ce court.");
+                    }
+
+                for (let hour = 8; hour <= 22; hour++) {
+                    const hourString = `${hour.toString().padStart(2, '0')}:00`;
+                    const isBooked = existingBookings.some(booking => {
+                        const bookingStartTime = booking.start_time.substring(0, 5);
+                        const bookingEndTime = booking.end_time.substring(0, 5);
+                        return hourString >= bookingStartTime && hourString < bookingEndTime;
+                    });
+
+                    const button = document.createElement('button');
+                    button.textContent = hourString;
+                    button.type = 'button';
+                    button.dataset.hour = hour;
+                    button.disabled = isBooked;
+                    if (isBooked) {
+                        button.classList.add('booked'); 
+                    } else {
+                        button.addEventListener('click', handleHourClick);
+                    }
+                    availableHoursDiv.appendChild(button);
+                } 
+
+            })
+            .catch(error => console.error('Erreur globale lors de la requête:', error));
+        }}
+  
+            
         function openReservationForm(roomElement) {
         const courtId = roomElement.getAttribute('data-court-id');
         document.getElementById('court_id').value = courtId;
@@ -150,6 +198,77 @@
                 return;
             }
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const reservationList = document.getElementById('reservation-list');
+        const reservationsContainer = document.getElementById('reservations');
+        const reservationContainer = document.getElementById('reservation-container');
+
+function fetchReservations() {
+    fetch('/dashboard/booking/getReservations')
+        .then(response => {
+            if (!response.ok) {
+                console.error("Erreur HTTP :", response.status);
+                return Promise.reject(new Error(`Erreur HTTP : ${response.status}`));
+            }
+            return response.json(); 
+        })
+        .then(bookings => { 
+            const reservationList = document.getElementById('reservation-list');
+            reservationList.innerHTML = ''; 
+
+            if (bookings.length === 0) {
+                reservationList.innerHTML = '<li>Aucune réservation.</li>';
+                return; 
+            }
+
+            bookings.forEach(booking => {
+                const li = document.createElement('li');
+                let texteReservation = `${booking.reservation_date} - ${booking.start_time} à ${booking.end_time} - ${booking.court_name} (Réservé par ${booking.member_name})`;
+                if (booking.reservation_member_id == idUtilisateurActuel || estAdmin) {
+                    const lienModifier = document.createElement('a');
+                    lienModifier.href = `/dashboard/booking/${booking.reservation_id}/edit`;
+                    lienModifier.textContent = 'Modifier';
+                    lienModifier.style.marginRight = '5px'; 
+
+                    const formulaireSupprimer = document.createElement('form');
+                    formulaireSupprimer.action = `/dashboard/booking/${booking.reservation_id}/delete`;
+                    formulaireSupprimer.method = 'POST';
+                    formulaireSupprimer.style.display = 'inline';
+
+                    const boutonSupprimer = document.createElement('button');
+                    boutonSupprimer.type = 'submit';
+                    boutonSupprimer.textContent = 'Supprimer';
+                    formulaireSupprimer.appendChild(boutonSupprimer);
+
+                    li.append(document.createTextNode(texteReservation), lienModifier, formulaireSupprimer); 
+                } else {
+                    li.textContent = texteReservation;
+                }
+
+                reservationList.appendChild(li);
+            });
+        })
+        .catch(error => console.error('Erreur lors de la requête:', error));
+}
+    fetchReservations();
+
+    if (reservationList.children.length > 0) {
+        reservationsContainer.style.display = 'block';
+    } else {
+        reservationsContainer.style.display = 'none';
+    }
+
+    const rooms = document.querySelectorAll('.room');
+    rooms.forEach(room => {
+        room.addEventListener('click', () => {
+            reservationContainer.style.display = 'block';
+            fetchReservations();
+        });
+    });
+
+});
+
     </script>
 
 </body>
