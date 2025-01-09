@@ -76,23 +76,36 @@
     const estAdmin = <?= ($user['status'] === 'admin') ? 'true' : 'false' ?>;
 
     function handleHourClick(event) {
-        const clickedButton = event.target;
-        const startHour = parseInt(clickedButton.dataset.hour);
-        const selectedButtons = document.querySelectorAll('#available-hours button.selected');
-        selectedButtons.forEach(btn => btn.classList.remove('selected'));
-        clickedButton.classList.add('selected');
-        document.getElementById('selected-time').value = `${startHour.toString().padStart(2, '0')}:00`;
-        document.getElementById('duration').value = 1;
-        if (startHour <= 21) {
-            const nextButton = clickedButton.nextElementSibling;
-            if (nextButton) {
-                if (confirm("Cliquez sur ok pour réserver un créneau de 2h annuler sinon !")) {
-                    document.getElementById('duration').value = 2;
-                    nextButton.classList.add('selected');
-                }
-            }
-        }
+    const clickedButton = event.target;
+    const startHour = parseInt(clickedButton.dataset.hour);
+    const selectedButtons = document.querySelectorAll('#available-hours button.selected');
+
+    if (selectedButtons.length >= 2 && !clickedButton.classList.contains('selected')) {
+        alert("Vous ne pouvez sélectionner que deux heures maximum.");
+        return; 
     }
+
+    clickedButton.classList.toggle('selected'); 
+
+    const selectedHours = Array.from(document.querySelectorAll('#available-hours button.selected'))
+        .map(btn => parseInt(btn.dataset.hour))
+        .sort((a, b) => a - b); 
+
+    if (selectedHours.length > 0) {
+        document.getElementById('selected-time').value = selectedHours.map(hour => hour.toString().padStart(2, '0') + ':00').join(',');
+        document.getElementById('duration').value = selectedHours.length;
+
+         if (selectedHours.length === 2 && selectedHours[1] - selectedHours[0] !== 1) {
+            alert("Veuillez sélectionner des heures consécutives.");
+            selectedButtons.forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('selected-time').value = '';
+            document.getElementById('duration').value = '';
+        }
+    } else {
+        document.getElementById('selected-time').value = '';
+        document.getElementById('duration').value = '';
+    }
+}
         
 
 function generateHours() {

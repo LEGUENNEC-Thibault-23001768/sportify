@@ -46,49 +46,37 @@ class BookingController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $bookingModel = new Booking();
     
-            error_log("Début de la fonction store()");
-    
             $member_id = $_POST['member_id'] ?? null;
             $court_id = $_POST['court_id'] ?? null;
             $reservation_date = $_POST['reservation_date'] ?? null;
-            $start_time = $_POST['start_time'] ?? null;
+            $start_times = $_POST['start_time'] ?? null; 
             $duration = $_POST['duration'] ?? 1;
     
-            error_log("Données reçues : ");
-            error_log("member_id: " . ($member_id ?? 'NULL')); 
-            error_log("court_id: " . ($court_id ?? 'NULL'));
-            error_log("reservation_date: " . ($reservation_date ?? 'NULL'));
-            error_log("start_time: " . ($start_time ?? 'NULL'));
-            error_log("duration: " . ($duration ?? 'NULL'));
-    
-    
-            if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_time)) {
-                error_log("Erreur : au moins un champ obligatoire est vide.");
-                $_SESSION['error'] = "Tous les champs sont requis."; 
-                header('Location: /dashboard/booking'); 
-            }
-    
-            if (!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/', $start_time)) {
-                error_log("Erreur : Format de start_time invalide.");
-                $_SESSION['error'] = "Format d'heure invalide.";
+            if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_times)) {
+                $_SESSION['error'] = "Tous les champs sont requis.";
                 header('Location: /dashboard/booking');
                 exit;
             }
     
-            $end_time = date('H:i', strtotime($start_time . ' +' . $duration . ' hour'));
+            $start_times_array = explode(',', $start_times); 
     
-            if ($end_time === false) {
-                error_log("Erreur : Calcul de end_time a échoué.");
-                $_SESSION['error'] = "Erreur lors du calcul de l'heure de fin.";
-                header('Location: /dashboard/booking');
-                exit;
+            foreach ($start_times_array as $start_time) { 
+                if (!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/', $start_time)) {
+                    $_SESSION['error'] = "Format d'heure invalide.";
+                    header('Location: /dashboard/booking');
+                    exit;
+                }
+    
+                $end_time = date('H:i', strtotime($start_time . ' +1 hour')); 
+                if ($end_time === false) {
+                    $_SESSION['error'] = "Erreur lors du calcul de l'heure de fin.";
+                    header('Location: /dashboard/booking');
+                    exit;
+                }
+    
+                $bookingModel->addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
             }
     
-            error_log("end_time (générée): " . $end_time);
-    
-            $bookingModel->addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
-    
-            error_log("Réservation ajoutée avec succès.");
             $_SESSION['success'] = "Réservation effectuée avec succès.";
             header('Location: /dashboard/booking');
             exit;
