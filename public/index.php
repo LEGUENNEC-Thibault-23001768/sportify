@@ -83,16 +83,12 @@ Router::get('/reset-password', 'AuthController@showResetPasswordForm');
 Router::post('/reset-password', 'AuthController@resetPassword');
 
 // --- Training Routes ---
-Router::get('/dashboard/training', 'TrainingController@dashboard', Auth::requireLogin());
-Router::get('/dashboard/training/start', 'TrainingController@start', Auth::requireLogin());
-Router::get('/dashboard/training/generate', 'TrainingController@generate', Auth::requireLogin());
-Router::get('/dashboard/training/edit', 'TrainingController@edit', Auth::requireLogin());
-Router::post('/dashboard/training/update', 'TrainingController@update', Auth::requireLogin());
-Router::get('/dashboard/training/train', 'TrainingController@train', Auth::requireLogin());
+Router::get('/dashboard/training', 'TrainingAPIController@get', Auth::requireLogin());
 
 // --- API Training Routes ---
-Router::post('/api/training/process-step', 'TrainingController@apiProcessStep', Auth::requireLogin());
-Router::post('/api/training/generate', 'TrainingController@apiGenerate', Auth::requireLogin());
+Router::post('/api/training/process-step', 'TrainingAPIController@processStep', Auth::requireLogin());
+Router::post('/api/training/generate', 'TrainingAPIController@generate', Auth::requireLogin());
+Router::post('/api/training/update', 'TrainingAPIController@update', Auth::requireLogin());
 
 
 // --- API Coach reservation
