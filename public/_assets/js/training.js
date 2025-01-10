@@ -1,382 +1,398 @@
 function initialize() {
-    console.log("Training view initialized");
-    loadTrainingData();
+    loadStatsData();
+   console.log('Stats view initialized');
 }
 
-let currentStep = 1;
-const trainingContent = $('#trainingContent');
-let currentPlanData;
-let currentDayData = null;
-let currentExerciseIndex = 0;
-let currentSetIndex = 0;
-let restTimer = null;
-
-
-function loadTrainingData() {
-    $.ajax({
-        url: '/dashboard/training',
-        method: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            if (response.plan) {
-                currentPlanData = JSON.parse(response.plan);
-                displayTrainingPlan(response.plan);
-            } else {
-                displayCreatePlanButton();
-            }
-        },
-        error: function(error) {
-            console.error("Error loading training data:", error);
-            displayCreatePlanButton();
-        }
-    });
+async function loadStatsData() {
+   try {
+       const statsData = await getStatsData();
+       console.log("Stats data: ", statsData);
+       updateUI(statsData);
+   } catch (error) {
+       console.error("Error loading stats data:", error);
+       showToast("Error loading stats data", 'error');
+   }
 }
 
-function displayCreatePlanButton() {
-    trainingContent.html('<button id="createPlanButton" class="btn btn-primary">Create Training Plan</button>');
-    $('#createPlanButton').on('click', function() {
-        openCreatePlanPopup();
-    });
+async function getStatsData() {
+   return new Promise((resolve, reject) => {
+      $.ajax({
+           url: '/api/stats',
+          method: 'GET',
+          dataType: 'json',
+          success: function(data) {
+              resolve(data);
+           },
+           error: function(error) {
+               console.error("Error fetching stats data:", error);
+               showToast("Error fetching stats data", 'error');
+              reject(error)
+          }
+      });
+  });
+}
+
+function updateUI(statsData) {
+   const sportsStats = {
+       tennis: ["Temps total joué (en minutes)", "Nombre de sets gagnés", "Nombre d'aces"],
+       football: ["Temps total joué (en minutes)", "Buts marqués", "Nombre de passes"],
+      basketball: ["Temps total joué (en minutes)", "Points marqués", "Tirs cadrés"],
+       rpm: ["Temps total (en minutes)", "Calories brûlées (en kcal)", "Distance parcourue (en kilomètres)"],
+       musculation: ["Temps total (en minutes)", "Poids maximum soulevé (en kg)", "Nombre de répétitions"],
+      boxe: ["Temps de combat (en minutes)", "Coups réussis", "Coups encaissés"]
+   };
+   const sportSelect = document.getElementById("sport-select");
+  const statTitles = [
+       document.querySelector("#stat-1 .report-title"),
+       document.querySelector("#stat-2 .report-title"),
+      document.querySelector("#stat-3 .report-title")
+   ];
+   const updateStats = () => {
+       const selectedSport = sportSelect.value;
+      const stats = sportsStats[selectedSport] || ["--", "--", "--"];
+       statTitles.forEach((title, index) => {
+          title.textContent = stats[index] || "--";
+       });
+   };
+
+   sportSelect.addEventListener("change", updateStats);
+   updateStats();
+
+  const barCtx = document.getElementById("barChart").getContext("2d");
+   new Chart(barCtx, {
+       type: "bar",
+       data: {
+           labels: ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"],
+           datasets: [
+               {
+                   label: "",
+                   data: [0.5, 1, 1.5, 2, 0.5, 1.5, 0.25],
+                  backgroundColor: "rgba(75, 192, 192, 0.2)",
+                   borderColor: "rgba(75, 192, 192, 1)",
+                   borderWidth: 1
+               }
+           ]
+       },
+       options: {
+           maintainAspectRatio: true, // Garde un bon ratio hauteur/largeur
+          responsive: true,
+           scales: {
+              y: {
+                   beginAtZero: true,
+                  ticks: {
+                      stepSize: 0.5,
+                      callback: function(value) {
+                           const hours = Math.floor(value);
+                           const minutes = (value % 1) * 60;
+                           return `${hours}h${minutes === 0 ? "00" : "30"}`;
+                       },
+                       color: "#FFFFFF",
+                       font: {
+                           size: 14,
+                          weight: "bold"
+                       }
+                   },
+                  grid: {
+                       color: "rgba(255, 255, 255, 0.1)"
+                   }
+               },
+               x: {
+                  ticks: {
+                       color: "#FFFFFF",
+                       font: {
+                           size: 14,
+                          weight: "bold"
+                       }
+                   },
+                   grid: {
+                       display: false
+                  }
+               }
+           },
+           plugins: {
+               legend: {
+                  display: false
+               }
+           }
+       }
+   });
+
+  const taskCtx = document.getElementById("taskCompletionChart").getContext("2d");
+   new Chart(taskCtx, {
+       type: "doughnut",
+      data: {
+           labels: ["Complet", "Manqué"],
+          datasets: [
+               {
+                  data: [71, 29],
+                   backgroundColor: ["rgba(255, 105, 180, 0.8)", "#666"],
+                   borderWidth: 0
+               }
+           ]
+       },
+       options: {
+           responsive: true,
+           cutout: "70%",
+           plugins: {
+              legend: {
+                  display: false
+              }
+           },
+          elements: {
+               arc: {
+                   borderRadius: 20
+              }
+           },
+           animation: {
+              animateRotate: true,
+               animateScale: true
+           }
+       }
+  });
+
+   const chartCanvas = document.getElementById("taskCompletionChart");
+  chartCanvas.style.filter = "drop-shadow(0px 0px 15px rgba(255, 105, 180, 0.7))";
+ };
+   const addStatsBtn = document.getElementById("add-stats-btn");
+  const popupContainer = document.getElementById("popup-container");
+   const popupSports = document.getElementById("popup-sports");
+  const popupConfirmation = document.getElementById("popup-confirmation");
+  const pageWrapper = document.querySelector(".page-wrapper");
+   const closeButtons = document.querySelectorAll(".close-popup, #close-congrats-btn, #confirm-yes-btn, #confirm-no-btn");
+
+  // Fonction pour afficher un popup
+   const showPopup = (popup) => {
+       popup.classList.remove("hidden");
+      pageWrapper.classList.add("blur"); // Floute l'arrière-plan
+  };
+
+   // Fonction pour fermer un popup
+   const closePopup = (popup) => {
+       popup.classList.add("hidden");
+       pageWrapper.classList.remove("blur"); // Supprime le flou
+   };
+
+   // Gestion du clic sur "Ajoutez vos statistiques"
+  addStatsBtn.addEventListener("click", () => {
+      showPopup(popupSports);
+   });
+
+  // Gestion des clics sur les boutons de fermeture
+  closeButtons.forEach((button) => {
+      button.addEventListener("click", (event) => {
+          const parentPopup = event.target.closest(".popup");
+          if (parentPopup) {
+               closePopup(parentPopup);
+         }
+       });
+  });
+
+   // Gestion du clic sur le popup de confirmation
+   document.getElementById("confirm-yes-btn").addEventListener("click", () => {
+       closePopup(popupConfirmation);
+   });
+
+  // Gestion de la touche "Échap" pour fermer les popups
+   document.addEventListener("keydown", (event) => {
+       if (event.key === "Escape") {
+          const activePopup = document.querySelector(".popup:not(.hidden)");
+           if (activePopup) {
+               closePopup(activePopup);
+           }
+       }
+   });
+
+  // Gestion du clic en dehors des popups
+  document.querySelectorAll(".popup").forEach((popup) => {
+      popup.addEventListener("click", (event) => {
+           if (event.target === popup) {
+               closePopup(popup);
+           }
+       });
+  });
+
+const sportsStats = {
+   tennis: ["Temps total joué (en minutes)", "Nombre de sets gagnés", "Nombre d'aces"],
+   football: ["Temps total joué (en minutes)", "Buts marqués", "Nombre de passes"],
+  basketball: ["Temps total joué (en minutes)", "Points marqués", "Tirs cadrés"],
+   rpm: ["Temps total (en minutes)", "Calories brûlées (en kcal)", "Distance parcourue (en kilomètres)"],
+  musculation: ["Temps total (en minutes)", "Poids maximum soulevé (en kg)", "Nombre de répétitions"],
+   boxe: ["Temps de combat (en minutes)", "Coups réussis", "Coups encaissés"],
+};
+
+let selectedSport = "";
+let currentStatIndex = 0;
+let statsValues = [];
+let isCongratsPopupActive = false;
+let lastActivePopup = null;
+
+function initializePopups() {
+  document.querySelectorAll(".category-card").forEach(card => {
+       card.removeEventListener("click", handleSportSelection);
+       card.addEventListener("click", handleSportSelection);
+   });
+
+   document.querySelectorAll(".close-popup").forEach(closeBtn => {
+      closeBtn.removeEventListener("click", handleClosePopup);
+       closeBtn.addEventListener("click", handleClosePopup);
+   });
+
+   document.getElementById("close-congrats-btn").addEventListener("click", () => {
+       closeCongratsPopup();
+  });
+
+   const confirmYesBtn = document.getElementById("confirm-yes-btn");
+  const confirmNoBtn = document.getElementById("confirm-no-btn");
+
+   confirmYesBtn?.removeEventListener("click", handleConfirmYes);
+  confirmYesBtn?.addEventListener("click", handleConfirmYes);
+
+   confirmNoBtn?.removeEventListener("click", handleConfirmNo);
+   confirmNoBtn?.addEventListener("click", handleConfirmNo);
 }
 
 
-function displayTrainingPlan(plan) {
-    currentPlanData = JSON.parse(plan);
-    if (currentPlanData) {
-        let html = '<h1>Your Training Plan</h1><div class="training-plan">';
-        currentPlanData.days.forEach(day => {
-            html += `<div class="day-card" data-day="${day.day}"><h3>${day.day}</h3><div class="exercises">`;
-            day.exercises.forEach(exercise => {
-                html += `<div class="exercise-card" data-name="${exercise.name}" data-description="${exercise.description}"
-                              data-sets="${exercise.sets}" data-reps="${exercise.reps}" data-duration="${exercise.duration}" data-intensity="${exercise.intensity}"
-                              data-repos="${exercise.repos}"><h4>${exercise.name}</h4><p class="description" style="display: none;">${exercise.description}</p>
-                              <div class="sets"></div><button class="toggle-description">Show Description</button><button class="start-exercise hidden">Start</button></div>`;
-            });
-            html += `</div></div>`;
-        });
-        html += '</div><button id="editPlanButton" class="btn btn-secondary">Edit Plan</button><div id="active-training" style="display:none;"><h3 id="active-day"></h3><div id="current-exercise"></div><button id="end-set" class="hidden">End Set</button><div id="rest-timer" style="display: none;"> Resting: <span id="timer-countdown"></span> <button id="skip-timer">Skip</button> </div><button id="next-exercise" class="hidden">Next Exercise</button> <button id="finish-day" class="hidden">Finish Day</button><button id="go-back-exercises" class="hidden">Go Back</button></div>'
-        trainingContent.html(html);
+const submitButton = document.getElementById("stat-submit-btn");
+const statInput = document.getElementById("stat-input");
 
-        setupDayCardInteractions();
-        setupExerciseStart();
-        $('#editPlanButton').on('click', openEditPlanPopup);
-
-
-    } else {
-        trainingContent.html('Invalid plan format');
-    }
-}
-
-function setupExerciseStart() {
-    trainingContent.on('click', '.day-card', function(event) {
-        if (event.target === this || event.target.closest('h3') === this.querySelector('h3')) {
-            const day = $(this).data('day');
-            currentDayData = currentPlanData.days.find(d => d.day === day);
-            currentExerciseIndex = 0;
-            currentSetIndex = 0;
-
-            $(this).find('.exercise-card .start-exercise').removeClass('hidden')
-        }
-    });
-
-    trainingContent.on('click', '.start-exercise', function() {
-        const exerciseCard = $(this).closest('.exercise-card');
-        $('.training-plan').hide();
-        $('#active-training').show();
-        $('#go-back-exercises').show();
-        displayCurrentExercise(exerciseCard);
-    });
-}
-
-
-function setupDayCardInteractions() {
-    const dayCards = document.querySelectorAll('.day-card');
-
-    dayCards.forEach(card => {
-        card.addEventListener('click', function(event) {
-            // Prevent triggering active training if clicking on interactive elements
-            if (!event.target.closest('.toggle-description, .star')) {
-                toggleExercisesVisibility(card);
-            }
-        });
-    });
-
-    document.querySelectorAll('.toggle-description').forEach(button => {
-        button.addEventListener('click', function(event) {
-            event.stopPropagation(); // Prevent event from bubbling up to the card
-            const description = button.previousElementSibling;
-            description.style.display = description.style.display === 'none' ? 'block' : 'none';
-            button.textContent = description.style.display === 'none' ? 'Show Description' : 'Hide Description';
-        });
-    });
-}
-
-function toggleExercisesVisibility(card) {
-    const exercises = card.querySelector('.exercises');
-    exercises.style.display = exercises.style.display === 'none' || exercises.style.display === '' ? 'block' : 'none';
-
-    if (exercises.style.display === 'block') {
-        const exerciseCards = exercises.querySelectorAll('.exercise-card');
-        exerciseCards.forEach(exerciseCard => {
-            const setsContainer = exerciseCard.querySelector('.sets');
-            const sets = exerciseCard.dataset.sets;
-
-            setsContainer.innerHTML = '';
-
-            const numSets = parseInt(sets);
-            for (let i = 0; i < numSets; i++) {
-                const star = document.createElement('span');
-                star.classList.add('star');
-                star.textContent = '★';
-                setsContainer.appendChild(star);
-            }
-        });
-    }
-}
-
-
-function displayCurrentExercise(exerciseCard) {
-    const activeTrainingSection = $('#active-training');
-    const currentExerciseContainer = $('#current-exercise');
-    const endSetButton = $('#end-set');
-    const nextExerciseButton = $('#next-exercise');
-    const finishDayButton = $('#finish-day');
-
-
-    if (!currentDayData || currentExerciseIndex >= currentDayData.exercises.length) {
-        finishDay();
-        return;
-    }
-
-    const exerciseData = exerciseCard.data();
-    const numSets = parseInt(exerciseData.sets);
-
-    currentExerciseContainer.html(`
-                <h4>${exerciseData.name}</h4>
-                <p>${exerciseData.description}</p>
-                <div class="sets">
-                    ${generateSetsStars(numSets)}
-               </div>
-             `);
-
-    currentSetIndex = 0;
-    updateStars(numSets);
-
-
-    endSetButton.removeClass('hidden');
-    nextExerciseButton.addClass('hidden');
-    finishDayButton.addClass('hidden');
-    activeTrainingSection.find('#active-day').text(currentDayData.day);
-
-}
-
-function generateSetsStars(numSets) {
-    let starsHtml = '';
-    for (let i = 0; i < numSets; i++) {
-        starsHtml += '<span class="star">★</span>';
-    }
-    return starsHtml;
-}
-
-function updateStars(numSets) {
-    const currentExerciseContainer = $('#current-exercise');
-    const stars = currentExerciseContainer.find('.star');
-    stars.each((index, star) => {
-        if (index < currentSetIndex) {
-            $(star).addClass('completed');
-        } else {
-            $(star).removeClass('completed');
-        }
-    });
-
-    if (currentSetIndex === numSets) {
-        $('#end-set').addClass('hidden');
-        $('#next-exercise').removeClass('hidden');
-    }
-}
-trainingContent.on('click', '#end-set', () => {
-    currentSetIndex++;
-    const currentExerciseContainer = $('#current-exercise');
-    const numSets = parseInt(currentExerciseContainer.find('.sets').children().length);
-
-
-    updateStars(numSets);
-    const currentExerciseData = $(currentExerciseContainer).closest('#active-training').find('#current-exercise').find('h4').text();
-    const exercise = currentDayData.exercises.find(ex => ex.name === currentExerciseData)
-    const restTime = exercise.repos ? parseInt(exercise.repos) : 60;
-    startRestTimer(restTime);
-    if (currentSetIndex === numSets) {
-        $('#end-set').addClass('hidden');
-    }
+statInput.addEventListener("input", () => {
+  if (statInput.value.length > 4) {
+       statInput.value = statInput.value.slice(0, 4);
+   }
+   statInput.value = statInput.value.replace(/[^0-9]/g, "");
 });
 
-trainingContent.on('click', '#next-exercise', () => {
-    currentExerciseIndex++;
-    $('#next-exercise').addClass('hidden');
-    const exerciseCard = $('.exercise-card').filter((index, element) => {
-        const name = $(element).find('h4').text();
-        return currentDayData.exercises[currentExerciseIndex] && currentDayData.exercises[currentExerciseIndex].name === name
-    }).first()
+const prevButton = document.createElement("button");
+prevButton.id = "stat-prev-btn";
+prevButton.textContent = "Précédent";
+const buttonsContainer = document.querySelector('.buttons-container');
+buttonsContainer.insertBefore(prevButton, submitButton);
 
-    displayCurrentExercise(exerciseCard);
+prevButton.addEventListener("click", handlePrev);
+submitButton.addEventListener("click", handleNext);
+
+document.addEventListener("keydown", (e) => {
+   if (e.key === "Enter") {
+       if (!document.getElementById("popup-stats").classList.contains("hidden")) {
+          handleNext();
+       }
+   }
 });
 
-
-
-function startRestTimer(seconds) {
-    const restTimerDisplay = $('#rest-timer');
-    const timerCountdown = $('#timer-countdown');
-
-    restTimerDisplay.show();
-    let timeLeft = seconds;
-    timerCountdown.text(timeLeft);
-
-    clearInterval(restTimer);
-    restTimer = setInterval(() => {
-        timeLeft--;
-        timerCountdown.text(timeLeft);
-        if (timeLeft <= 0) {
-            clearInterval(restTimer);
-            restTimerDisplay.hide();
-        }
-    }, 1000);
-
-    // Skip Timer Button
-    const skipTimerButton = $('#skip-timer');
-    skipTimerButton.off('click').on('click', () => {
-        clearInterval(restTimer);
-        restTimerDisplay.hide();
-    });
+function handleSportSelection() {
+   resetPopups();
+   selectedSport = this.dataset.sport;
+  currentStatIndex = 0;
+  statsValues = new Array(sportsStats[selectedSport].length).fill("");
+   document.getElementById("popup-sports").classList.add("hidden");
+   document.getElementById("popup-stats").classList.remove("hidden");
+   updateStatPopup();
+  isCongratsPopupActive = false;
 }
 
-function finishDay() {
-    const activeTrainingSection = $('#active-training');
-    const currentExerciseContainer = $('#current-exercise');
-    const endSetButton = $('#end-set');
-    const nextExerciseButton = $('#next-exercise');
-    const finishDayButton = $('#finish-day');
-
-    currentExerciseContainer.html('<p>All exercises completed for the day!</p>');
-    endSetButton.addClass('hidden');
-    nextExerciseButton.addClass('hidden');
-    finishDayButton.removeClass('hidden');
+function handleClosePopup() {
+   const currentPopup = this.closest(".popup");
+  if (currentPopup) {
+       currentPopup.classList.add("hidden");
+       document.getElementById("popup-confirmation").classList.remove("hidden");
+      lastActivePopup = currentPopup;
+   }
 }
 
-trainingContent.on('click', '#finish-day', () => {
-    $('.training-plan').show();
-    $('#active-training').hide();
-    $('#go-back-exercises').hide();
-    $('#finish-day').addClass('hidden');
-});
-trainingContent.on('click', '#go-back-exercises', () => {
-    $('.training-plan').show();
-    $('#active-training').hide();
-    $('#go-back-exercises').hide();
-});
-
-
-
-$('#editTrainingForm').on('submit', function(e) {
-    e.preventDefault();
-    $.ajax({
-        url: $(this).attr('action'),
-        type: 'POST',
-        dataType: 'json',
-        data: $(this).serialize(),
-        success: function(response) {
-            loadTrainingData();
-            closeEditPlanPopup();
-            showSuccessToast("Training plan updated successfully", 'success');
-        },
-        error: function(xhr, status, error) {
-            console.error("Error updating training plan:", error);
-            showToast("Error updating plan", 'error');
-        }
-    });
-});
-
-$('#nextButton').click(function() {
-    let input = $(`#question${currentStep} :input`).val();
-
-    $.ajax({
-        url: '/api/training/process-step',
-        method: 'POST',
-        dataType: 'json',
-        data: {
-            step: currentStep,
-            data: input
-        },
-        success: function(response) {
-            if (response.next_step === 'generate') {
-                generateTrainingPlan();
-            } else {
-                $(`#question${currentStep}`).hide();
-                $(`#question${response.next_step}`).show();
-                currentStep = response.next_step;
-                $('#step').val(currentStep);
-            }
-        },
-        error: function(error) {
-            console.error("Error processing step:", error);
-            showToast("Error processing step", 'error');
-        }
-    });
-});
-
-
-function generateTrainingPlan() {
-    $.ajax({
-        url: '/api/training/generate',
-        method: 'POST',
-        dataType: 'json',
-        success: function(response) {
-            if (response.plan) {
-                loadTrainingData();
-                closeCreatePlanPopup();
-            } else {
-                console.error("Error: Invalid response format", response);
-                showToast("Error generating plan", 'error');
-            }
-        },
-        error: function(error) {
-            console.error("Error generating training plan:", error);
-            showToast("Error generating plan", 'error');
-        }
-    });
+function handleConfirmYes() {
+   document.getElementById("popup-confirmation").classList.add("hidden");
+  initializePopups();
 }
 
-loadTrainingData();
-
-function openCreatePlanPopup() {
-    $('#createPlanPopup').show();
-    $('#popupOverlay').show();
+function handleConfirmNo() {
+  document.getElementById("popup-confirmation").classList.add("hidden");
+   if (lastActivePopup) {
+      lastActivePopup.classList.remove("hidden");
+       lastActivePopup = null;
+  }
 }
 
-function closeCreatePlanPopup() {
-    $('#createPlanPopup').hide();
-    $('#popupOverlay').hide();
+function closeCongratsPopup() {
+   document.getElementById("popup-congrats").classList.add("hidden");
+  isCongratsPopupActive = false;
 }
 
-function openEditPlanPopup() {
-    $('#editPlanPopup').show();
-    $('#popupOverlay').show();
+function handlePrev() {
+   clearError();
+   if (currentStatIndex > 0) {
+       currentStatIndex--;
+       updateStatPopup();
+   } else {
+       document.getElementById("popup-stats").classList.add("hidden");
+       document.getElementById("popup-sports").classList.remove("hidden");
+   }
 }
 
-function closeEditPlanPopup() {
-    $('#editPlanPopup').hide();
-    $('#popupOverlay').hide();
+function handleNext() {
+  const value = statInput.value;
+  clearError();
+   if (value === "") {
+       showError("Oups ! Tu dois entrer une valeur avant de continuer. 😅");
+       return;
+   } else if (value < 0) {
+       showError("Hé, on veut des stats positives ici, pas des valeurs de déprime ! 😜");
+      return;
+   }
+   statsValues[currentStatIndex] = value;
+
+  if (currentStatIndex < sportsStats[selectedSport].length - 1) {
+      currentStatIndex++;
+      updateStatPopup();
+  } else {
+       document.getElementById("popup-stats").classList.add("hidden");
+       document.getElementById("popup-congrats").classList.remove("hidden");
+      isCongratsPopupActive = true;
+   }
 }
 
-function showSuccessToast(message) {
-    const toastContainer = $('#toast-container');
-    const toast = $(`<div class="toast success">${message}</div>`);
-    toastContainer.append(toast);
-    setTimeout(() => toast.remove(), 3000);
+function updateStatPopup() {
+  document.getElementById("stat-sport-title").textContent = `Statistiques - ${selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1)}`;
+  document.getElementById("stat-question").textContent = sportsStats[selectedSport][currentStatIndex];
+  statInput.value = statsValues[currentStatIndex] || "";
+   submitButton.textContent = currentStatIndex < sportsStats[selectedSport].length - 1 ? "Suivant" : "Soumettre";
+   prevButton.style.display = "inline-block";
 }
 
-function showErrorToast(message) {
-    const toastContainer = $('#toast-container');
-    const toast = $(`<div class="toast error">${message}</div>`);
-    toastContainer.append(toast);
-    setTimeout(() => toast.remove(), 3000);
+function resetPopups() {
+  document.querySelectorAll(".popup").forEach(popup => popup.classList.add("hidden"));
+   clearError();
+  statInput.value = "";
+}
+
+function showError(message) {
+  const errorDiv = document.getElementById("error-message");
+   errorDiv.textContent = message;
+   errorDiv.style.color = "red";
+   statInput.classList.add("input-error");
+
+   setTimeout(() => {
+      statInput.classList.remove("input-error");
+   }, 500);
+}
+
+function clearError() {
+  const errorDiv = document.getElementById("error-message");
+   errorDiv.textContent = "";
+}
+   
+function showToast(message, type = 'success') {
+       // Create toast element
+      var toast = $(`<div class="toast-message toast-${type}">` + message + '<span class="close-toast">×</span></div>');
+
+       // Append to container
+      $('#toast-container').append(toast);
+
+       // Show the toast
+       toast.fadeIn(400).delay(3000).fadeOut(400, function() {
+          $(this).remove();
+       });
+       // Close button functionality
+       toast.find('.close-toast').click(function() {
+          toast.remove();
+      });
 }

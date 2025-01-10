@@ -113,7 +113,6 @@
 </div>
 
 <script>
-    // Pass PHP variables to JavaScript
     var memberStatusData = {
         labels: [<?php foreach ($memberStatusDistribution as $status) { echo '"' . htmlspecialchars($status['status']) . '",'; } ?>],
         data: [<?php foreach ($memberStatusDistribution as $status) { echo $status['count'] . ','; } ?>]

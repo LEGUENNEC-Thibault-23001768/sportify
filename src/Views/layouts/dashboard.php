@@ -23,7 +23,7 @@
         <ul>
             <!-- Updated data-target attributes -->
             <li><a href="/dashboard" data-target="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-            <li><a href="/dashboard/suivi" data-target="suivi"><i class="fas fa-chart-line"></i> Suivi </a></li>
+            <li><a href="/dashboard/suivi" data-target="stats"><i class="fas fa-chart-line"></i> Suivi </a></li>
             <li><a href="/dashboard/booking" data-target="booking"><i class="fas fa-futbol"></i> Terrains</a></li>
             <li><a href="/dashboard/coaches" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
             <li><a href="/dashboard/events" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
