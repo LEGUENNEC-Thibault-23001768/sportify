@@ -88,18 +88,16 @@ class BookingController extends APIController
         if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_time) || empty($end_time)) {
             return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
         }
-
+        
         $startTime = new DateTime($reservation_date . ' ' . $start_time);
         $endTime = new DateTime($reservation_date . ' ' . $end_time);
         $duration = $endTime->diff($startTime);
         
         $totalHours = $duration->h + ($duration->i / 60);
 
-
         if ($totalHours > 2) {
               return $response->setStatusCode(400)->setData(['error' => 'Reservation cannot exceed 2 hours'])->send();
         }
-
 
         Booking::addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
 
@@ -144,11 +142,9 @@ class BookingController extends APIController
         
         $totalHours = $duration->h + ($duration->i / 60);
 
-
         if ($totalHours > 2) {
               return $response->setStatusCode(400)->setData(['error' => 'Reservation cannot exceed 2 hours'])->send();
         }
-
 
         Booking::updateReservation($reservationId, $reservation_date, $start_time, $end_time);
 

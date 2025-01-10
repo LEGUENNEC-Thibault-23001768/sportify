@@ -145,7 +145,7 @@ button:hover {
 }
 
 .cv-header p {
-    font-size: 1.2em;
+    font-size: 1em;
     color: #fff;
     text-align: left;
     padding-top: 5px; 
@@ -163,7 +163,7 @@ button:hover {
 }
 
 .cv-details {
-    font-size: 1.1em;
+    font-size: 1em;
     line-height: 1.6;
     margin-top: -10px;
 }
@@ -203,11 +203,29 @@ button:hover {
     gap: 10px; /* Espacement entre les boutons */
 }
 
+.cv-reserve-btn {
+    margin-top: 25px; /* Augmentation de l'espace au-dessus pour abaisser les boutons */
+    background-color: #C1FF72; /* Couleur verte par défaut */
+    color: #333; /* Texte en couleur sombre */
+    padding: 10px 20px;
+    border: none; /* Supprime les bordures */
+    border-radius: 5px; /* Coins arrondis */
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: bold;
+    transition: background-color 0.3s ease; /* Transition douce pour le hover */
+    display: inline-block; /* Affiche les boutons en ligne */
+}
+
+.cv-reserve-btn:hover {
+    background-color: #91C556; /* Couleur plus sombre au survol */
+}
+
 
 
 .trainer-image-cv {
-    max-width: 132px; /* Taille de l'image */
-    height: 132px;
+    max-width: 102px; /* Taille de l'image */
+    height: 102px;
     border-radius: 50%; /* Transforme l'image en cercle */
     object-fit: cover; /* Ajuste l'image pour qu'elle soit bien centrée */
     position: absolute; /* Position absolue */
@@ -272,4 +290,17 @@ button:hover {
     gap: 10px;
     margin-top: 3px; /* Ajoute un espacement entre les boutons et le contenu */
     width: 100%; /* Occupe toute la largeur disponible pour faciliter le centrage */
+}
+
+#calendar-section {
+    position: relative;
+    color: rgb(146, 148, 148); /* Assure que l'élément soit le conteneur de référence */
+}
+
+#event-form {
+    position: absolute;
+    z-index: 9999;  /* Priorité à l'affichage du formulaire */
+    background: #182825;
+    padding: 10px;
+    border: 1px solid #b82727;
 }

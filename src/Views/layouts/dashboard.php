@@ -4,14 +4,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="/_assets/css/dashboard.css">
+    <link rel="stylesheet" href="/_assets/css/mobiscroll.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/_assets/js/mobiscroll.min.js"></script>
         <script>
-        // Check if jQuery is loaded before using it
         if (typeof jQuery === 'undefined') {
-            console.error('jQuery is not loaded!');
-            // You can try loading it here or display an error message to the user
+            console.error('Veuillez activer le javascript');
         }
     </script>
 </head>
@@ -27,7 +27,7 @@
             <li><a href="/dashboard/booking" data-target="booking"><i class="fas fa-futbol"></i> Terrains</a></li>
             <li><a href="/dashboard/coaches" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
             <li><a href="/dashboard/events" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
-            <li><a href="/dashboard/program" data-target="training"><i class="fas fa-calendar"></i> Programme</a></li>
+            <li><a href="/dashboard/training" data-target="training"><i class="fas fa-calendar"></i> Programme</a></li>
             <li><a href="/dashboard/admin/users" class="management" data-target="admin/users"><i class="fas fa-tasks"></i> Gestion</a></li>
         </ul>
         <div class="settings-section">
@@ -97,7 +97,7 @@
                          loadCSS('/_assets/css/' + view + '.css', function(){
                             $('#dynamic-content').html(response).fadeTo(200, 1);  // Fade in
                             loadScript('/_assets/js/' + view + '.js', function() {
-                                if (view === "events_dash") {
+                                /*if (view === "events_dash") {
                                     loadCSS('/_assets/css/mobiscroll.min.css', function(){
                                         loadScript('/_assets/js/mobiscroll.min.js', () => {
                                          loadScript('/_assets/js/events_dash.js', function() {
@@ -106,12 +106,12 @@
                                                     }
                                                });
                                        });
-                                   });
-                                } else {
+                                   });*/
+                                //} else {
                                     if (typeof initialize === 'function') {
                                        initialize();
-                                     }
-                                   }
+                                    }
+                                  // }
                              });
                           });
                        }

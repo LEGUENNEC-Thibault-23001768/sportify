@@ -127,7 +127,7 @@ function displayReservations(bookings) {
                 editReservation(booking.reservation_id);
             });
 
-            let deleteButton = $(`<button class="delete-button" data-id="${booking.reservation_id}">Supprimer</button>`);
+            let deleteButton = $(`<button class="delete-button" data-id="${booking.reservation_id}">Annuler</button>`);
             deleteButton.click(function() {
                 deleteReservation(booking.reservation_id);
             });

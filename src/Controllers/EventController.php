@@ -245,15 +245,11 @@ class EventController extends APIController
      public function leave($eventId) {
          return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
      }
-
-    public function sendInviteApi($eventId)
-     {
-         return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
-    }
-     public function postJoin($eventId) {
-          $response = new APIResponse();
-          $currentUserId = $_SESSION['user_id'];
-            $event = Event::findEvents($eventId);
+    public function postJoin($eventId) {
+        error_log("IS THIS CALLED HOLY?");
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+        $event = Event::findEvents($eventId);
 
         if (!$event) {
             return $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
@@ -290,20 +286,19 @@ class EventController extends APIController
      
           return $response->setStatusCode(200)->setData(['message' => 'Successfully joined the event', 'event' => $updatedEventData])->send();
    }
-
-     public function postLeave($eventId) {
+   public function postLeave($eventId) {
         $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
-      $event = Event::findEvents($eventId);
+        $event = Event::findEvents($eventId);
 
-      if (!$event) {
-           return $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
-       }
-       if (!EventRegistration::isUserRegistered($eventId, $currentUserId)) {
+        if (!$event) {
+            return $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+        }
+        if (!EventRegistration::isUserRegistered($eventId, $currentUserId)) {
             return $response->setStatusCode(400)->setData(['error' => 'You are not registered for this event'])->send();
-       }
+        }
 
-       EventRegistration::unregisterUserFromEvent($eventId, $currentUserId);
+        EventRegistration::unregisterUserFromEvent($eventId, $currentUserId);
 
         $updatedEvent = Event::findEvents($eventId);
         $updatedEventData = [
@@ -315,81 +310,81 @@ class EventController extends APIController
             'location' => $updatedEvent['location'],
             'max_participants' => $updatedEvent['max_participants'],
             'created_by' => $updatedEvent['created_by'],
-             'participants' => EventRegistration::getParticipantsByEvent($eventId),
+            'participants' => EventRegistration::getParticipantsByEvent($eventId),
             'is_registered' => false
         ];
         return $response->setStatusCode(200)->setData(['message' => 'Successfully left the event', 'event' => $updatedEventData])->send();
-     }
+    }
 
 
     public function postSendInviteApi($eventId) {
-         $response = new APIResponse();
-         $currentUserId = $_SESSION['user_id'];
-          $currentUser = User::getUserById($currentUserId);
+        $response = new APIResponse();
+        $currentUserId = $_SESSION['user_id'];
+        $currentUser = User::getUserById($currentUserId);
         $event = Event::findEvents($eventId);
-          if (!$event) {
-              $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
-               return;
-          }
+        if (!$event) {
+            $response->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+            return;
+        }
 
         // Check if the user is authorized to send invitations
-          if ($event['created_by'] != $currentUserId && $currentUser['status'] !== "coach" && $currentUser['status'] !== "admin") {
+        if ($event['created_by'] != $currentUserId && $currentUser['status'] !== "coach" && $currentUser['status'] !== "admin") {
                 $response->setStatusCode(403)->setData(['error' => 'You are not authorized to send invitations'])->send();
-              return;
-         }
+            return;
+        }
         $email = $_POST['email'];
 
-         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $response->setStatusCode(400)->setData(['error' => 'Invalid email format'])->send();
-           return;
+        return;
         }
 
-          $user = User::getUserByEmail($email);
-         if ($user && EventRegistration::isUserRegistered($eventId, $user['member_id'])) {
-             $response->setStatusCode(400)->setData(['error' => 'User is already registered for this event'])->send();
-           return;
+        $user = User::getUserByEmail($email);
+        if ($user && EventRegistration::isUserRegistered($eventId, $user['member_id'])) {
+            $response->setStatusCode(400)->setData(['error' => 'User is already registered for this event'])->send();
+        return;
         }
 
-      $existingInvitation = EventInvitation::findInvitationsByEventIdAndEmail($eventId, $email);
-      if ($existingInvitation) {
-            $response->setStatusCode(400)->setData(['error' => 'User is already invited to this event'])->send();
-           return;
-        }
+        $existingInvitation = EventInvitation::findInvitationsByEventIdAndEmail($eventId, $email);
+        if ($existingInvitation) {
+                $response->setStatusCode(400)->setData(['error' => 'User is already invited to this event'])->send();
+            return;
+            }
 
-         $token = EventInvitation::createInvitation($eventId, $email);
+        $token = EventInvitation::createInvitation($eventId, $email);
         if ($this->sendInvitationEmail($email, $token, $event)) {
-             $response->setStatusCode(200)->setData(['message' => 'Invitation sent successfully'])->send();
-         } else {
-             $response->setStatusCode(500)->setData(['error' => 'Failed to send invitation'])->send();
+            $response->setStatusCode(200)->setData(['message' => 'Invitation sent successfully'])->send();
+        } else {
+            $response->setStatusCode(500)->setData(['error' => 'Failed to send invitation'])->send();
         }
     }
 
     private function sendInvitationEmail($email, $token, $event) {
         $mail_parts = Config::get("mail_parts");
-       $invitationLink = Config::get("server_url") . "/event/invitation/" . $token;
+        $invitationLink = Config::get("server_url") . "/event/invitation/" . $token;
         $eventName = $event['event_name'];
 
-       $title = "Invitation to " . $eventName;
-         $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
+        $title = "Invitation to " . $eventName;
+        $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
         $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "You have been invited to the following event: " . $eventName, $mail_parts['mail_body']);
         $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", $invitationLink, $mail_parts['mail_body']);
-       $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Accept Invitation", $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Accept Invitation", $mail_parts['mail_body']);
 
         $subject = $title;
         $message = $mail_parts['mail_head'] .
-           $mail_parts['mail_title'] .
-           $mail_parts['mail_head_end'] .
-           $mail_parts['mail_body'] .
-           $mail_parts['mail_footer'];
-          $headers = "From: sportify@alwaysdata.net\r\n";
-          $headers .= "MIME-Version: 1.0\r\n";
+        $mail_parts['mail_title'] .
+        $mail_parts['mail_head_end'] .
+        $mail_parts['mail_body'] .
+        $mail_parts['mail_footer'];
+        $headers = "From: sportify@alwaysdata.net\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
         if (mail($email, $subject, $message, $headers)) {
-          return true;
-      } else {
-          error_log("Error sending invitation email to $email: " . error_get_last());
-           return false;
+            return true;
+        } else {
+            error_log("Error sending invitation email to $email: " . error_get_last());
+            return false;
         }
-  }
+    }
 }

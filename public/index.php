@@ -27,11 +27,11 @@ Router::get('/logout', 'AuthController@logout', Auth::requireLogin());
 // --- Event Routes ---
 Router::get('/api/events', 'EventController@getEvents',Auth::requireLogin());  
 Router::get('/api/events/{id}', 'EventController@show');
-Router::post('/api/events', 'EventController@storeApi', [Auth::isAdmin(), Auth::isCoach()]);
-Router::post('/api/events/join/{id}', 'EventController@join', Auth::requireLogin());
-Router::post('/api/events/leave/{id}', 'EventController@leave', Auth::requireLogin());
+Router::post('/api/events', 'EventController@storeApi', [Auth::isAdmin()]);
+Router::post('/api/events/join/{id}', 'EventController@postJoin', Auth::requireLogin());
+Router::post('/api/events/leave/{id}', 'EventController@postLeave', Auth::requireLogin());
 Router::delete('/api/events/{id}', 'EventController@deleteApi', [Auth::isAdmin(), Auth::isCoach()]);
-Router::post('/api/events/{id}/invite', 'EventController@sendInviteApi', [Auth::isAdmin(), Auth::isCoach()]);
+Router::post('/api/events/{id}/invite', 'EventController@postSendInviteApi', [Auth::isAdmin(), Auth::isCoach()]);
 
 // --- Booking Routes ---
 Router::apiResource('/api/booking', 'BookingController', Auth::requireLogin());
@@ -93,6 +93,14 @@ Router::get('/dashboard/training/train', 'TrainingController@train', Auth::requi
 // --- API Training Routes ---
 Router::post('/api/training/process-step', 'TrainingController@apiProcessStep', Auth::requireLogin());
 Router::post('/api/training/generate', 'TrainingController@apiGenerate', Auth::requireLogin());
+
+
+// --- API Coach reservation
+Router::get('/api/trainers/{id}', 'TrainerController@show', Auth::requireLogin());
+Router::post('/api/reservation', 'TrainerController@saveReservation', Auth::requireLogin());
+Router::get('/api/reservations/{coachId}', 'TrainerController@getReservations');
+Router::delete('/api/reservation/delete/{reservationId}', 'TrainerController@deleteReservation', Auth::requireLogin());
+Router::post('/api/reservation/update/{reservationId}', 'TrainerController@updateReservation', Auth::requireLogin());
 
 
 // --- CONTENT LOADER ---
