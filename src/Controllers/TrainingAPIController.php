@@ -7,15 +7,26 @@ use Models\User;
 use Models\Training;
 use Gemini;
 use Core\Config;
+use Core\Router;
+use Core\RouteProvider;
+use Core\Auth;
 
-class TrainingAPIController extends APIController {
+class TrainingAPIController extends APIController implements RouteProvider {
+    private $apiKey;
 
-     private $apiKey;
+    public static function routes() : void
+    {
+        Router::get('/api/training', self::class . '@get', Auth::requireLogin());
+        Router::post('/api/training/process-step', 'TrainingAPIController@processStep', Auth::requireLogin());
+        Router::post('/api/training/generate', 'TrainingAPIController@generate', Auth::requireLogin());
+        Router::post('/api/training/update', 'TrainingAPIController@update', Auth::requireLogin());
+    }
 
-     public function __construct() {
+
+    public function __construct() {
         $this->apiKey = Config::get("gemini_key");
-     }
-     public function processStep() {
+    }
+    public function processStep() {
          $response = new APIResponse();
      
          $step = $_POST['step'] ?? null;
@@ -34,7 +45,7 @@ class TrainingAPIController extends APIController {
          }
      }
 
-     public function generate() {
+    public function generate() {
          $response = new APIResponse();
          $currentUserId = $_SESSION['user_id'];
          $member = User::getUserById($currentUserId);

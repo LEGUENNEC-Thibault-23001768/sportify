@@ -7,9 +7,22 @@ use Core\APIResponse;
 use Core\Auth;
 use Models\User;
 use Models\Subscription;
+use Core\RouteProvider;
+use Core\Router;
 
-class UserController extends APIController
+class UserAPIController extends APIController implements RouteProvider
 {
+    public static function routes() : void
+    {
+        Router::put('/api/profile', self::class . '@updateProfile', Auth::requireLogin()); 
+        Router::apiResource('/api/users', self::class, Auth::isAdmin());
+        Router::get('/api/users/{user_id}/subscription', self::class . '@getSubscription', Auth::isAdmin());
+        Router::post('/api/users/{user_id}/subscription', self::class . '@updateSubscription', Auth::isAdmin());
+        Router::post('/api/users/{user_id}/subscription/cancel', self::class . '@cancelSubscription', Auth::isAdmin());
+        Router::post('/api/users/{user_id}/subscription/resume', self::class . '@resumeSubscription', Auth::isAdmin());
+
+    }
+
     public function put($userId = null)
     {
         $response = new APIResponse();
@@ -69,7 +82,6 @@ class UserController extends APIController
             return $response->setStatusCode(400)->setData(['error' => 'Invalid JSON data'])->send();
         }
         
-        // Validate and sanitize input data (add more validation as needed)
         $firstName = trim($data['first_name'] ?? '');
         $lastName = trim($data['last_name'] ?? '');
         $email = trim($data['email'] ?? '');
@@ -90,27 +102,26 @@ class UserController extends APIController
           ];
 
         if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
-          $uploadResult = $this->handleProfilePictureUpload($_FILES['profile_picture']);
-          if ($uploadResult['success']) {
-               $updateData['profile_picture'] = $uploadResult['filepath'];
-          } else {
-               return $response->setStatusCode(500)->setData(['error' => $uploadResult['message']])->send();
-           }
-         }
-      
-           if (!empty($data['current_password']) && !empty($data['new_password']) && !empty($data['confirm_password'])) {
-                if ($data['new_password'] !== $data['confirm_password']) {
-                   return $response->setStatusCode(400)->setData(['error' => 'Les nouveaux mots de passe ne correspondent pas.'])->send();
-                 }
-                
-               $user = User::getUserById($userId);
-               if(password_verify($data['current_password'], $user['password'])){
-                  $updateData['password'] = password_hash($data['new_password'], PASSWORD_DEFAULT);
-               } else {
-                return $response->setStatusCode(401)->setData(['error' => 'Le mot de passe actuel est incorrect.'])->send();
-              }
-           }
-
+            $uploadResult = $this->handleProfilePictureUpload($_FILES['profile_picture']);
+            if ($uploadResult['success']) {
+                $updateData['profile_picture'] = $uploadResult['filepath'];
+            } else {
+                return $response->setStatusCode(500)->setData(['error' => $uploadResult['message']])->send();
+            }
+        }
+        
+        if (!empty($data['current_password']) && !empty($data['new_password']) && !empty($data['confirm_password'])) {
+            if ($data['new_password'] !== $data['confirm_password']) {
+                return $response->setStatusCode(400)->setData(['error' => 'Les nouveaux mots de passe ne correspondent pas.'])->send();
+            }
+            
+            $user = User::getUserById($userId);
+            if(password_verify($data['current_password'], $user['password'])){
+                $updateData['password'] = password_hash($data['new_password'], PASSWORD_DEFAULT);
+            } else {
+            return $response->setStatusCode(401)->setData(['error' => 'Le mot de passe actuel est incorrect.'])->send();
+            }
+        }
        if (User::updateUserProfile($userId, $updateData)) {
             return $response->setStatusCode(200)->setData(['message' => 'Profil mis à jour avec succès.'])->send();
        } else {

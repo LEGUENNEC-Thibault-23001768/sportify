@@ -6,9 +6,17 @@ use Core\APIController;
 use Core\APIResponse;
 use Models\Stats;
 use Models\User;
+use Core\Router;
+use Core\RouteProvider;
+use Core\Auth;
 
-class StatsAPIController extends APIController
+class StatsAPIController extends APIController implements RouteProvider
 {
+    public static function routes() : void
+    {
+        Router::apiResource('/api/stats', self::class, Auth::requireLogin());
+    }
+
     /**
      * Handles GET requests for stats data.
      * @param $userId

@@ -3,9 +3,21 @@ namespace Controllers;
 
 use Core\Database;
 use Models\User; 
-
-class TrainerController
+use Core\Router;
+use Core\RouteProvider;
+use Core\Auth;
+class TrainerController implements RouteProvider
 {
+    public static function routes() : void
+    {
+        Router::get('/api/trainers/{id}', self::class . '@show', Auth::requireLogin());
+        Router::post('/api/reservation', self::class . '@saveReservation', Auth::requireLogin());
+        Router::get('/api/reservations/{coachId}', self::class . '@getReservations', Auth::requireLogin());
+        Router::delete('/api/reservation/delete/{reservationId}', self::class . '@deleteReservation', Auth::requireLogin());
+        Router::post('/api/reservation/update/{reservationId}', self::class . '@updateReservation', Auth::requireLogin());
+
+    }
+
     public function show($coachId)
 {
     $pdo = Database::getConnection();

@@ -5,15 +5,30 @@ namespace Controllers;
 use Core\Config;
 use Core\APIResponse;
 use Core\APIController;
+use Core\Router;
+use Core\RouteProvider;
 use Models\Event;
 use Models\User;
 use Models\EventRegistration;
 use Models\EventInvitation;
 use Models\Booking;
 use DateTime;
+use Core\Auth;
 
-class EventController extends APIController
+class EventController extends APIController implements RouteProvider
 {
+    public static function routes(): void
+    {
+        Router::get('/api/events', self::class . '@getEvents', Auth::requireLogin());
+        Router::get('/api/events/{id}', self::class . '@show', Auth::requireLogin());
+        Router::post('/api/events', 'EventController@storeApi', [Auth::isAdmin()]);
+        Router::post('/api/events/join/{id}', 'EventController@postJoin', Auth::requireLogin());
+        Router::post('/api/events/leave/{id}', 'EventController@postLeave', Auth::requireLogin());
+        Router::delete('/api/events/{id}', 'EventController@deleteApi', [Auth::isAdmin(), Auth::isCoach()]);
+        Router::post('/api/events/{id}/invite', 'EventController@postSendInviteApi', [Auth::isAdmin(), Auth::isCoach()]);
+    }
+
+
     public function getEvents()
     {
         return $this->handleRequest($_SERVER['REQUEST_METHOD']);
@@ -119,8 +134,8 @@ class EventController extends APIController
              return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
        }
 
-        $start = new \DateTime($eventData['event_date'] . 'T' . $eventData['start_time']);
-         $end = new \DateTime($eventData['event_date'] . 'T' . $eventData['end_time']);
+        $start = new DateTime($eventData['event_date'] . 'T' . $eventData['start_time']);
+         $end = new DateTime($eventData['event_date'] . 'T' . $eventData['end_time']);
         $duration = $start->diff($end);
 
         if ($duration->h > 2) {
@@ -199,10 +214,9 @@ class EventController extends APIController
 
   public function delete($eventId = null)
     {
-      // Your existing code for deleteApi with APIResponse
-          $response = new APIResponse();
+        $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
-         $currentUser = User::getUserById($currentUserId);
+        $currentUser = User::getUserById($currentUserId);
         $event = Event::findEvents($eventId);
 
         if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {

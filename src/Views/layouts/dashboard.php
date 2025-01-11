@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -23,15 +24,15 @@
         <ul>
             <!-- Updated data-target attributes -->
             <li><a href="/dashboard" data-target="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-            <li><a href="/dashboard/stats" data-target="stats"><i class="fas fa-chart-line"></i> Stats </a></li>
-            <li><a href="/dashboard/booking" data-target="booking"><i class="fas fa-futbol"></i> Terrains</a></li>
-            <li><a href="/dashboard/coaches" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
+             <li><a href="/dashboard/stats" data-target="stats"><i class="fas fa-chart-line"></i> Stats </a></li>
+             <li><a href="/dashboard/booking" data-target="booking"><i class="fas fa-futbol"></i> Terrains</a></li>
+            <li><a href="/dashboard/trainers" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
             <li><a href="/dashboard/events" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
             <li><a href="/dashboard/training" data-target="training"><i class="fas fa-calendar"></i> Programme</a></li>
             <li><a href="/dashboard/admin/users" class="management" data-target="admin/users"><i class="fas fa-tasks"></i> Gestion</a></li>
         </ul>
         <div class="settings-section">
-            <a href="/dashboard/profile" data-target="profile" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
+             <a href="/dashboard/profile" data-target="profile" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
             <a href="/logout" class="logout"> Se déconnecter</a>
         </div>
     </div>
@@ -58,6 +59,7 @@
         </div>
     </div>
     <div class="dashboard-content" id="dynamic-content">
+        
     </div>
 
  <script>
@@ -82,7 +84,7 @@
              $('#dynamic-content').fadeTo(200, 0.3); // Start fade-out
 
            $.ajax({
-                url: '/dashboard/content/' + target,
+                url: '/dashboard/' + target,
                 method: 'GET',
                success: function(response) {
                    // Cache the HTML content

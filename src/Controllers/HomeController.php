@@ -5,8 +5,17 @@ namespace Controllers;
 
 use Core\View;
 
-class HomeController
-{
+use Core\RouteProvider;
+use Core\Router;
+
+class HomeController implements RouteProvider {
+
+    public static function routes(): void
+    {
+         Router::get('/',  self::class . '@index');
+         Router::get('/404',  self::class . '@notfound');
+    }
+
     public function index()
     {
         echo View::renderWithLayout('home/index', 'layouts/main', [

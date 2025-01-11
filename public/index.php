@@ -12,64 +12,56 @@ View::init();
 session_start();
 
 // --- Home and Error Routes ---
-Router::get('/', 'HomeController@index');
+/*Router::get('/', 'HomeController@index');
 Router::get('/404', 'HomeController@notfound');
+*/
+Router::setup();
 
 // --- Authentication Routes ---
+/*
 Router::get('/login', 'AuthController@showLoginForm');
 Router::get('/register', 'AuthController@showLoginForm'); // Using the same form as login
 Router::post('/login', 'AuthController@login');
 Router::get('/verify-email', 'AuthController@verifyEmail');
 Router::post('/register', 'AuthController@register');
 Router::get('/logout', 'AuthController@logout', Auth::requireLogin());
-
+*/
 
 // --- Event Routes ---
+/*
 Router::get('/api/events', 'EventController@getEvents',Auth::requireLogin());  
 Router::get('/api/events/{id}', 'EventController@show');
-Router::post('/api/events', 'EventController@storeApi', [Auth::isAdmin()]);
-Router::post('/api/events/join/{id}', 'EventController@postJoin', Auth::requireLogin());
-Router::post('/api/events/leave/{id}', 'EventController@postLeave', Auth::requireLogin());
-Router::delete('/api/events/{id}', 'EventController@deleteApi', [Auth::isAdmin(), Auth::isCoach()]);
-Router::post('/api/events/{id}/invite', 'EventController@postSendInviteApi', [Auth::isAdmin(), Auth::isCoach()]);
-
+cc
+*/
 // --- Booking Routes ---
-Router::apiResource('/api/booking', 'BookingController', Auth::requireLogin());
+//Router::apiResource('/api/booking', 'BookingController', Auth::requireLogin());
 
 // --- Dashboard and User Profile ---
-Router::get('/dashboard', 'DashboardController@showDashboard', Auth::requireLogin());
+//Router::get('/dashboard', 'DashboardController@showDashboard', Auth::requireLogin());
 
-//Router::get('/dashboard/profile', 'UserController@showProfile', Auth::requireLogin()); //  <---  Add this to display profile
-Router::put('/api/profile', 'UserController@updateProfile', Auth::requireLogin()); // Update current user's profile
+//Router::put('/api/profile', 'UserController@updateProfile', Auth::requireLogin()); // Update current user's profile
 
 
 // --- User Routes (API) ---
+/*
 Router::apiResource('/api/users', 'UserController', Auth::isAdmin());
 Router::get('/api/users/{user_id}/subscription', 'UserController@getSubscription', Auth::isAdmin());
 Router::post('/api/users/{user_id}/subscription', 'UserController@updateSubscription', Auth::isAdmin());
 Router::post('/api/users/{user_id}/subscription/cancel', 'UserController@cancelSubscription', Auth::isAdmin());
-Router::post('/api/users/{user_id}/subscription/resume', 'UserController@resumeSubscription', Auth::isAdmin());
+Router::post('/api/users/{user_id}/subscription/resume', 'UserController@resumeSubscription', Auth::isAdmin());*/
 
-// --- Admin Routes ---
-/*Router::delete('/dashboard/admin/users/delete/{id}', 'DashboardController@deleteUser', Auth::isAdmin());
-Router::get('/api/users/{user_id}', 'DashboardController@getUserApi', Auth::isAdmin());
-Router::post('/api/users/{user_id}', 'DashboardController@updateUserApi', Auth::isAdmin());
-Router::get('/api/users/{user_id}/subscription', 'DashboardController@getUserSubscription', Auth::isAdmin());
-Router::post('/api/users/{user_id}/subscription', 'DashboardController@updateUserSubscription', Auth::isAdmin());
-Router::post('/api/users/{user_id}/subscription/cancel', 'DashboardController@cancelUserSubscription', Auth::isAdmin());
-Router::post('/api/users/{user_id}/subscription/resume', 'DashboardController@resumeUserSubscription', Auth::isAdmin());
-Router::get('/api/users', 'DashboardController@searchUsersApi', Auth::isAdmin());
-*/
+
 
 // --- Team Routes ---
-Router::post('/teams/{team_id}/add-member', 'TeamController@addParticipant', Auth::requireLogin());
-Router::post('/teams/{team_id}/remove-member', 'TeamController@removeParticipant', Auth::requireLogin());
+//Router::post('/teams/{team_id}/add-member', 'TeamController@addParticipant', Auth::requireLogin());
+//Router::post('/teams/{team_id}/remove-member', 'TeamController@removeParticipant', Auth::requireLogin());
 
 // --- Google Authentication ---
-Router::get('/google', 'GoogleAuthController@login');
-Router::get('/callback', 'GoogleAuthController@callback');
+//Router::get('/google', 'GoogleAuthController@login');
+//Router::get('/callback', 'GoogleAuthController@callback');
 
 // --- Payment Routes ---
+/*
 Router::post('/create-checkout-session', 'PaymentController@createCheckoutSession', Auth::requireLogin());
 Router::get('/success', 'PaymentController@success', Auth::requireLogin());
 Router::get('/invoices', 'PaymentController@listInvoices', Auth::requireLogin());
@@ -101,9 +93,11 @@ Router::post('/api/reservation/update/{reservationId}', 'TrainerController@updat
 Router::apiResource('/api/stats', 'StatsAPIController', Auth::requireLogin());
 
 
+*/
+
 
 // --- CONTENT LOADER ---
-Router::get('/dashboard/content/{category}/*', 'DashboardController@contentLoader', Auth::requireLogin());
+//Router::get('/dashboard/content/{category}/*', 'DashboardController@contentLoader', Auth::requireLogin());
 
 $url = $_SERVER['REQUEST_URI'];
 try {

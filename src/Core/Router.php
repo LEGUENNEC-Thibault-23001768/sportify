@@ -5,6 +5,16 @@ namespace Core;
 class Router
 {
     private static $routes = [];
+    private static $controllers = [];
+    private static $initialized = false;
+    private static $baseNamespace = "Controllers\\";
+
+    public static function setup()
+    {
+        if (self::$initialized) return;
+         self::loadControllers();
+         self::$initialized = true;
+    }
 
     public static function get($url, $handler, $middleware = null)
     {
@@ -21,13 +31,12 @@ class Router
         self::addRoute('PUT', $url, $handler, $middleware);
     }
 
-
     public static function delete($url, $handler, $middleware = null)
     {
         self::addRoute('DELETE', $url, $handler, $middleware);
     }
 
-   public static function apiResource($url, $controller, $middleware = null)
+    public static function apiResource($url, $controller, $middleware = null)
     {
         self::get($url, "$controller@get", $middleware);
         self::get($url . '/{id}', "$controller@get", $middleware);
@@ -44,8 +53,13 @@ class Router
 
     public static function dispatch($url)
     {
+        if (!self::$initialized) {
+           self::setup();
+        }
+
         $method = $_SERVER['REQUEST_METHOD'];
         $urlPath = parse_url($url, PHP_URL_PATH);
+
 
         if (!isset(self::$routes[$method])) {
             throw new \Exception("No routes defined for method: $method");
@@ -71,10 +85,10 @@ class Router
                 error_log("Captured Parameters: " . print_r(array_values($params), true));
 
                 $handler = $routeData['handler'];
-                if (is_string($handler)) {
-                    return self::invokeHandler($handler, array_values($params)); // Pass only parameter values
+               if (is_string($handler)) {
+                     return self::invokeHandler($handler, array_values($params), $method); // Pass only parameter values
                 } elseif (is_callable($handler)) {
-                    return call_user_func_array($handler, array_values($params)); // Pass only parameter values
+                     return call_user_func_array($handler, array_values($params)); // Pass only parameter values
                 } else {
                     throw new \Exception("Invalid route handler for route: $route");
                 }
@@ -83,7 +97,6 @@ class Router
 
         throw new \Exception("No route found for URL: $urlPath with method: $method");
     }
-
     private static function matchRoute($route, $url, &$params)
     {
         $route = rtrim($route, '/');
@@ -120,25 +133,29 @@ class Router
         return false;
     }
 
-    private static function invokeHandler($handler, $params)
+     private static function invokeHandler($handler, $params, $method)
     {
         list($controllerName, $action) = explode('@', $handler);
-        $controller = "Controllers\\$controllerName";
+        $controller = $controllerName;
+
 
         if (!class_exists($controller)) {
             throw new \Exception("Controller not found: $controller");
         }
 
         $controllerInstance = new $controller();
-
-        if ($controllerInstance instanceof \Core\APIController && !method_exists($controllerInstance, $action)) {
-            return $controllerInstance->handleRequest($_SERVER['REQUEST_METHOD'], ...$params);
+        if ($controllerInstance instanceof \Core\APIController) {
+            if (method_exists($controllerInstance, strtolower($method))) {
+                return call_user_func_array([$controllerInstance, strtolower($method)], $params);
+            }
+            $response = new APIResponse();
+            return $response->setStatusCode(405)->setData(['error' => 'Method not allowed.'])->send();
         } else {
             if (!method_exists($controllerInstance, $action)) {
-                throw new \Exception("Action: $action not found in controller: $controller");
+                 throw new \Exception("Action: $action not found in controller: $controller");
             }
-            return call_user_func_array([$controllerInstance, $action], $params);
-        }
+           return call_user_func_array([$controllerInstance, $action], $params);
+       }
 
     }
 
@@ -149,5 +166,19 @@ class Router
         } else {
             throw new \Exception("Invalid middleware: " . $middleware);
         }
+    }
+    private static function loadControllers()
+   {
+       $files = glob(__DIR__ . '/../Controllers/*.php');
+
+        if ($files) {
+            foreach ($files as $file) {
+             $class = self::$baseNamespace . pathinfo($file, PATHINFO_FILENAME);
+                if (class_exists($class) && in_array( \Core\RouteProvider::class, class_implements($class))) {
+                    $class::routes();
+                 self::$controllers[] = $class;
+            }
+        }
+       }
     }
 }

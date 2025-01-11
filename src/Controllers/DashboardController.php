@@ -8,23 +8,30 @@ use Core\View;
 use Core\APIResponse;
 use Models\User;
 use Models\Subscription;
+use Core\Router;
+use Core\RouteProvider;
 
-class DashboardController
+class DashboardController implements RouteProvider
 {
+    public static function routes(): void
+    {
+        Router::get('/dashboard', self::class . '@showDashboard', Auth::requireLogin());
+        Router::get('/dashboard/{category}/*', self::class . '@contentLoader', Auth::requireLogin());
+       
+    }
+
     public function showDashboard()
     {
         $userId = $_SESSION['user_id'];
         $user = User::getUserById($userId);
         
         $viewData = $this->getCommonViewData($user);
-
-
+        
         echo View::render('layouts/dashboard', $viewData);
     }
 
     public function contentLoader($category, $wildcard = '')
     {
-
         $userId = $_SESSION['user_id'];
         $user = User::getUserById($userId);
 
@@ -53,9 +60,22 @@ class DashboardController
                 'dataView' => 'admin/users'
             ]);
         } elseif ($category === "events") {
-            $viewData = array_merge($viewData, ['dataView' => 'events']);
+            $viewData = array_merge($viewData, ['dataView' => 'events_dash']);
+        }  elseif ($category === "training") {
+             $viewData = array_merge($viewData, ['dataView' => 'training']);
+        } elseif ($category === 'profile') {
+             $viewData = array_merge($viewData, ['dataView' => 'profile']);
+        } elseif ($category === 'suivi') {
+           $viewData = array_merge($viewData, ['dataView' => 'suivi']);
+         }
+          elseif ($category === 'booking') {
+           $viewData = array_merge($viewData, ['dataView' => 'booking']);
         }
-
+         elseif ($category === 'coaches') {
+           $viewData = array_merge($viewData, ['dataView' => 'trainers']);
+        } elseif ($category === 'stats') {
+             $viewData = array_merge($viewData, ['dataView' => 'stats']);
+        }
         return $viewData;
     }
 
@@ -66,12 +86,11 @@ class DashboardController
         $viewPath = 'dashboard';
 
         if (!empty($segments)) {
-            $viewPath .= '/' . $category . '/' . implode('/', $segments) . '/index';
-        } else if ($category === 'dashboard') {
-            $viewPath .= '/index'; // Add /index for the main dashboard
+             $viewPath .= '/' . $category . '/' . implode('/', $segments) . '/index';
         } else {
             $viewPath .= '/' . $category . '/index';
         }
+       
         return $viewPath;
     }
 
@@ -80,8 +99,6 @@ class DashboardController
         $userId = $user['member_id'];
         $hasActiveSubscription = Subscription::hasActiveSubscription($userId);
         $subscriptionInfo = $hasActiveSubscription ? Subscription::getStripeSubscriptionId($userId) : null;
-
-        error_log(print_r($subscriptionInfo,true));
 
         $viewData = [
             'user' => $user,

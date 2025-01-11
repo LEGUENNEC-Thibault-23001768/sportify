@@ -9,9 +9,22 @@ use Stripe\StripeClient;
 use Models\Subscription;
 use Core\Config;
 use Core\View;
+use Core\RouteProvider;
+use Core\Router;
+use Core\Auth;
 
-class PaymentController
+class PaymentController implements RouteProvider
 {
+
+    public static function routes() : void
+    {
+        Router::post('/create-checkout-session', self::class . '@createCheckoutSession', Auth::requireLogin());
+        Router::get('/success', self::class . '@success', Auth::requireLogin());
+        Router::get('/invoices', self::class . '@listInvoices', Auth::requireLogin());
+        Router::post('/cancel-subscription', self::class . '@cancelSubscription', Auth::requireLogin());
+        Router::post('/resume-subscription', self::class . '@resumeSubscription', Auth::requireLogin());
+    }
+
     private $stripe;
     
     public function __construct()

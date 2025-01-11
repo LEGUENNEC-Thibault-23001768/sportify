@@ -4,12 +4,20 @@ namespace Controllers;
 
 use Google\Auth\OAuth2;
 use GuzzleHttp\Client;
-use Core\View;
 use Core\Config;
 use Models\User;
+use Core\Router;
+use Core\RouteProvider;
 
-class GoogleAuthController
+
+class GoogleAuthController implements RouteProvider
 {
+    public static function routes(): void
+    {
+        Router::get('/google', self::class . '@login');
+        Router::get('/callback', self::class . '@callback');
+    }
+    
     private $oauth;
 
     public function __construct()

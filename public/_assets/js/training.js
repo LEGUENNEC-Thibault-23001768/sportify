@@ -14,7 +14,7 @@ let restTimer = null;
 
 function loadTrainingData() {
     $.ajax({
-        url: '/dashboard/training',
+        url: '/api/training',
         method: 'GET',
         dataType: 'json',
         success: function(response) {

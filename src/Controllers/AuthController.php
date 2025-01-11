@@ -3,15 +3,30 @@
 namespace Controllers;
 
 use Models\User;
-use Core\Auth;
 use Core\View;
-use Google\Auth\OAuth2;
-use GuzzleHttp\Client;
+use Core\Router;
+use Core\RouteProvider;
+use Core\Auth;
 
-
-class AuthController
+class AuthController implements RouteProvider
 {
 
+    public static function routes(): void
+    {
+        Router::get('/login', self::class . '@showLoginForm');
+        Router::get('/register', self::class . '@showLoginForm');
+        Router::get('/verify-email', self::class . '@verifyEmail');
+        Router::get('/logout', self::class . '@logout', Auth::requireLogin());
+        
+        Router::get('/forgot-password', self::class . '@showForgotPasswordForm');
+        Router::get('/reset-password', self::class . '@showResetPasswordForm');
+
+        Router::post('/login', self::class . '@login');
+        Router::post('/register', self::class . '@register');
+        
+        Router::post('/forgot-password', self::class . '@sendResetLink');
+        Router::post('/reset-password', self::class . '@resetPassword');
+    }
 
     public function showLoginForm()
     {

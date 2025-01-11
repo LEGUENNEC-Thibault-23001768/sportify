@@ -7,9 +7,16 @@ use Core\APIResponse;
 use Models\Booking;
 use Models\User;
 use DateTime;
+use Core\Router;
+use Core\RouteProvider;
+use Core\Auth;
 
-class BookingController extends APIController
+class BookingController extends APIController implements RouteProvider
 {
+    public static function routes() : void
+    {
+        Router::apiResource('/api/booking', self::class, Auth::requireLogin());
+    }
 
     public function get($reservationId = null) {
         $response = new APIResponse();
@@ -20,7 +27,6 @@ class BookingController extends APIController
         }
     
         if ($reservationId === null) {
-            // Logic for getting all reservations
             $user = User::getUserById($currentUserId);
             $bookings = Booking::getAllReservations();
     
