@@ -8,7 +8,7 @@ use PDO;
 
 class Training {
 
-    public static function buildPrompt($data) {
+    public static function buildPrompt($data, $member = null) {
         $gender = $data['gender'] ?? 'Non spécifié';
         $level = $data['level'] ?? 'Non spécifié';
         $goals = $data['goals'] ?? 'Non spécifié';
@@ -17,6 +17,7 @@ class Training {
         $constraints = $data['constraints'] ?? 'Aucune contrainte signalée';
         $preferences = $data['preferences'] ?? 'Pas de préférences spécifiques';
         $equipment = $data['equipment'] ?? 'Aucun équipement disponible';
+        $memberName = $member['first_name'] ?? 'Utilisateur';
     
         $systemPrompt = "
             Rôle : Vous êtes un coach sportif expert en fitness et en musculation.
@@ -35,35 +36,42 @@ class Training {
     
             Ton de communication : Professionnel, encourageant, et motivant.
             Format de Réponse :
-            - La réponse doit être structurée en JSON, suivant le format ci-dessous :
-            ```json
-            {
+            - La réponse doit impérativement être structurée en JSON, suivant le format ci-dessous :
+             {
                 \"days\": [
-                    {
-                        \"day\": \"Lundi\",
+                    {\"day\": \"Lundi\",
                         \"exercises\": [
                             {
                                 \"name\": \"Nom de l'exercice 1\",
                                 \"description\": \"Description détaillée de l'exercice.\",
                                 \"sets\": \"Nombre de séries\",
-                                \"repos\": \"Temps de récupération\",
                                 \"reps\": \"Nombre de répétitions\",
                                 \"duration\": \"Durée (si applicable)\",
+                                \"repos\": \"Temps de repos (en secondes)\",
                                 \"intensity\": \"Niveau d'intensité (faible, modéré, élevé)\"
-                            },
-                            // ... autres exercices pour Lundi
+                            }
                         ]
                     },
-                    {
-                        \"day\": \"Mardi\",
-                        \"exercises\": [
-                            // ... exercices pour Mardi dans le même format
-                        ]
+                   {\"day\": \"Mardi\",
+                        \"exercises\": []
                     },
-                    // ... jours restants de la semaine (Mercredi à Dimanche)
+                     {\"day\": \"Mercredi\",
+                        \"exercises\": []
+                    },
+                   {\"day\": \"Jeudi\",
+                        \"exercises\": []
+                    },
+                     {\"day\": \"Vendredi\",
+                        \"exercises\": []
+                    },
+                   {\"day\": \"Samedi\",
+                         \"exercises\": []
+                    },
+                    {\"day\": \"Dimanche\",
+                         \"exercises\": []
+                    }
                 ]
             }
-            ```
     
             Information Supplémentaire :
             - Ne pas inclure de liens YouTube pour les exercices.
@@ -71,6 +79,7 @@ class Training {
             - Si l'utilisateur a des préférences, intégrez-les dans le plan d'entraînement.
     
             Profil de l'Utilisateur :
+            - Nom : {$memberName}
             - Sexe : $gender
             - Niveau : $level
             - Objectifs : $goals
@@ -79,7 +88,6 @@ class Training {
             - Contraintes : $constraints
             - Préférences : $preferences
             - Équipement disponible : $equipment
-    
             Créez un plan d'entraînement détaillé et motivant, en respectant strictement le format JSON spécifié.
         ";
     

@@ -23,7 +23,7 @@
         <ul>
             <!-- Updated data-target attributes -->
             <li><a href="/dashboard" data-target="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-            <li><a href="/dashboard/suivi" data-target="stats"><i class="fas fa-chart-line"></i> Suivi </a></li>
+            <li><a href="/dashboard/suivi" data-target="stats"><i class="fas fa-chart-line"></i> Stats </a></li>
             <li><a href="/dashboard/booking" data-target="booking"><i class="fas fa-futbol"></i> Terrains</a></li>
             <li><a href="/dashboard/coaches" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
             <li><a href="/dashboard/events" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
@@ -52,21 +52,19 @@
         <div class="profile-icon">
             <img src="<?= !empty($user['profile_picture']) ? htmlspecialchars($user['profile_picture']) : 'https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg'; ?>" alt="Profil" id="profile-icon">
             <div class="dropdown" id="dropdown">
-                <!-- Make "Mon profil" link behave like "Paramètres" -->
                 <a href="/dashboard/profile" data-target="profile">Mon profil</a>
                 <a href="/logout">Déconnexion</a>
             </div>
         </div>
     </div>
     <div class="dashboard-content" id="dynamic-content">
-        <!-- Dynamic content will be loaded here -->
     </div>
 
  <script>
     $(document).ready(function() {
         const loadedScripts = {};
         const loadedCSS = {};
-        const contentCache = {}; // Cache HTML content
+        const contentCache = {}; 
         let currentView = null;
 
         function loadContent(target, href = null) {

@@ -15,8 +15,11 @@ class DashboardController
     {
         $userId = $_SESSION['user_id'];
         $user = User::getUserById($userId);
+        
+        $viewData = $this->getCommonViewData($user);
 
-        echo View::render('layouts/dashboard', ['user' => $user]);
+
+        echo View::render('layouts/dashboard', $viewData);
     }
 
     public function contentLoader($category, $wildcard = '')
@@ -27,13 +30,10 @@ class DashboardController
 
         $viewData = $this->getCommonViewData($user);
 
-        // Handle specific category and wildcard logic
         try {
             $viewData = $this->handleCategoryLogic($category, $wildcard, $viewData);
-            // Construct the view path
             $viewPath = $this->getViewPath($category, $wildcard);
 
-            // Render the view
             echo View::render($viewPath, $viewData);
         } catch (\Exception $e) {
             echo "<p>Content not found: " . htmlspecialchars($e->getMessage()) . "</p>";
@@ -80,6 +80,8 @@ class DashboardController
         $userId = $user['member_id'];
         $hasActiveSubscription = Subscription::hasActiveSubscription($userId);
         $subscriptionInfo = $hasActiveSubscription ? Subscription::getStripeSubscriptionId($userId) : null;
+
+        error_log(print_r($subscriptionInfo,true));
 
         $viewData = [
             'user' => $user,

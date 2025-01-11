@@ -98,6 +98,9 @@ Router::get('/api/reservations/{coachId}', 'TrainerController@getReservations');
 Router::delete('/api/reservation/delete/{reservationId}', 'TrainerController@deleteReservation', Auth::requireLogin());
 Router::post('/api/reservation/update/{reservationId}', 'TrainerController@updateReservation', Auth::requireLogin());
 
+Router::apiResource('/api/stats', 'StatsAPIController', Auth::requireLogin());
+
+
 
 // --- CONTENT LOADER ---
 Router::get('/dashboard/content/{category}/*', 'DashboardController@contentLoader', Auth::requireLogin());

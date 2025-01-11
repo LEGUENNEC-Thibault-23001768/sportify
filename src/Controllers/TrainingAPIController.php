@@ -59,22 +59,26 @@ class TrainingAPIController extends APIController {
          $prompt = Training::buildPrompt($data);
      
          try {
-             $result = $client->geminiPro()->generateContent($prompt);
-             $generatedText = $result->text();
-     
-             $jsonStart = strpos($generatedText, '{');
-             $jsonEnd = strrpos($generatedText, '}');
-     
-             if ($jsonStart === false || $jsonEnd === false) {
-                 throw new \Exception("Valid JSON not found in AI response.");
-             }
-     
-             $jsonString = substr($generatedText, $jsonStart, $jsonEnd - $jsonStart + 1);
-             $decodedPlan = json_decode($jsonString, true);
-     
-             if (json_last_error() !== JSON_ERROR_NONE) {
-                 throw new \Exception("Failed to decode AI response: " . json_last_error_msg());
-             }
+            $result = $client->geminiPro()->generateContent($prompt);
+            $generatedText = $result->text();
+    
+            $jsonStart = strpos($generatedText, '{');
+            $jsonEnd = strrpos($generatedText, '}');
+    
+            if ($jsonStart === false || $jsonEnd === false) {
+                 error_log("Valid JSON not found in AI response.");
+                   return $response->setStatusCode(500)->setData(['error' => 'Failed to generate training plan. Please try again later.'])->send();
+
+            }
+    
+            $jsonString = substr($generatedText, $jsonStart, $jsonEnd - $jsonStart + 1);
+            $decodedPlan = json_decode($jsonString, true);
+    
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                error_log(print_r($jsonString,true));
+                error_log("Failed to decode AI response: " . json_last_error_msg());
+                return $response->setStatusCode(500)->setData(['error' => 'Failed to generate training plan. Please try again later.'])->send();
+            }
      
              if (isset($decodedPlan['days']) && is_array($decodedPlan['days'])) {
                  $data['planContent'] = json_encode($decodedPlan);
