@@ -61,3 +61,9 @@
     </div>
     <div id="toast-container"></div>
 </div>
+
+<script>
+    window.currentUserId = <?php echo isset($user['member_id']) ? $user['member_id'] : 'null'; ?>;
+    window.memberStatus = "<?php echo isset($user['status']) ? $user['status'] : ''; ?>";
+    window.userName = "<?php echo isset($user["first_name"]) ? $user['first_name'] : "" ?>";
+</script>

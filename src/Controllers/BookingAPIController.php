@@ -11,7 +11,7 @@ use Core\Router;
 use Core\RouteProvider;
 use Core\Auth;
 
-class BookingController extends APIController implements RouteProvider
+class BookingAPIController extends APIController implements RouteProvider
 {
     public static function routes() : void
     {
@@ -31,8 +31,7 @@ class BookingController extends APIController implements RouteProvider
             $bookings = Booking::getAllReservations();
     
             return $response->setStatusCode(200)->setData([
-                'bookings' => $bookings,
-                'user' => $user
+                'bookings' => $bookings
             ])->send();
         } else {
             $reservation = Booking::getReservationById($reservationId);

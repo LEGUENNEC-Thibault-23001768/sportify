@@ -150,6 +150,6 @@
     </div>
 </div>
 <script>
-    const currentUserId = <?php echo $user['member_id']; ?>;
-   const memberStatus = "<?php echo $user['status']; ?>";
+    window.currentUserId = <?php echo isset($user['member_id']) ? $user['member_id'] : 'null'; ?>;
+    window.memberStatus = "<?php echo isset($user['status']) ? $user['status'] : ''; ?>";
 </script>

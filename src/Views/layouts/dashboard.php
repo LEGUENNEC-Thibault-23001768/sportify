@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="/_assets/css/dashboard.css">
+      <?php if(isset($viewAssets['css']) && $viewAssets['css']): ?>
+           <link rel="stylesheet" href="<?= $viewAssets['css'] ?>?v=<?= time() ?>">
+        <?php endif; ?>
     <link rel="stylesheet" href="/_assets/css/mobiscroll.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -58,7 +61,7 @@
             </div>
         </div>
     </div>
-    <div class="dashboard-content" id="dynamic-content">
+    <div class="dashboard-content" id="dynamic-content" style="display: none;">
         <?php if(isset($dataView)): ?>
            <?php  echo \Core\View::render($dataView, $viewData ?? []); ?>
         <?php endif; ?>
@@ -68,82 +71,111 @@
     $(document).ready(function() {
         const loadedScripts = {};
         const loadedCSS = {};
-        const contentCache = {}; 
+        const contentCache = {};
         let currentView = null;
-
+        let dashboardCSS = "/_assets/css/dashboard.css";
+        let mobiscrollCSS = "/_assets/css/mobiscroll.min.css";
+        let mobiscrollJS = "/_assets/js/mobiscroll.min.js"
+        
         function loadContent(target, href = null) {
             if (href) {
                 window.history.pushState({ target: target }, '', href);
             }
-
-            // Check if content is in cache
-            if (contentCache[target]) {
+           
+            $('#dynamic-content').fadeTo(200, 0.3);
+           if (contentCache[target]) {
                 console.log("Content already cached for:", target);
-                showContent(target);
-                highlightSidebar(target);
-                return;
-             }
-            $('#dynamic-content').fadeTo(200, 0.3); // Start fade-out
-
-           $.ajax({
+                   unloadPreviousAssets();
+                      showCachedContent(target)
+                  highlightSidebar(target);
+               return;
+            }
+            
+            $.ajax({
                 url: '/ajax/dashboard/' + target,
                 method: 'GET',
-               success: function(response) {
-                   // Cache the HTML content
-                  contentCache[target] = response;
-                  const viewContainer = $(response).filter('[data-view]');
-                   if (viewContainer.length > 0) {
-                       const view = viewContainer.attr('data-view');
-                           console.log("View:", view);
-
-                         loadCSS('/_assets/css/' + view + '.css', function(){
-                            $('#dynamic-content').html(response).fadeTo(200, 1);  // Fade in
-                            loadScript('/_assets/js/' + view + '.js', function() {
+                success: function(response) {
+                    contentCache[target] = response;
+                    const viewContainer = $(response).filter('[data-view]');
+                    if (viewContainer.length > 0) {
+                        const view = viewContainer.attr('data-view');
+                        console.log("View:", view);
+                         unloadPreviousAssets();
+                         loadCSS('/_assets/css/' + view + '.css?v=' + new Date().getTime(), function(){
+                            loadScript('/_assets/js/' + view + '.js?v=' + new Date().getTime(), function() {
+                                   $('#dynamic-content').html(response).fadeTo(200, 1);
                                     if (typeof initialize === 'function') {
                                        initialize();
                                     }
-                             });
+                              });
                           });
-                       }
-                        else{
+                     } else {
                         console.warn("No data-view attribute found for this content.");
-                      $('#dynamic-content').html(response).fadeTo(200, 1); // Fade in
-                   }
-                  highlightSidebar(target);
-             },
-            error: function(xhr, status, error) {
-               console.error("Error: " + status + " - " + error);
-                  $('#dynamic-content').html("<p>Error loading content.</p>").fadeTo(200, 1);
-             }
-          });
-       }
+                        $('#dynamic-content').html(response).fadeTo(200, 1);
+                     }
+                    highlightSidebar(target);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error: " + status + " - " + error);
+                     $('#dynamic-content').html("<p>Error loading content.</p>").fadeTo(200, 1);
+                }
+            });
+        }
 
-        function showContent(target) {
-             $('#dynamic-content').html(contentCache[target]).fadeTo(200, 1);
-             const viewContainer = $('#dynamic-content').find('[data-view]');
+        function unloadPreviousAssets() {
+            $('link[href^="/_assets/css/"]').each(function() {
+                const href = $(this).attr('href');
+                if (href !== dashboardCSS && href !== mobiscrollCSS) {
+                    $(this).remove();
+                    if (loadedCSS.hasOwnProperty(href)) {
+                       loadedCSS[href] = false;
+                     }
+                  }
+              });
+              $('script[src^="/_assets/js/"]').each(function() {
+                  const src = $(this).attr('src');
+                    if(src !== mobiscrollJS){
+                      $(this).remove();
+                        if(loadedScripts.hasOwnProperty(src)){
+                             loadedScripts[src] = false;
+                         }
+                   }
+              });
+         }
+
+        function showCachedContent(target){
+            const viewContainer = $(contentCache[target]).filter('[data-view]');
              if (viewContainer.length > 0) {
                  const view = viewContainer.attr('data-view');
-                 if (view === "events_dash") {
-                         loadCSS('/_assets/css/mobiscroll.min.css',function(){
-                              loadScript('/_assets/js/mobiscroll.min.js', () => {
-                                 loadScript('/_assets/js/events_dash.js', function() {
-                                       if (typeof initialize === 'function') {
-                                           initialize();
-                                        }
-                                });
-                           });
-                        });
-                    } else {
-                         if (typeof initialize === 'function') {
-                                initialize();
-                         }
-                     }
+                    loadCSS('/_assets/css/' + view + '.css?v=' + new Date().getTime(), function() {
+                      loadScript('/_assets/js/' + view + '.js?v=' + new Date().getTime(), function() {
+                           $('#dynamic-content').html(contentCache[target]);
+                           $('#dynamic-content').fadeTo(200, 1);
+                            if (view === "events_dash") {
+                                    loadCSS('/_assets/css/mobiscroll.min.css?v=' + new Date().getTime(),function(){
+                                        loadScript('/_assets/js/mobiscroll.min.js?v=' + new Date().getTime(), () => {
+                                           loadScript('/_assets/js/events_dash.js?v=' + new Date().getTime(), function() {
+                                                 if (typeof initialize === 'function') {
+                                                     initialize();
+                                                  }
+                                          });
+                                      });
+                                   });
+                                } else {
+                                    if (typeof initialize === 'function') {
+                                        initialize();
+                                    }
+                                }
+                      });
+                    });
+
                 } else {
-                  console.warn("No data-view attribute found for this content.");
+                   $('#dynamic-content').html(contentCache[target]).fadeTo(200, 1);
+                   console.warn("No data-view attribute found for this content.");
                 }
-        }
-     
-     function loadScript(src, cb) {
+         }
+
+         function loadScript(src, cb) {
             if (loadedScripts[src]) {
                console.log('Script already loaded:', src);
              if (typeof cb === 'function') {
@@ -190,7 +222,6 @@
              document.head.appendChild(link);
           }
 
-
       function highlightSidebar(target) {
             $('.sidebar a').removeClass('selected');
            $('.sidebar a[data-target="' + target + '"]').addClass('selected');
@@ -216,14 +247,13 @@
         });
 
         const initialPath = window.location.pathname;
-        let initialContent = null;
-        if (initialPath.startsWith('/dashboard/')) {
-             initialContent = initialPath.split('/dashboard/')[1];
+         let initialContent = null;
+         if (initialPath.startsWith('/dashboard/')) {
+           initialContent = initialPath.split('/dashboard/')[1];
         } else {
             initialContent = 'dashboard';
-       }
-    
-     loadContent(initialContent, initialPath);
+        }
+        loadContent(initialContent, initialPath);
 
         $('#profile-icon').click(function() {
              $('#dropdown').toggle();
@@ -234,7 +264,7 @@
             $('#dropdown').hide();
         }
     });
-    
+
    // Handle dropdown "Mon profil" link click
       $('#dropdown a[data-target]').click(function(e) {
             e.preventDefault();

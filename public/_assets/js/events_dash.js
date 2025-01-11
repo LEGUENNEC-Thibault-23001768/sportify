@@ -1,11 +1,7 @@
-function initialize() {
-    mobiscroll.setOptions({
-        theme: 'ios',
-        themeVariant: 'dark'
-    });
-
+(function() {
     let tempEventId = null;
     let calendar;
+
     async function initCalendar() {
         const calendarData = await getCalendarData();
         calendar = mobiscroll.eventcalendar('#myCalendar', {
@@ -20,9 +16,9 @@ function initialize() {
             },
             data: calendarData,
             clickToCreate: true,
-            dragToCreate: true,
-            dragToMove: true,
-            dragToResize: true,
+            dragToCreate: false,
+            dragToMove: false,
+            dragToResize: false,
             eventDelete: true,
             onEventClick: function(args) {
                 if (args.event.type === 'booking') return;
@@ -54,7 +50,7 @@ function initialize() {
         });
 
         window.openCreateEventPopup = async function() {
-            if (memberStatus === 'coach' || memberStatus === 'admin') {
+            if (window.memberStatus === 'coach' || window.memberStatus === 'admin') {
                 $('#event_name').val('');
                 $('#event_date').val(formatDate(new Date()));
                 $('#start_time').val(formatTime(new Date()));
@@ -185,8 +181,8 @@ function initialize() {
 
    // Function to show event details
     async function showEventDetails(event) {
-        const isAuthorizedToDelete = memberStatus === 'coach' || memberStatus === 'admin';
-       const isEventCreator = event.created_by === currentUserId;
+        const isAuthorizedToDelete = window.memberStatus === 'coach' || window.memberStatus === 'admin';
+       const isEventCreator = event.created_by === window.currentUserId;
         if (event.participants === undefined) event.participants = [];
        try {
             const eventData = await fetchEvent(event.id);
@@ -357,7 +353,7 @@ function initialize() {
                             description: response.description,
                             max_participants: response.max_participants,
                             location: response.location,
-                           created_by: currentUserId
+                           created_by: window.currentUserId
                         });
                    closeCreateEventPopup();
                    window.location.reload();
@@ -539,5 +535,7 @@ function initialize() {
             toast.remove();
        });
     }
-    initCalendar();
-};
+    window.initialize = function() {
+      initCalendar();
+    };
+})();
