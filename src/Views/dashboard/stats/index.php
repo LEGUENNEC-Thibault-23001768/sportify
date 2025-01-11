@@ -1,4 +1,5 @@
 <div data-view="stats">
+    <div id="toast-container"></div>
     <div class="container">
         <div class="top-row">
             <div class="stats-wrapper">
@@ -6,24 +7,24 @@
                     <div class="report-card performance-card">
                         <select id="sport-select" onchange="updateSportDisplay()">
                             <option value="football" selected>Football</option>
-                            <option value="musculation">Musculation</option>
-                            <option value="rpm">RPM</option>
-                            <option value="boxe">Boxe</option>
+                             <option value="musculation">Musculation</option>
+                             <option value="rpm">RPM</option>
+                             <option value="boxe">Boxe</option>
                             <option value="tennis">Tennis</option>
-                            <option value="basketball">Basketball</option>
+                             <option value="basketball">Basketball</option>
                         </select>
                     </div>
                     <div class="report-card game-time-card" id="stat-1">
                         <div class="report-title">Temps total joué</div>
-                        <div class="report-value">120 min</div>
+                        <div class="report-value" id="stat-1-value">0</div>
                     </div>
                     <div class="report-card calories-card" id="stat-2">
                         <div class="report-title">Buts marqués</div>
-                        <div class="report-value">5</div>
+                        <div class="report-value" id="stat-2-value">0</div>
                     </div>
                     <div class="report-card game-time-card" id="stat-3">
                         <div class="report-title">Passes réussies</div>
-                        <div class="report-value">25</div>
+                       <div class="report-value" id="stat-3-value">0</div>
                     </div>
                 </div>
 
@@ -32,7 +33,7 @@
                         <div class="progression-title">Progression</div>
                         <div class="circle-container">
                             <canvas id="taskCompletionChart"></canvas>
-                           <div id="chart-center-text">71%</div>
+                           <div id="chart-center-text">0%</div>
                         </div>
                     </div>
                 </div>
@@ -47,7 +48,7 @@
              <button id="add-stats-btn" class="add-stats-btn">Ajoutez vos statistiques</button>
         </div>
 
-        <div id="popup-container" class="popup hidden"></div>
+       <div id="popup-container" class="popup hidden"></div>
 
     
         <div id="popup-sports" class="popup hidden">

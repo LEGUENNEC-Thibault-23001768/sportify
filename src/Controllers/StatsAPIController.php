@@ -7,7 +7,7 @@ use Core\APIResponse;
 use Models\Stats;
 use Models\User;
 
-class StatsController extends APIController
+class StatsAPIController extends APIController
 {
     /**
      * Handles GET requests for stats data.
@@ -37,7 +37,6 @@ class StatsController extends APIController
             $retentionRate = Stats::getMemberRetentionRate();
 
             $adminStats = [
-              'user' => $user,
                'totalUsers' => $totalUsers,
                 'recentRegistrations' => $recentRegistrations,
                 'activeSubscriptions' => $activeSubscriptions,
@@ -58,7 +57,6 @@ class StatsController extends APIController
             $performanceDataBasketball = Stats::getPerformanceData($currentUserId, 'Basketball');
             $performanceDataMusculation = Stats::getPerformanceDataCouche($currentUserId, 'Développé couché');
             $userStats = [
-                'user' => $user,
                 'stats' => $performances,
                 'topActivities' => $topActivities,
                'performanceDataFootball' => $performanceDataFootball,
