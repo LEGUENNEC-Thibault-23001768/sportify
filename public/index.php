@@ -31,7 +31,11 @@ Router::get('/logout', 'AuthController@logout', Auth::requireLogin());
 /*
 Router::get('/api/events', 'EventController@getEvents',Auth::requireLogin());  
 Router::get('/api/events/{id}', 'EventController@show');
-cc
+Router::post('/api/events', 'EventController@storeApi', [Auth::isAdmin()]);
+Router::post('/api/events/join/{id}', 'EventController@postJoin', Auth::requireLogin());
+Router::post('/api/events/leave/{id}', 'EventController@postLeave', Auth::requireLogin());
+Router::delete('/api/events/{id}', 'EventController@deleteApi', [Auth::isAdmin(), Auth::isCoach()]);
+Router::post('/api/events/{id}/invite', 'EventController@postSendInviteApi', [Auth::isAdmin(), Auth::isCoach()]);
 */
 // --- Booking Routes ---
 //Router::apiResource('/api/booking', 'BookingController', Auth::requireLogin());
@@ -39,6 +43,7 @@ cc
 // --- Dashboard and User Profile ---
 //Router::get('/dashboard', 'DashboardController@showDashboard', Auth::requireLogin());
 
+//Router::get('/dashboard/profile', 'UserController@showProfile', Auth::requireLogin()); //  <---  Add this to display profile
 //Router::put('/api/profile', 'UserController@updateProfile', Auth::requireLogin()); // Update current user's profile
 
 

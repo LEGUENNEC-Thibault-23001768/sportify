@@ -24,15 +24,15 @@
         <ul>
             <!-- Updated data-target attributes -->
             <li><a href="/dashboard" data-target="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-             <li><a href="/dashboard/stats" data-target="stats"><i class="fas fa-chart-line"></i> Stats </a></li>
-             <li><a href="/dashboard/booking" data-target="booking"><i class="fas fa-futbol"></i> Terrains</a></li>
+            <li><a href="/dashboard/stats" data-target="stats"><i class="fas fa-chart-line"></i> Stats </a></li>
+            <li><a href="/dashboard/booking" data-target="booking"><i class="fas fa-futbol"></i> Terrains</a></li>
             <li><a href="/dashboard/trainers" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
             <li><a href="/dashboard/events" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
             <li><a href="/dashboard/training" data-target="training"><i class="fas fa-calendar"></i> Programme</a></li>
             <li><a href="/dashboard/admin/users" class="management" data-target="admin/users"><i class="fas fa-tasks"></i> Gestion</a></li>
         </ul>
         <div class="settings-section">
-             <a href="/dashboard/profile" data-target="profile" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
+            <a href="/dashboard/profile" data-target="profile" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
             <a href="/logout" class="logout"> Se déconnecter</a>
         </div>
     </div>
@@ -59,7 +59,9 @@
         </div>
     </div>
     <div class="dashboard-content" id="dynamic-content">
-        
+        <?php if(isset($dataView)): ?>
+           <?php  echo \Core\View::render($dataView, $viewData ?? []); ?>
+        <?php endif; ?>
     </div>
 
  <script>
@@ -76,15 +78,15 @@
 
             // Check if content is in cache
             if (contentCache[target]) {
-               console.log("Content already cached for:", target);
-                 showContent(target);
-                  highlightSidebar(target);
+                console.log("Content already cached for:", target);
+                showContent(target);
+                highlightSidebar(target);
                 return;
              }
-             $('#dynamic-content').fadeTo(200, 0.3); // Start fade-out
+            $('#dynamic-content').fadeTo(200, 0.3); // Start fade-out
 
            $.ajax({
-                url: '/dashboard/' + target,
+                url: '/ajax/dashboard/' + target,
                 method: 'GET',
                success: function(response) {
                    // Cache the HTML content
@@ -97,21 +99,9 @@
                          loadCSS('/_assets/css/' + view + '.css', function(){
                             $('#dynamic-content').html(response).fadeTo(200, 1);  // Fade in
                             loadScript('/_assets/js/' + view + '.js', function() {
-                                /*if (view === "events_dash") {
-                                    loadCSS('/_assets/css/mobiscroll.min.css', function(){
-                                        loadScript('/_assets/js/mobiscroll.min.js', () => {
-                                         loadScript('/_assets/js/events_dash.js', function() {
-                                                  if (typeof initialize === 'function') {
-                                                         initialize();
-                                                    }
-                                               });
-                                       });
-                                   });*/
-                                //} else {
                                     if (typeof initialize === 'function') {
                                        initialize();
                                     }
-                                  // }
                              });
                           });
                        }

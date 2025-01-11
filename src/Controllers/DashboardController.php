@@ -5,7 +5,6 @@ namespace Controllers;
 use Core\Auth;
 use Models\Stats;
 use Core\View;
-use Core\APIResponse;
 use Models\User;
 use Models\Subscription;
 use Core\Router;
@@ -17,16 +16,16 @@ class DashboardController implements RouteProvider
     {
         Router::get('/dashboard', self::class . '@showDashboard', Auth::requireLogin());
         Router::get('/dashboard/{category}/*', self::class . '@contentLoader', Auth::requireLogin());
-       
+        Router::get('/ajax/dashboard/{category}/*', self::class . '@ajaxContentLoader', Auth::requireLogin());
     }
 
     public function showDashboard()
     {
         $userId = $_SESSION['user_id'];
         $user = User::getUserById($userId);
-        
+
         $viewData = $this->getCommonViewData($user);
-        
+
         echo View::render('layouts/dashboard', $viewData);
     }
 
@@ -34,7 +33,24 @@ class DashboardController implements RouteProvider
     {
         $userId = $_SESSION['user_id'];
         $user = User::getUserById($userId);
+        $viewData = $this->getCommonViewData($user);
 
+        try {
+            $viewData = $this->handleCategoryLogic($category, $wildcard, $viewData);
+            $viewPath = $this->getViewPath($category, $wildcard);
+            
+            $viewData['dataView'] = $viewPath;
+            echo View::render('layouts/dashboard', $viewData);
+            
+        } catch (\Exception $e) {
+            echo "<p>Content not found: " . htmlspecialchars($e->getMessage()) . "</p>";
+        }
+    }
+
+    public function ajaxContentLoader($category, $wildcard = '')
+    {
+        $userId = $_SESSION['user_id'];
+        $user = User::getUserById($userId);
         $viewData = $this->getCommonViewData($user);
 
         try {
@@ -42,6 +58,7 @@ class DashboardController implements RouteProvider
             $viewPath = $this->getViewPath($category, $wildcard);
 
             echo View::render($viewPath, $viewData);
+           
         } catch (\Exception $e) {
             echo "<p>Content not found: " . htmlspecialchars($e->getMessage()) . "</p>";
         }
@@ -61,20 +78,18 @@ class DashboardController implements RouteProvider
             ]);
         } elseif ($category === "events") {
             $viewData = array_merge($viewData, ['dataView' => 'events_dash']);
-        }  elseif ($category === "training") {
-             $viewData = array_merge($viewData, ['dataView' => 'training']);
+        } elseif ($category === "training") {
+            $viewData = array_merge($viewData, ['dataView' => 'training']);
         } elseif ($category === 'profile') {
-             $viewData = array_merge($viewData, ['dataView' => 'profile']);
+            $viewData = array_merge($viewData, ['dataView' => 'profile']);
         } elseif ($category === 'suivi') {
-           $viewData = array_merge($viewData, ['dataView' => 'suivi']);
-         }
-          elseif ($category === 'booking') {
-           $viewData = array_merge($viewData, ['dataView' => 'booking']);
-        }
-         elseif ($category === 'coaches') {
-           $viewData = array_merge($viewData, ['dataView' => 'trainers']);
+            $viewData = array_merge($viewData, ['dataView' => 'suivi']);
+        } elseif ($category === 'booking') {
+            $viewData = array_merge($viewData, ['dataView' => 'booking']);
+        } elseif ($category === 'coaches') {
+            $viewData = array_merge($viewData, ['dataView' => 'trainers']);
         } elseif ($category === 'stats') {
-             $viewData = array_merge($viewData, ['dataView' => 'stats']);
+            $viewData = array_merge($viewData, ['dataView' => 'stats']);
         }
         return $viewData;
     }
@@ -82,15 +97,15 @@ class DashboardController implements RouteProvider
     protected function getViewPath($category, $wildcard)
     {
         $segments = !empty($wildcard) ? explode('/', ltrim($wildcard, '/')) : [];
-
         $viewPath = 'dashboard';
-
-        if (!empty($segments)) {
-             $viewPath .= '/' . $category . '/' . implode('/', $segments) . '/index';
+        if ($category == "dashboard") {
+            $viewPath .= '/index';
+        } else if (!empty($segments)) {
+            $viewPath .= '/' . $category . '/' . implode('/', $segments) . '/index';
         } else {
             $viewPath .= '/' . $category . '/index';
         }
-       
+
         return $viewPath;
     }
 
@@ -104,7 +119,7 @@ class DashboardController implements RouteProvider
             'user' => $user,
             'hasActiveSubscription' => $subscriptionInfo["status"] ?? false,
             'subscription' => [
-                'plan_name' =>  $subscriptionInfo["subscription_type"] ?? "Aucun",
+                'plan_name' => $subscriptionInfo["subscription_type"] ?? "Aucun",
                 'start_date' => $subscriptionInfo["start_date"] ?? "Aucun",
                 'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
                 'amount' => $subscriptionInfo["amount"] ?? 0,
@@ -129,14 +144,4 @@ class DashboardController implements RouteProvider
 
         return $viewData;
     }
-
-    /*public function searchUsersApi() {
-        $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
-        $users = !empty($searchTerm) ? User::searchUsers($searchTerm) : User::getAllUsers();
-    
-        $response = new APIResponse();
-        $response->setStatusCode(200)->setData($users)->send();
-    }*/
-
-   
 }
