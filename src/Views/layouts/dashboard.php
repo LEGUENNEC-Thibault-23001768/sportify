@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="/_assets/css/dashboard.css">
-      <?php if(isset($viewAssets['css']) && $viewAssets['css']): ?>
-           <link rel="stylesheet" href="<?= $viewAssets['css'] ?>?v=<?= time() ?>">
-        <?php endif; ?>
+    <?php if(isset($viewAssets['css']) && $viewAssets['css']): ?>
+        <link rel="preload" href="<?= $viewAssets['css'] ?>?v=<?= time() ?>" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="<?= $viewAssets['css'] ?>?v=<?= time() ?>"></noscript>
+    <?php endif; ?>
     <link rel="stylesheet" href="/_assets/css/mobiscroll.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -18,6 +19,44 @@
             console.error('Veuillez activer le javascript');
         }
     </script>
+        <style>
+       .fade-out {
+          opacity: 0;
+           transition: opacity 0.2s ease-in-out;
+         }
+       .fade-in {
+             opacity: 1;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .subscription-overlay {
+             position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+             z-index: 1000;
+             backdrop-filter: blur(5px);
+            pointer-events: none;
+        }
+    .subscription-message {
+           background: #161616;
+           padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+             pointer-events: auto;
+        }
+        .subscription-message button{
+            margin-top: 20px;
+        }
+      .subscription-message .logout-button{
+            margin-top: 20px;
+             display: inline-block;
+        }
+    </style>
 </head>
 <body>
     <div class="sidebar">
@@ -32,7 +71,9 @@
             <li><a href="/dashboard/trainers" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a></li>
             <li><a href="/dashboard/events" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
             <li><a href="/dashboard/training" data-target="training"><i class="fas fa-calendar"></i> Programme</a></li>
-            <li><a href="/dashboard/admin/users" class="management" data-target="admin/users"><i class="fas fa-tasks"></i> Gestion</a></li>
+            <?php if ($user['status'] === 'admin'): ?>
+                <li><a href="/dashboard/admin/users" class="management" data-target="admin/users"><i class="fas fa-tasks"></i> Gestion</a></li>
+             <?php endif; ?>
         </ul>
         <div class="settings-section">
             <a href="/dashboard/profile" data-target="profile" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
@@ -61,7 +102,19 @@
             </div>
         </div>
     </div>
-    <div class="dashboard-content" id="dynamic-content" style="display: none;">
+      <?php if (!isset($hasActiveSubscription) || !$hasActiveSubscription): ?>
+        <div class="subscription-overlay" id="subscriptionOverlay">
+            <div class="subscription-message">
+              <i class="fas fa-lock" style="font-size: 5em; margin-bottom: 20px;"></i>
+                <h2>Votre accès est bloqué.</h2>
+                <p>Veuillez souscrire à un abonnement pour accéder à toutes les fonctionnalités.</p>
+                <form action="/create-checkout-session" method="POST">
+                     <button type="submit" class="subscribe-button">S'abonner</button>
+                </form>
+            </div>
+        </div>
+    <?php endif; ?>
+    <div class="dashboard-content" id="dynamic-content">
         <?php if(isset($dataView)): ?>
            <?php  echo \Core\View::render($dataView, $viewData ?? []); ?>
         <?php endif; ?>
@@ -76,18 +129,18 @@
         let dashboardCSS = "/_assets/css/dashboard.css";
         let mobiscrollCSS = "/_assets/css/mobiscroll.min.css";
         let mobiscrollJS = "/_assets/js/mobiscroll.min.js"
-        
+
         function loadContent(target, href = null) {
-            if (href) {
+             if (href) {
                 window.history.pushState({ target: target }, '', href);
             }
-           
-            $('#dynamic-content').fadeTo(200, 0.3);
+           const dynamicContent = $('#dynamic-content');
+            dynamicContent.addClass('fade-out');
            if (contentCache[target]) {
                 console.log("Content already cached for:", target);
-                   unloadPreviousAssets();
-                      showCachedContent(target)
-                  highlightSidebar(target);
+                    unloadPreviousAssets();
+                    showCachedContent(target)
+                   highlightSidebar(target);
                return;
             }
             
@@ -99,25 +152,26 @@
                     const viewContainer = $(response).filter('[data-view]');
                     if (viewContainer.length > 0) {
                         const view = viewContainer.attr('data-view');
-                        console.log("View:", view);
-                         unloadPreviousAssets();
-                         loadCSS('/_assets/css/' + view + '.css?v=' + new Date().getTime(), function(){
-                            loadScript('/_assets/js/' + view + '.js?v=' + new Date().getTime(), function() {
-                                   $('#dynamic-content').html(response).fadeTo(200, 1);
-                                    if (typeof initialize === 'function') {
+                         console.log("View:", view);
+                          unloadPreviousAssets();
+                           loadCSS('/_assets/css/' + view + '.css?v=' + new Date().getTime(), function(){
+                               loadScript('/_assets/js/' + view + '.js?v=' + new Date().getTime(), function() {
+                                   showContent(target, response);
+                                   if (typeof initialize === 'function') {
                                        initialize();
-                                    }
-                              });
-                          });
+                                   }
+                                 });
+                            });
                      } else {
-                        console.warn("No data-view attribute found for this content.");
-                        $('#dynamic-content').html(response).fadeTo(200, 1);
-                     }
+                       console.warn("No data-view attribute found for this content.");
+                       showContent(target, response);
+                   }
                     highlightSidebar(target);
                 },
                 error: function(xhr, status, error) {
-                    console.error("Error: " + status + " - " + error);
-                     $('#dynamic-content').html("<p>Error loading content.</p>").fadeTo(200, 1);
+                   console.error("Error: " + status + " - " + error);
+                   $('#dynamic-content').html("<p>Error loading content.</p>");
+                    $('#dynamic-content').addClass('fade-in');
                 }
             });
         }
@@ -147,10 +201,10 @@
             const viewContainer = $(contentCache[target]).filter('[data-view]');
              if (viewContainer.length > 0) {
                  const view = viewContainer.attr('data-view');
-                    loadCSS('/_assets/css/' + view + '.css?v=' + new Date().getTime(), function() {
-                      loadScript('/_assets/js/' + view + '.js?v=' + new Date().getTime(), function() {
+                      loadCSS('/_assets/css/' + view + '.css?v=' + new Date().getTime(), function() {
+                        loadScript('/_assets/js/' + view + '.js?v=' + new Date().getTime(), function() {
                            $('#dynamic-content').html(contentCache[target]);
-                           $('#dynamic-content').fadeTo(200, 1);
+                           $('#dynamic-content').addClass('fade-in');
                             if (view === "events_dash") {
                                     loadCSS('/_assets/css/mobiscroll.min.css?v=' + new Date().getTime(),function(){
                                         loadScript('/_assets/js/mobiscroll.min.js?v=' + new Date().getTime(), () => {
@@ -166,13 +220,19 @@
                                         initialize();
                                     }
                                 }
+                         });
                       });
-                    });
-
                 } else {
-                   $('#dynamic-content').html(contentCache[target]).fadeTo(200, 1);
+                   $('#dynamic-content').html(contentCache[target]);
+                   $('#dynamic-content').addClass('fade-in');
                    console.warn("No data-view attribute found for this content.");
                 }
+         }
+
+        function showContent(target, response) {
+            const dynamicContent = $('#dynamic-content');
+              dynamicContent.html(response);
+             dynamicContent.addClass('fade-in');
          }
 
          function loadScript(src, cb) {
@@ -230,12 +290,14 @@
 
         $('.sidebar a').click(function(e) {
             e.preventDefault();
-          const target = $(this).data('target');
-             const href = $(this).attr('href');
-            if (target) {
+           const target = $(this).data('target');
+            const href = $(this).attr('href');
+            if(target){
               loadContent(target, href);
-         }
-        });
+            } else {
+               window.location.href = $(this).attr('href');
+            }
+         });
 
        $(window).on('popstate', function(event) {
          const state = event.originalEvent.state;
@@ -268,11 +330,15 @@
    // Handle dropdown "Mon profil" link click
       $('#dropdown a[data-target]').click(function(e) {
             e.preventDefault();
-          const target = $(this).data('target');
-             const href = $(this).attr('href');
-              $('#dropdown').hide();
-               loadContent(target, href);
+            const target = $(this).data('target');
+            const href = $(this).attr('href');
+            $('#dropdown').hide();
+            loadContent(target, href);
          });
+        
+     <?php if (!isset($hasActiveSubscription) || !$hasActiveSubscription): ?>
+         $('#subscriptionOverlay').show();
+       <?php endif; ?>
     });
     </script>
 </body>

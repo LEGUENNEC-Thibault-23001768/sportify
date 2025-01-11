@@ -31,7 +31,7 @@
                     </div>
                 </div>
             </div>
-            <div class="progression-section">
+           <div class="progression-section">
                 <div class="task-completion-card">
                     <div class="progression-title">Progression</div>
                     <div class="circle-container">

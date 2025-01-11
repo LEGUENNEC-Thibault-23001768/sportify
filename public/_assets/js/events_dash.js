@@ -4,6 +4,10 @@
 
     async function initCalendar() {
         const calendarData = await getCalendarData();
+        mobiscroll.setOptions({
+            theme: 'ios',
+            themeVariant: 'dark'
+        });
         calendar = mobiscroll.eventcalendar('#myCalendar', {
             view: {
                 schedule: {
