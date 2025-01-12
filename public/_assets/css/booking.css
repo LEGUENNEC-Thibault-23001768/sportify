@@ -101,7 +101,7 @@ h2 {
     height: 10%;
 }
 
-.room.yoga {
+.room.musculation {
     top: 62%;
     left: 38.5%;
     width: 15%;
@@ -136,6 +136,8 @@ button:hover {
 #reservations {
     text-align: center;
     margin-top: 20px;
+    overflow-y: auto;
+    max-height: 200px;
 }
 
 #reservations h3 {
@@ -160,9 +162,10 @@ button:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 1em;
+    font-size: 0.9em;
     color: #fff;
     width: 79%;
+      word-break: break-word; /* Allow text to wrap */
 }
 
 #reservation-list li button {
@@ -227,6 +230,8 @@ input[type="time"] {
     color: #eee;
     /* Light text */
     font-size: 1em;
+        width: 100%;
+    box-sizing: border-box;
 }
 
 input[type="text"]:focus,
@@ -290,3 +295,72 @@ input[type="time"]:focus {
 .toast.error {
     background-color: #dc3545;
 }
+
+/* --- Available Hours Buttons --- */
+#available-hours, #edit-available-hours {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+#available-hours button, #edit-available-hours button {
+    background-color: #4d4949;
+    color: #fff;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 0.9em;
+}
+
+#available-hours button:hover:not(.selected):not(.booked), #edit-available-hours button:hover:not(.selected):not(.booked) {
+    background-color: #5a5454;
+}
+#available-hours button.selected, #edit-available-hours button.selected {
+    background-color: #A0E65E;
+    color: #000000;
+}
+
+#available-hours button.booked, #edit-available-hours button.booked {
+     background-color: #282828;
+    color: #808080;
+    cursor: not-allowed;
+}
+
+#available-hours button.past, #edit-available-hours button.past{
+   background-color: #282828;
+   color: #808080;
+   cursor: not-allowed;
+}
+
+/* Tabs */
+.form-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #C1FF72;
+}
+
+.tab-button {
+    background-color: #4d4949;
+    color: #fff;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    font-size: 0.9em;
+     transition: background-color 0.3s ease;
+}
+ .tab-button:hover{
+     background-color: #5a5454;
+ }
+ .tab-button.active {
+     background-color: #A0E65E;
+      color: #000;
+ }
+ .tab-content{
+       padding: 10px;
+   }

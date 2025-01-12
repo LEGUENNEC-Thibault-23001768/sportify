@@ -6,7 +6,7 @@ use Models\User;
 use Core\Router;
 use Core\RouteProvider;
 use Core\Auth;
-class TrainerController implements RouteProvider
+class TrainerAPIController implements RouteProvider
 {
     public static function routes() : void
     {

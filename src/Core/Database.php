@@ -4,12 +4,8 @@ namespace Core;
 
 use PDO;
 use PDOException;
+use Core\Config;
 
-// Configuration de la base de données
-define('DB_HOST', 'mysql-sportify.alwaysdata.net');
-define('DB_USER', 'sportify');
-define('DB_PASS', 'lechatrouge');
-define('DB_NAME', 'sportify_db');
 
 class Database
 {
@@ -24,7 +20,7 @@ class Database
     {
         if (self::$conn === null) {
             $charset = 'utf8mb4';
-            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . $charset;
+            $dsn = "mysql:host=" . Config::get("db_host") . ";dbname=" . Config::get("db_name") . ";charset=" . $charset;
 
             $options = [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -33,7 +29,7 @@ class Database
             ];
 
             try {
-                self::$conn = new PDO($dsn, DB_USER, DB_PASS, $options);
+                self::$conn = new PDO($dsn, Config::get("db_user"), Config::get("db_pass"), $options);
             } catch (PDOException $e) {
                 throw new PDOException($e->getMessage(), (int)$e->getCode());
             }

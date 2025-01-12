@@ -13,12 +13,13 @@ use Core\Auth;
 
 class BookingAPIController extends APIController implements RouteProvider
 {
-    public static function routes() : void
+    public static function routes(): void
     {
         Router::apiResource('/api/booking', self::class, Auth::requireLogin());
+        Router::get('/api/booking/available-hours', self::class . '@getAvailableHours', Auth::requireLogin());
     }
 
-    public function get($reservationId = null) {
+   public function get($reservationId = null) {
         $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
     
@@ -75,7 +76,8 @@ class BookingAPIController extends APIController implements RouteProvider
         return $response->setStatusCode(200)->setData(['message' => 'Reservation deleted successfully'])->send();
     }
     
-    public function post() {
+    public function post()
+    {
         $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
         $data = $_POST;
@@ -83,31 +85,37 @@ class BookingAPIController extends APIController implements RouteProvider
         if (!$currentUserId) {
             return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
         }
-
-        $member_id = $currentUserId; 
+    
+        $member_id = $currentUserId;
         $court_id = $data['court_id'];
         $reservation_date = $data['reservation_date'];
-        $start_time = $data['start_time'];
-        $end_time = $data['end_time'];
-
-        if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_time) || empty($end_time)) {
-            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
+        $start_times = $data['start_time'];
+    
+        if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_times)) {
+             return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
         }
+         $start_times_array = explode(',', $start_times); 
+    
+            foreach ($start_times_array as $start_time) { 
+    
+                $end_time = date('H:i', strtotime($start_time . ' +1 hour')); 
+                if ($end_time === false) {
+                     return $response->setStatusCode(400)->setData(['error' => "Erreur lors du calcul de l'heure de fin."])->send();
+                }
+                $startTime = new DateTime($reservation_date . ' ' . $start_time);
+                $endTime = new DateTime($reservation_date . ' ' . $end_time);
+                $duration = $endTime->diff($startTime);
+                $totalHours = $duration->h + ($duration->i / 60);
         
-        $startTime = new DateTime($reservation_date . ' ' . $start_time);
-        $endTime = new DateTime($reservation_date . ' ' . $end_time);
-        $duration = $endTime->diff($startTime);
+                if ($totalHours > 2) {
+                      return $response->setStatusCode(400)->setData(['error' => 'Reservation cannot exceed 2 hours'])->send();
+                }
         
-        $totalHours = $duration->h + ($duration->i / 60);
-
-        if ($totalHours > 2) {
-              return $response->setStatusCode(400)->setData(['error' => 'Reservation cannot exceed 2 hours'])->send();
-        }
-
-        Booking::addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
-
+                Booking::addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
+            }
         return $response->setStatusCode(201)->setData(['message' => 'Reservation created successfully'])->send();
     }
+
     
     public function put($reservationId = null) {
         $response = new APIResponse();
@@ -155,5 +163,30 @@ class BookingAPIController extends APIController implements RouteProvider
 
         return $response->setStatusCode(200)->setData(['message' => 'Reservation updated successfully'])->send();
     }
+    public function getAvailableHours() {
+        $response = new APIResponse();
+        $courtId = $_GET['court_id'] ?? null;
+        $date = $_GET['date'] ?? null;
+         
+        if (empty($courtId) || empty($date)) {
+            return $response->setStatusCode(400)->setData(['error' => 'Missing court_id or date'])->send();
+        }
+        $today = new DateTime();
+        $selectedDate = new DateTime($date);
+        if ($selectedDate < $today->setTime(0,0,0)) {
+            return $response->setStatusCode(400)->setData(['error' => 'Cannot select a date in the past'])->send();
+        }
 
+
+        try {
+            $pdo = \Core\Database::getConnection();
+             $stmt = $pdo->prepare("SELECT cr.start_time, cr.end_time, cr.reservation_date, c.court_name, m.last_name as member_name FROM COURT_RESERVATION cr JOIN COURT c ON cr.court_id = c.court_id JOIN MEMBER m ON cr.member_id = m.member_id WHERE cr.court_id = :court_id AND cr.reservation_date = :date");
+            $stmt->execute(['court_id' => $courtId, 'date' => $date]);
+            $bookings = $stmt->fetchAll();
+            return $response->setStatusCode(200)->setData($bookings)->send();
+
+        } catch (\Exception $e) {
+            return $response->setStatusCode(500)->setData(['error' => 'A server error occurred.'])->send();
+        }
+    }
 }

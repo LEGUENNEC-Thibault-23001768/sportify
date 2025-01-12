@@ -15,17 +15,17 @@ use Models\Booking;
 use DateTime;
 use Core\Auth;
 
-class EventController extends APIController implements RouteProvider
+class EventAPIController extends APIController implements RouteProvider
 {
     public static function routes(): void
     {
         Router::get('/api/events', self::class . '@getEvents', Auth::requireLogin());
         Router::get('/api/events/{id}', self::class . '@show', Auth::requireLogin());
-        Router::post('/api/events', 'EventController@storeApi', [Auth::isAdmin()]);
-        Router::post('/api/events/join/{id}', 'EventController@postJoin', Auth::requireLogin());
-        Router::post('/api/events/leave/{id}', 'EventController@postLeave', Auth::requireLogin());
-        Router::delete('/api/events/{id}', 'EventController@deleteApi', [Auth::isAdmin(), Auth::isCoach()]);
-        Router::post('/api/events/{id}/invite', 'EventController@postSendInviteApi', [Auth::isAdmin(), Auth::isCoach()]);
+        Router::post('/api/events', self::class . '@storeApi', [Auth::isAdmin()]);
+        Router::post('/api/events/join/{id}', self::class . '@postJoin', Auth::requireLogin());
+        Router::post('/api/events/leave/{id}', self::class . '@postLeave', Auth::requireLogin());
+        Router::delete('/api/events/{id}', self::class . '@deleteApi', [Auth::isAdmin(), Auth::isCoach()]);
+        Router::post('/api/events/{id}/invite', self::class . '@postSendInviteApi', [Auth::isAdmin(), Auth::isCoach()]);
     }
 
 
