@@ -159,7 +159,7 @@ class BookingAPIController extends APIController implements RouteProvider
               return $response->setStatusCode(400)->setData(['error' => 'Reservation cannot exceed 2 hours'])->send();
         }
 
-        Booking::updateReservation($reservationId, $reservation_date, $start_time, $end_time);
+        Booking::updateReservation($reservationId, $reservation_date, $start_time, $end_time, $reservation["event_id"]);
 
         return $response->setStatusCode(200)->setData(['message' => 'Reservation updated successfully'])->send();
     }

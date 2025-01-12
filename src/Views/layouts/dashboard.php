@@ -207,20 +207,16 @@
                            $('#dynamic-content').html(contentCache[target]);
                            $('#dynamic-content').addClass('fade-in');
                             if (view === "events_dash") {
-                                    loadCSS('/_assets/css/mobiscroll.min.css?v=' + new Date().getTime(),function(){
-                                        loadScript('/_assets/js/mobiscroll.min.js?v=' + new Date().getTime(), () => {
-                                           loadScript('/_assets/js/events_dash.js?v=' + new Date().getTime(), function() {
-                                                 if (typeof initialize === 'function') {
-                                                     initialize();
-                                                  }
-                                          });
-                                      });
-                                   });
-                                } else {
-                                    if (typeof initialize === 'function') {
-                                        initialize();
-                                    }
+                                loadScript('/_assets/js/events_dash.js?v=' + new Date().getTime(), function() {
+                                        if (typeof initialize === 'function') {
+                                            initialize();
+                                        }
+                                });
+                            } else {
+                                if (typeof initialize === 'function') {
+                                    initialize();
                                 }
+                            }
                          });
                       });
                 } else {

@@ -205,16 +205,16 @@ function initialize() {
   $('.modal-tab-buttons button').on('click', function() {
     const tabId = $(this).data('tab');
 
-        $('.modal-tab-buttons button').removeClass('active');
-        $('.modal-tab-content').removeClass('active').css('opacity', 0);
+    $('.modal-tab-buttons button').removeClass('active');
+    $('.modal-tab-content').removeClass('active').css('opacity', 0);
 
-        $(this).addClass('active');
-        $(`#${tabId}`).addClass('active').css('opacity', 1);
+    $(this).addClass('active');
+    $(`#${tabId}`).addClass('active').css('opacity', 1);
 
 
-         if (tabId === 'subscription-tab' ) {
-               fetchUserSubscription(currentUserId);
-           }
+        if (tabId === 'subscription-tab' ) {
+            fetchUserSubscription(currentUserId);
+        }
    });
 
     updateSubscriptionButton.on('click', function() {

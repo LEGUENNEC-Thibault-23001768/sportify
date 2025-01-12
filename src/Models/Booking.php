@@ -105,12 +105,13 @@ class Booking
      * @param $reservation_date
      * @param $start_time
      * @param $end_time
+     * @param $event_id
      * @return bool
      */
-    public static function updateReservation($reservation_id, $reservation_date, $start_time, $end_time): bool
+    public static function updateReservation($reservation_id, $reservation_date, $start_time, $end_time, $event_id): bool
     {
-        $sql = "UPDATE COURT_RESERVATION SET reservation_date = ?, start_time = ?, end_time = ? WHERE reservation_id = ?";
-        $params = [$reservation_date, $start_time, $end_time, $reservation_id];
+        $sql = "UPDATE COURT_RESERVATION SET reservation_date = ?, start_time = ?, end_time = ?, event_id = ? WHERE reservation_id = ?";
+        $params = [$reservation_date, $start_time, $end_time, $event_id, $reservation_id];
         return Database::query($sql, $params)->rowCount() > 0;
     }
 

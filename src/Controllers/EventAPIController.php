@@ -21,7 +21,7 @@ class EventAPIController extends APIController implements RouteProvider
     {
         Router::get('/api/events', self::class . '@getEvents', Auth::requireLogin());
         Router::get('/api/events/{id}', self::class . '@show', Auth::requireLogin());
-        Router::post('/api/events', self::class . '@storeApi', [Auth::isAdmin()]);
+        Router::post('/api/events', self::class . '@storeApi', [Auth::isAdmin()]); // Auth::isCoach()
         Router::post('/api/events/join/{id}', self::class . '@postJoin', Auth::requireLogin());
         Router::post('/api/events/leave/{id}', self::class . '@postLeave', Auth::requireLogin());
         Router::delete('/api/events/{id}', self::class . '@deleteApi', [Auth::isAdmin(), Auth::isCoach()]);
@@ -40,23 +40,14 @@ class EventAPIController extends APIController implements RouteProvider
 
     public function get($eventId = null)
     {
-          $currentUserId = $_SESSION['user_id'];
+        $currentUserId = $_SESSION['user_id'];
         $member = User::getUserById($currentUserId);
     
         if ($eventId === null) {
             $events = Event::getAllEvents();
-        
             $mobiscrollEvents = [];
             foreach ($events as $event) {
-                $participants = [];
-                // Check if the user is authorized to view participants
-                if ($member["status"] === 'coach' || $member['status'] === 'admin' || $event['created_by'] == $currentUserId) {
-                    $registrations = EventRegistration::getParticipantsByEvent($event['event_id']);
-                    foreach ($registrations as $registration) {
-                        $participants[] = User::getUserById($registration['member_id']);
-                    }
-                }
-    
+                $participants = $this->getEventParticipants($event, $member, $currentUserId);
     
                 $mobiscrollEvents[] = [
                     'id' => $event['event_id'],
@@ -72,26 +63,16 @@ class EventAPIController extends APIController implements RouteProvider
                 ];
             }
         
-            $response = new APIResponse();
-            $response->setStatusCode(200)->setData($mobiscrollEvents)->send();
+            return (new APIResponse())->setStatusCode(200)->setData($mobiscrollEvents)->send();
         } else {
             $event = Event::findEvents($eventId);
-    
             if (!$event) {
-                return (new APIResponse)->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
+                return (new APIResponse())->setStatusCode(404)->setData(['error' => 'Event not found'])->send();
             }
     
-           $isRegistered = EventRegistration::isUserRegistered($eventId, $currentUserId);
-            $canViewParticipants = ($member['status'] === 'coach' || $member['status'] === 'admin' || $event['created_by'] == $currentUserId);
-        
-          $participants = [];
-            if ($canViewParticipants) {
-                 $registrations = EventRegistration::getParticipantsByEvent($eventId);
-                 foreach ($registrations as $registration) {
-                      $participants[] = User::getUserById($registration['member_id']);
-                 }
-            }
-        
+            $isRegistered = EventRegistration::isUserRegistered($eventId, $currentUserId);
+            $participants = $this->getEventParticipants($event, $member, $currentUserId, true);
+    
             $eventData = [
                 'id' => $event['event_id'],
                 'event_name' => $event['event_name'],
@@ -99,18 +80,28 @@ class EventAPIController extends APIController implements RouteProvider
                 'start_time' => $event['start_time'],
                 'end_time' => $event['end_time'],
                 'description' => $event['description'],
-               'location' => $event['location'],
+                'location' => $event['location'],
                 'max_participants' => $event['max_participants'],
                 'created_by' => $event['created_by'],
-                'participants' => $canViewParticipants ? $participants : [],
+                'participants' => $participants,
                 'is_registered' => $isRegistered
-             ];
-            $response = new APIResponse();
-            $response->setStatusCode(200)->setData($eventData)->send();
+            ];
+            return (new APIResponse())->setStatusCode(200)->setData($eventData)->send();
         }
     }
 
-
+     private function getEventParticipants($event, $member, $currentUserId, $isSingleEvent = false)
+    {
+         $participants = [];
+         $canViewParticipants = $member['status'] === 'coach' || $member['status'] === 'admin' || $event['created_by'] == $currentUserId;
+         if ($canViewParticipants) {
+            $registrations = EventRegistration::getParticipantsByEvent($isSingleEvent ? $event['event_id'] : $event['event_id'] );
+             foreach ($registrations as $registration) {
+                 $participants[] = User::getUserById($registration['member_id']);
+             }
+        }
+         return $participants;
+    }
     public function storeApi()
     {
         return $this->handleRequest($_SERVER['REQUEST_METHOD']);
@@ -120,94 +111,88 @@ class EventAPIController extends APIController implements RouteProvider
     {
         $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
-         $currentUser = User::getUserById($currentUserId);
-
+        $currentUser = User::getUserById($currentUserId);
         if ($currentUser['status'] !== 'coach' && $currentUser['status'] !== 'admin') {
             return $response->setStatusCode(403)->setData(['error' => 'Unauthorized'])->send();
         }
 
-      $eventData = $_POST;
-
+        $eventData = $_POST;
         if (
-             empty($eventData['event_name']) || empty($eventData['event_date']) || empty($eventData['start_time']) || empty($eventData['end_time']) || empty($eventData['max_participants']) || empty($eventData['location'])
+            empty($eventData['event_name']) ||
+            empty($eventData['max_participants']) || empty($eventData['location'])
         ) {
-             return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
-       }
-
-        $start = new DateTime($eventData['event_date'] . 'T' . $eventData['start_time']);
-         $end = new DateTime($eventData['event_date'] . 'T' . $eventData['end_time']);
-        $duration = $start->diff($end);
-
-        if ($duration->h > 2) {
-            return $response->setStatusCode(400)->setData(['error' => 'Event duration cannot exceed 2 hours'])->send();
+            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
         }
 
-
-         if (!is_numeric($eventData['max_participants']) || $eventData['max_participants'] < 5) {
-             return $response->setStatusCode(400)->setData(['error' => 'Maximum participants must be a number and at least 5'])->send();
+        $booking = $this->findBooking($eventData['location'], $eventData['event_date'] ?? date('Y-m-d'));
+        if (!$booking) {
+           return $response->setStatusCode(500)->setData(['error' => 'Location was not found'])->send();
         }
-         $eventData['created_by'] = $currentUserId;
-
-        $reservations = Booking::getAllReservations();
-        $myResa = null;
-        foreach ($reservations as $reservation) {
-            if ($reservation['court_name'] == $eventData['location'] && $reservation['reservation_date'] == $eventData['event_date']) {
-                $myResa = $reservation;
-                break;
-            }
-        }
-        if (!isset($myResa)) {
-            return $response->setStatusCode(500)->setData(['error' => 'Location was not found'])->send();
-        }
-
-        if ($myResa['event_id'] != null) {
-            return $response->setStatusCode(500)->setData(['error' => 'Location is already booked'])->send();
-        }
-
-        if ($myResa['start_time'] > $eventData['start_time'] || $myResa['end_time'] < $eventData['end_time']) {
-            return $response->setStatusCode(500)->setData(['error' => 'Event is starting too early or ending too late'])->send();
-        }
-
-         $eventId = Event::createEvent($eventData);
-          if (!empty($eventData['invitations'])) {
-              $emails = explode(',', $eventData['invitations']);
-             $emails = array_map('trim', $emails);
-             foreach ($emails as $email) {
-                 if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                      $token = EventInvitation::createInvitation($eventId, $email);
-                      $eventData['event_id'] = $eventId;
-                     $this->sendInvitationEmail($email, $token, $eventData);
-                  }
-            }
-        }
-        
-        if (!isset($eventData['participants'])) {
-            $eventData['participants'] = [];
-        }
-        
-     if (!$eventId) {
-         return $response->setStatusCode(500)->setData(['error' => 'Failed to create event'])->send();
+         if ($booking['event_id'] != null) {
+             return $response->setStatusCode(500)->setData(['error' => 'Location is already booked'])->send();
          }
 
-          Booking::updateReservation($myResa['reservation_id'], $myResa['reservation_date'], $myResa['start_time'], $myResa['end_time'], $eventId);
+         if ($booking['start_time'] < '08:00' || $booking['end_time'] > '22:00') {
+             return $response->setStatusCode(500)->setData(['error' => 'Event is starting too early or ending too late'])->send();
+         }
+
+         $eventData['event_date'] = $booking['reservation_date'];
+         $eventData['start_time'] = $booking['start_time'];
+         $eventData['end_time'] = $booking['end_time'];
+
+
+         if (!is_numeric($eventData['max_participants']) || $eventData['max_participants'] > 100) {
+             return $response->setStatusCode(400)->setData(['error' => 'Maximum participants can\'t be over 100.'])->send();
+         }
+        $eventData['created_by'] = $currentUserId;
+
+         $eventId = Event::createEvent($eventData);
+         if (!empty($eventData['invitations'])) {
+             $emails = explode(',', $eventData['invitations']);
+            $emails = array_map('trim', $emails);
+            foreach ($emails as $email) {
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $token = EventInvitation::createInvitation($eventId, $email);
+                    $eventData['event_id'] = $eventId;
+                    $this->sendInvitationEmail($email, $token, $eventData);
+                }
+            }
+        }
+
+
+        if (!$eventId) {
+            return $response->setStatusCode(500)->setData(['error' => 'Failed to create event'])->send();
+        }
+
+        Booking::updateReservation($booking['reservation_id'], $booking['reservation_date'], $booking['start_time'], $booking['end_time'], $eventId);
 
         $mobiscrollEvent = [
             'id' => $eventId,
-           'title' => $eventData['event_name'],
+            'title' => $eventData['event_name'],
             'start' => $eventData['event_date'] . 'T' . $eventData['start_time'],
-           'end' => $eventData['event_date'] . 'T' . $eventData['end_time'],
+            'end' => $eventData['event_date'] . 'T' . $eventData['end_time'],
             'description' => $eventData['description'],
-          'location' => $eventData['location'],
-           'max_participants' => $eventData['max_participants'],
-          'created_by' => $eventData['created_by'],
-          'is_registered' => false,
-            'participants' => $eventData['participants'] || [],
+            'location' => $eventData['location'],
+            'max_participants' => $eventData['max_participants'],
+            'created_by' => $eventData['created_by'],
+            'is_registered' => false,
         ];
         return $response->setStatusCode(201)->setData($mobiscrollEvent)->send();
     }
 
 
-   public function deleteApi($eventId)
+   private function findBooking($location, $date) {
+       $reservations = Booking::getAllReservations();
+        foreach ($reservations as $reservation) {
+            if ($reservation['court_name'] == $location && $reservation['reservation_date'] == $date) {
+                 return $reservation;
+            }
+        }
+        return null;
+   }
+
+
+    public function deleteApi($eventId)
     {
        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
     }
@@ -228,20 +213,13 @@ class EventAPIController extends APIController implements RouteProvider
                 return;
            }
 
-         $reservations = Booking::getAllReservations();
-        $myResa = null;
-        foreach ($reservations as $reservation) {
-            if ($reservation['court_name'] == $event['location'] && $reservation['reservation_date'] == $event['event_date']) {
-                $myResa = $reservation;
-                break;
-            }
-        }
+        $booking = $this->findBooking($event['location'], $event['event_date']);
 
-        if (isset($myResa)) {
-            if ($myResa['event_id'] == null) return null;
+        if (isset($booking)) {
+            if ($booking['event_id'] == null) return null;
 
-            if ($myResa['event_id'] == $eventId) {
-                Booking::updateReservation($myResa['reservation_id'], $myResa['reservation_date'], $myResa['start_time'], $myResa['end_time'], null);
+            if ($booking['event_id'] == $eventId) {
+                Booking::updateReservation($booking['reservation_id'], $booking['reservation_date'], $booking['start_time'], $booking['end_time'], null);
             }
         }
 
@@ -260,7 +238,6 @@ class EventAPIController extends APIController implements RouteProvider
          return $this->handleRequest($_SERVER['REQUEST_METHOD'], $eventId);
      }
     public function postJoin($eventId) {
-        error_log("IS THIS CALLED HOLY?");
         $response = new APIResponse();
         $currentUserId = $_SESSION['user_id'];
         $event = Event::findEvents($eventId);
@@ -281,11 +258,9 @@ class EventAPIController extends APIController implements RouteProvider
         }
 
         EventRegistration::registerUserToEvent($eventId, $currentUserId);
-           $registrations = EventRegistration::getParticipantsByEvent($eventId);
-           foreach ($registrations as $registration) {
-               $updatedEvent['participants'][] = User::getUserById($registration['member_id']);
-           }
-           $updatedEventData = [
+         $updatedEvent['participants'] = $this->getEventParticipants($updatedEvent, User::getUserById($currentUserId), $currentUserId, true);
+
+        $updatedEventData = [
             'id' => $updatedEvent['event_id'],
             'title' => $updatedEvent['event_name'],
             'start' => $updatedEvent['event_date'] . 'T' . $updatedEvent['start_time'],
@@ -294,7 +269,7 @@ class EventAPIController extends APIController implements RouteProvider
             'location' => $updatedEvent['location'],
             'max_participants' => $updatedEvent['max_participants'],
             'created_by' => $updatedEvent['created_by'],
-               'participants' => $updatedEvent['participants'],
+           'participants' => $updatedEvent['participants'],
             'is_registered' => true
         ];
      
@@ -315,6 +290,8 @@ class EventAPIController extends APIController implements RouteProvider
         EventRegistration::unregisterUserFromEvent($eventId, $currentUserId);
 
         $updatedEvent = Event::findEvents($eventId);
+        $updatedEvent['participants'] = $this->getEventParticipants($updatedEvent,  User::getUserById($currentUserId), $currentUserId, true);
+
         $updatedEventData = [
             'id' => $updatedEvent['event_id'],
             'title' => $updatedEvent['event_name'],
@@ -324,7 +301,7 @@ class EventAPIController extends APIController implements RouteProvider
             'location' => $updatedEvent['location'],
             'max_participants' => $updatedEvent['max_participants'],
             'created_by' => $updatedEvent['created_by'],
-            'participants' => EventRegistration::getParticipantsByEvent($eventId),
+            'participants' => $updatedEvent['participants'],
             'is_registered' => false
         ];
         return $response->setStatusCode(200)->setData(['message' => 'Successfully left the event', 'event' => $updatedEventData])->send();
