@@ -123,6 +123,9 @@
 
  <script>
     $(document).ready(function() {
+        window.currentUserId = <?php echo isset($user['member_id']) ? $user['member_id'] : 'null'; ?>;
+        window.memberStatus = "<?php echo isset($user['status']) ? $user['status'] : ''; ?>";
+        window.userName = "<?php echo isset($user["first_name"]) ? $user['first_name'] : "" ?>";
         const loadedScripts = {};
         const loadedCSS = {};
         const contentCache = {};

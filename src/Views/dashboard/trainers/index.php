@@ -38,3 +38,7 @@ $image_urls = [
         </div>
     </div>
 </div>
+
+<script>
+    window.currentUserId = <?php echo isset($user['member_id']) ? $user['member_id'] : 'null'; ?>;
+</script>

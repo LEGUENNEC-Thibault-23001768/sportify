@@ -139,12 +139,6 @@
                 
                     const [startHours, startMinutes] = startTime.split(':').map(Number);
                     const [endHours, endMinutes] = endTime.split(':').map(Number);
-                    const durationInMinutes = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
-                
-                    if (durationInMinutes !== 60 && durationInMinutes !== 120) {
-                        alert("La durée de réservation doit être soit de 1 heure, soit de 2 heures.");
-                        return;
-                    }
                 
                     const now = new Date();
                     const reservationDateTime = new Date(`${reservationDate}T${startTime}`);
@@ -171,7 +165,7 @@
                     }
                 
                     const reservationData = {
-                        member_id: memberId,
+                        member_id: window.currentUserId,
                         activity,
                         reservation_date: reservationDate,
                         start_time: startTime,

@@ -47,7 +47,7 @@
                             <td><?= htmlspecialchars($user['status']) ?></td>
                             <td>
                                 <button class="btn btn-edit edit-user" data-user-id="<?= $user['member_id'] ?>">Modifier</button>
-                                <a href="/dashboard/admin/users/delete?id=<?= $user['member_id'] ?>" class="btn btn-delete" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">Supprimer</a>
+                                <button class="btn btn-delete delete-user-btn" data-user-id="<?= $user['member_id'] ?>" >Supprimer</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -67,7 +67,7 @@
         <div class="modal-header">
             <h5 class="modal-title">Modifier l'utilisateur</h5>
             <div class="modal-tab-buttons">
-                <button data-tab="user-tab" class="active">User Details</button>
+            <button data-tab="user-tab" class="active">User Details</button>
                 <button data-tab="subscription-tab">Subscription</button>
             </div>
             <button type="button" class="modal-close" aria-label="Close">

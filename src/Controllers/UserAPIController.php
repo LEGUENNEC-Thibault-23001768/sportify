@@ -16,11 +16,18 @@ class UserAPIController extends APIController implements RouteProvider
     {
         Router::put('/api/profile', self::class . '@updateProfile', Auth::requireLogin()); 
         Router::apiResource('/api/users', self::class, Auth::isAdmin());
-        Router::get('/api/users/{user_id}/subscription', self::class . '@getSubscription', Auth::isAdmin());
-        Router::post('/api/users/{user_id}/subscription', self::class . '@updateSubscription', Auth::isAdmin());
-        Router::post('/api/users/{user_id}/subscription/cancel', self::class . '@cancelSubscription', Auth::isAdmin());
-        Router::post('/api/users/{user_id}/subscription/resume', self::class . '@resumeSubscription', Auth::isAdmin());
-
+        Router::get('/api/users/{user_id}/subscription', self::class . '@getSubscriptionAction', Auth::isAdmin());
+        Router::post('/api/users/{user_id}/subscription', self::class . '@updateSubscriptionAction', Auth::isAdmin());
+        Router::post('/api/users/{user_id}/subscription/cancel', self::class . '@cancelSubscriptionAction', Auth::isAdmin());
+        Router::post('/api/users/{user_id}/subscription/resume', self::class . '@resumeSubscriptionAction', Auth::isAdmin());
+    }
+    public function delete($userId = null)
+    {
+        $response = new APIResponse();
+        if (User::deleteUser($userId)) {
+            return $response->setStatusCode(200)->setData(['message' => 'User deleted successfully'])->send();
+        }
+        return $response->setStatusCode(500)->setData(['error' => 'Failed to delete user'])->send();
     }
 
     public function put($userId = null)
@@ -187,49 +194,35 @@ class UserAPIController extends APIController implements RouteProvider
             return $response->setStatusCode(200)->setData($user)->send();
         }
 
-    public function postDelete($userId)
-    {
-        $response = new APIResponse();
-
-        if (User::deleteUser($userId)) {
-            return $response->setStatusCode(200)->setData(['message' => 'User deleted successfully'])->send();
-        }
-
-        return $response->setStatusCode(500)->setData(['error' => 'Failed to delete user'])->send();
-    }
-       public function post($userId = userId)
+   
+       public function post()
        {
          $response = new APIResponse();
          $data = $_POST;
+         $userId = $_SESSION["user_id"];
          $subscriptionId = Subscription::getStripeSubscriptionId($userId);
 
            if (isset($data['action'])) {
                 switch ($data['action']) {
-                    case 'cancel':
-                      return $this->cancelSubscriptionAction($userId);
-                     case 'resume':
-                       return $this->resumeSubscriptionAction($userId);
+                   case 'cancel':
+                     return $this->cancelSubscriptionAction($userId);
+                   case 'resume':
+                      return $this->resumeSubscriptionAction($userId);
                    default:
-                   return $response->setStatusCode(400)->setData(['error' => 'Invalid action'])->send();
+                    return $response->setStatusCode(400)->setData(['error' => 'Invalid action'])->send();
                }
            }
 
-          if (Subscription::updateSubscription($userId, $subscriptionId, $data)) {
-              return $response->setStatusCode(200)->setData(['message' => 'Subscription updated successfully'])->send();
-          }
-
-           return $response->setStatusCode(500)->setData(['error' => 'Failed to update subscription'])->send();
+           return $response->setStatusCode(400)->setData(['error' => 'Invalid request'])->send();
        }
 
     public function getSubscriptionAction($userId)
         {
         $response = new APIResponse();
         $subscription = Subscription::getActiveSubscription($userId);
-
         if ($subscription) {
-            return $response->setStatusCode(200)->setData($subscription)->send();
+        return $response->setStatusCode(200)->setData($subscription)->send();
         }
-
         return $response->setStatusCode(404)->setData(['error' => 'Subscription not found'])->send();
     }
 
@@ -237,10 +230,36 @@ class UserAPIController extends APIController implements RouteProvider
     {
         $response = new APIResponse();
         if (Subscription::cancelSubscription($userId)) {
-            $response->setStatusCode(200)->setData(['message' => 'Subscription cancelled successfully'])->send();
+            return $response->setStatusCode(200)->setData(['message' => 'Subscription cancelled successfully'])->send();
         } else {
-            $response->setStatusCode(500)->setData(['error' => 'Failed to cancel subscription'])->send();
+            return $response->setStatusCode(500)->setData(['error' => 'Failed to cancel subscription'])->send();
         }
+    }
+    public function updateSubscriptionAction($userId)
+    {
+          $response = new APIResponse();
+          $json = file_get_contents('php://input');
+          $data = json_decode($json, true);
+
+          if ($data === null || json_last_error() !== JSON_ERROR_NONE) {
+              return $response->setStatusCode(400)->setData(['error' => 'Invalid JSON data'])->send();
+          }
+
+          $subscriptionType = $data['subscription_type'] ?? null;
+          $startDate = $data['start_date'] ?? null;
+          $endDate = $data['end_date'] ?? null;
+          $amount = $data['amount'] ?? null;
+
+
+           if (empty($subscriptionType) || empty($startDate) || empty($endDate) || empty($amount)) {
+                return $response->setStatusCode(400)->setData(['error' => 'All fields are required'])->send();
+            }
+        
+        if (Subscription::updateSubscriptionDetails($userId, $subscriptionType, $startDate, $endDate, $amount)) {
+            return $response->setStatusCode(200)->setData(['message' => 'Subscription updated successfully'])->send();
+        }
+
+        return $response->setStatusCode(500)->setData(['error' => 'Failed to update subscription'])->send();
     }
 
     public function getUserSubscription($userId)
@@ -260,9 +279,9 @@ class UserAPIController extends APIController implements RouteProvider
     {
         $response = new APIResponse();
         if (Subscription::resumeSubscription($userId)) {
-            $response->setStatusCode(200)->setData(['message' => 'Subscription resumed successfully'])->send();
+            return $response->setStatusCode(200)->setData(['message' => 'Subscription resumed successfully'])->send();
         } else {
-            $response->setStatusCode(500)->setData(['error' => 'Failed to resume subscription'])->send();
+            return $response->setStatusCode(500)->setData(['error' => 'Failed to resume subscription'])->send();
         }
     }
 }

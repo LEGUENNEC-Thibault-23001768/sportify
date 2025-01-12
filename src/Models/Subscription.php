@@ -89,24 +89,11 @@ class Subscription
         return $result ? $result : null;
     }
 
-    public static function updateSubscription($memberId, $stripeSubscriptionId, $subscriptionType, $startDate, $endDate, $amount)
-    {
-        $sql = "UPDATE SUBSCRIPTION SET stripe_subscription_id = :stripe_subscription_id, subscription_type = :subscription_type, start_date = :start_date, end_date = :end_date, amount = :amount, status = 'Active' WHERE member_id = :member_id AND status IN ('Active', 'Cancelling')";
-        $params = [
-            ':stripe_subscription_id' => $stripeSubscriptionId,
-            ':subscription_type' => $subscriptionType,
-            ':start_date' => $startDate,
-            ':end_date' => $endDate,
-            ':amount' => $amount,
-            ':member_id' => $memberId
-        ];
-        return Database::query($sql, $params)->rowCount() > 0;
-    }
-
-    public static function updateSubscriptionDetails($memberId, $subscriptionType, $startDate, $endDate, $amount)
+        public static function updateSubscriptionDetails($memberId, $subscriptionType, $startDate, $endDate, $amount)
     {
         $userSubscription = self::getStripeSubscriptionId($memberId);
         if (!$userSubscription) {
+             return false;
         }
 
         $stripeSubscriptionId = $userSubscription['stripe_subscription_id'];
@@ -123,6 +110,7 @@ class Subscription
 
         return Database::query($sql, $params)->rowCount() > 0;
     }
+
 
     public static function cancelSubscription($memberId)
     {
