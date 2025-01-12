@@ -10,8 +10,9 @@
         <div class="room boxe" data-room="Boxe" data-court-id="5" onclick="openReservationForm(this)">Boxe</div>
     </div>
 
-    <div id="reservation-container" style="display: none;">
-        <h3 id="reservation-title">Réserver une salle</h3>
+     <div id="reservation-container" style="display: none;">
+         <h3 id="reservation-title">Réserver une salle</h3>
+        <button type="button" class="close-button" onclick="closeReservationForm()">×</button>
          <div class="form-container">
                 <button class="tab-button active" data-tab="reservation-form">Formulaire</button>
                 <button class="tab-button" data-tab="reservations">Historique</button>
@@ -43,8 +44,9 @@
          </div>
     </div>
 
-    <div id="edit-reservation-container" style="display: none;">
-        <h2>Modifier la Réservation</h2>
+     <div id="edit-reservation-container" style="display: none;">
+         <h2>Modifier la Réservation</h2>
+          <button type="button" class="close-button" onclick="closeEditReservation()">×</button>
         <form id="edit-reservation-form">
             <input type="hidden" id="edit_reservation_id" name="reservation_id" value="">
             <label for="edit_member_name">Votre Nom:</label>
@@ -65,11 +67,9 @@
             <button type="button" onclick="cancelEditReservation()">Annuler</button>
         </form>
     </div>
-
-     <div id="toast-container"></div>
+  <div id="toast-container"></div>
 </div>
-
-<script>
+ <script>
     window.currentUserId = <?php echo isset($user['member_id']) ? $user['member_id'] : 'null'; ?>;
     window.memberStatus = "<?php echo isset($user['status']) ? $user['status'] : ''; ?>";
     window.userName = "<?php echo isset($user["first_name"]) ? $user['first_name'] : "" ?>";
