@@ -9,6 +9,7 @@
         <link rel="preload" href="<?= $viewAssets['css'] ?>?v=<?= time() ?>" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="<?= $viewAssets['css'] ?>?v=<?= time() ?>"></noscript>
     <?php endif; ?>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/_assets/css/mobiscroll.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -76,7 +77,7 @@
              <?php endif; ?>
         </ul>
         <div class="settings-section">
-            <a href="/dashboard/profile" data-target="profile" class="settings"><i class="fas fa-cog"></i> Paramètres</a>
+            <a href="/dashboard/profile" data-target="profile" class="settings"><i class="fas fa-cog"></i> Paramètre</a>
             <a href="/logout" class="logout"> Se déconnecter</a>
         </div>
     </div>

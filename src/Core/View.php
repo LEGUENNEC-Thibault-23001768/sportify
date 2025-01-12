@@ -29,6 +29,12 @@ class View
 
         return $content;
     }
+     public static function exists($view)
+    {
+        $filePath = self::$viewPath . str_replace('.', '/', $view) . '.php';
+       return file_exists($filePath);
+    }
+
 
     public static function renderWithLayout($view, $layout, $data = [])
     {

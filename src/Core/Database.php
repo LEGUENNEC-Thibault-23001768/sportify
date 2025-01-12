@@ -18,7 +18,6 @@ class Database
 
     private function __construct()
     {
-        // Private constructor to prevent instantiation
     }
 
     private static function connect()

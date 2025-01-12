@@ -163,7 +163,10 @@ class AuthController implements RouteProvider
 
     public function showForgotPasswordForm()
     {
-        echo View::render('auth/forgot-password');
+        echo View::renderWithLayout('auth/forgot-password', 'layouts/main', [
+            'title' => "Mot de passe oublié",
+            'css' => "auth"
+        ]);
     }
 
     public function showResetPasswordForm()
@@ -173,7 +176,10 @@ class AuthController implements RouteProvider
             header('Location: /login');
             exit;
         }
-        echo View::render('auth/reset-password', ['token' => $token]);
+        echo View::renderWithLayout('auth/reset-password', 'layouts/main', [
+            'title' => "Réinitialiser le mot de passe",
+            "css" => "auth",
+            'token' => $token]);
     }
 
     public function resetPassword()

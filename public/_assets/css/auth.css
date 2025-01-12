@@ -1,0 +1,195 @@
+/* Global Styles */
+body {
+    font-family: 'League Spartan', sans-serif;
+    background-color: black;
+    color: #ccc;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+#header-logo {
+    margin-top: 50px;
+    width: 200px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Reset Password Specific Styles */
+
+.reset-password-section {
+    margin-top: 0;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 200px;
+}
+
+.reset-password-section h1,
+.forgot-password-section h1 {
+    font-size: 40px;
+    font-weight: bold;
+    color: #C1FF72;
+    margin-bottom: 20px;
+}
+
+.reset-password-section p,
+.forgot-password-section p {
+    font-size: 18px;
+    color: #aaa;
+    margin-bottom: 30px;
+}
+
+.reset-password-form,
+.forgot-password-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.password-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.password-container input[type="password"],
+.password-container input[type="text"],
+.forgot-password-form input[type="email"]
+{
+    width: 300px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #C1FF72;
+    border-radius: 5px;
+    background-color: black;
+    color: white;
+    padding-right: 40px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 20px;
+    color: #C1FF72;
+    transition: color 0.3s ease;
+}
+
+.toggle-password:hover {
+    color: #aaa;
+}
+
+#password-constraints-list {
+    list-style-type: none;
+    padding: 0;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+#password-constraints-list li {
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+#password-constraints-list li.valid {
+    color: #C1FF72;
+}
+
+#password-constraints-list li::before {
+    content: '•';
+    color: #aaa;
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+#password-constraints-list li.valid::before {
+    color: #C1FF72;
+    font-size: 18px;
+}
+
+#error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+    display: none;
+}
+
+.hidden {
+    display: none;
+}
+/* Button Styles */
+.reset-password-form .btn-submit,
+.forgot-password-form .btn-submit {
+    background-color: #C1FF72;
+    color: black;
+    text-decoration: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    border: none;
+    cursor: pointer;
+    margin-top:20px;
+}
+
+.reset-password-form .btn-submit:hover,
+.forgot-password-form .btn-submit:hover
+{
+    background-color: #aaa;
+}
+
+.btn-back {
+    background-color: transparent;
+    color: #C1FF72;
+    text-decoration: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-back:hover {
+    color: #aaa;
+}
+
+/* Responsive Styles pour téléphone */
+@media (max-width: 768px) {
+    .reset-password-section h1,
+    .forgot-password-section h1 {
+        font-size: 30px;
+    }
+
+    .reset-password-section p,
+    .forgot-password-section p
+     {
+        font-size: 16px;
+    }
+
+    .password-container input[type="password"],
+    .password-container input[type="text"],
+     .forgot-password-form input[type="email"]
+    {
+        width: 250px;
+        padding: 15px;
+        font-size: 18px;
+    }
+
+    .reset-password-form .btn-submit,
+    .forgot-password-form .btn-submit
+     {
+        font-size: 16px;
+        padding: 10px 20px;
+    }
+
+    .btn-back {
+        font-size: 14px;
+    }
+}

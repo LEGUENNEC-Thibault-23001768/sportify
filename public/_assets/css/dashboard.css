@@ -98,6 +98,8 @@ body, html {
     left: 0;
 }
 
+
+
 .sidebar a.selected {
     background-color: #185a3f; /* or your desired color */
     font-weight: bold;
@@ -157,6 +159,7 @@ body, html {
     flex-direction: column;
 }
 
+
 .settings-section a {
     text-decoration: none;
     color: #ffffff;
@@ -167,6 +170,11 @@ body, html {
     transition: color 0.3s ease;
     border-radius: 8px;
 }
+
+.settings-section a i {
+    margin-right: 20px;    
+}
+
 
 .settings-section .logout {
     color: #C1FF72;

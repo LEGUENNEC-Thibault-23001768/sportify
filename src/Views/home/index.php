@@ -5,7 +5,7 @@
     <a href="#">Trouver des cours et rendez-vous</a>
     <a href="#">Plans</a>
     <a href="#">Comment fonctionnent les crédits</a>
-    <a href="#">FAQ</a>
+    <a href="/faq">FAQ</a>
     </nav>
     <div class="cta-buttons">
     <button class="login-btn">Connexion</button>
@@ -420,7 +420,7 @@
             <li>✔ Support gratuit</li>
             <li>✔ Suivi des revenus de la salle</li>
         </ul>
-        <button>Commencer</button>
+        <button><a href="/login" style="color: inherit; text-decoration:none;">Commencer</a></button>
         </div>
     
         <div class="pricing-card active pro-plan" data-plan="pro">
@@ -437,7 +437,7 @@
             <li>✔ Support prioritaire</li>
             <li>✔ Outils de marketing intégrés</li>
         </ul>
-        <button>Commencer</button>
+        <button><a href="/login" style="color: inherit; text-decoration:none;">Commencer</a></button>
         </div>
     
         <div class="pricing-card" data-plan="enterprise">
@@ -454,7 +454,7 @@
             <li>✔ Support prioritaire 24/7</li>
             <li>✔ Intégrations API et plus encore</li>
         </ul>
-        <button>Contactez-nous</button>
+        <button><a href="/contact" style="color: inherit; text-decoration:none;">Contactez-nous</a></button>
         </div>
     </div>
     </div>
@@ -492,32 +492,6 @@
     </div>
     </div>
 </section>    
-<div id="footer-placeholder"></div>
-
 
 </main>
 <script src="/_assets/js/main.js"></script> 
-
-<footer>
-    <div class="footer-container">
-        <div class="logofoot">
-            <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify" class="logofoot">
-        </div>
-        <div class="footer-links">
-            <ul>
-                <li><span class="nav-link" data-page="entreprise.html">Entreprise</span></li>
-                <li><span class="nav-link" data-page="a-propos.html">À propos</span></li>
-                <li><span class="nav-link" data-page="blog.html">Blog</span></li>
-                <li><span class="nav-link" data-page="changelog.html">Changelog</span></li>
-                <li><span class="nav-link" data-page="contact.html">Nous contacter</span></li>
-                <li><span class="nav-link" data-page="partenaire.html">Partenaires</span></li>
-                <li><span class="nav-link" data-page="politique.html">Politique de confidentialité</span></li>
-            </ul>
-        </div>
-        <div class="social-icons">
-            <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
-            <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-            <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
-        </div>
-    </div>
-</footer>
