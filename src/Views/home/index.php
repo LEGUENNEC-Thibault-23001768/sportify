@@ -1,17 +1,20 @@
 <header id="main-header">
-<div class="header-container">
-    <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify" class="logo">
-    <nav>
-    <a href="#">Trouver des cours et rendez-vous</a>
-    <a href="#">Plans</a>
-    <a href="#">Comment fonctionnent les crédits</a>
-    <a href="/faq">FAQ</a>
+  <div class="header-container">
+    <a href="#" class="logo-link">
+      <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify" class="logo">
+      </a>
+    <nav class="nav-links">
+      <a href="#coachs">Coachs</a>
+      <a href="#categories">Catégories d'entraînement</a>
+      <a href="#testimonials">Avis clients</a>
+      <a href="#pricing">Tarifs</a>
+      <a href="/contact">Contact</a>
     </nav>
     <div class="cta-buttons">
-    <button class="login-btn">Connexion</button>
-    <button class="try-btn">Essayer gratuitement</button>
+      <button class="login-btn">Connexion</button>
+      <button class="try-btn">Essayer gratuitement</button>
     </div>
-</div>
+  </div>
 </header>
 
 <main>
@@ -21,8 +24,8 @@
     Votre navigateur ne supporte pas la vidéo.
     </video>
     <div class="overlay">
-    <h1>Une application pour tout ce qui est Fitness, Bien-être & Beauté</h1>
-    <p>Sportify vous donne un accès mondial à des milliers de salles de sport, studios de fitness, salons et spas de premier plan.</p>
+    <h1>Votre salle de sport connectée : Fitness, Bien-être et Performance</h1>
+    <p>Rejoignez des milliers de passionnés et accédez aux meilleurs équipements, coachs et services dédiés à votre progression.</p>
     <div class="cta-main">
         <button class="try-free-btn">Essayer gratuitement</button>
         <button class="learn-more-btn">En savoir plus sur Sportify</button>
@@ -86,401 +89,340 @@
     </div>
     
 
-<section class="trainer-section">
+    <section id="coachs" class="trainer-section">
     <h1>Trouver votre Coach adapté pour vous</h1>
     <p>Nos entraîneurs certifiés sont là pour vous guider, offrant expertise et motivation pour vous aider à atteindre vos objectifs fitness.</p>
 
     <div class="trainers-container">
-    <img src="https://i.postimg.cc/FRbMB4kH/King-Zarips-1.png" alt="Coach 1" class="trainer-img">
-    <img src="https://i.postimg.cc/FRbMB4kH/King-Zarips-1.png" alt="Coach 2" class="trainer-img">
-    <img src="https://i.postimg.cc/FRbMB4kH/King-Zarips-1.png" alt="Coach 3" class="trainer-img">
-    <img src="https://i.postimg.cc/FRbMB4kH/King-Zarips-1.png" alt="Coach 4" class="trainer-img">
-    <img src="https://i.postimg.cc/FRbMB4kH/King-Zarips-1.png" alt="Coach 5" class="trainer-img">
-    <img src="https://i.postimg.cc/FRbMB4kH/King-Zarips-1.png" alt="Coach 6" class="trainer-img">
+    <img src="https://i.postimg.cc/pTZSBp1p/5.png" alt="Coach 1" class="trainer-img">
+    <img src="https://i.postimg.cc/PJCM8JGG/6.png" alt="Coach 2" class="trainer-img">
+    <img src="https://i.postimg.cc/NGNH3B3T/7.png" alt="Coach 3" class="trainer-img">
+    <img src="https://i.postimg.cc/fbhtcLd4/8.png" alt="Coach 4" class="trainer-img">
+    <img src="https://i.postimg.cc/brMdsNPB/9.png" alt="Coach 5" class="trainer-img">
+    <img src="https://i.postimg.cc/J0yzVVXc/10.png" alt="Coach 6" class="trainer-img">
     </div>
 </section>
 
-    <section class="workout-categories">
+    <section id="categories" class="workout-categories">
     <h1>Catégories d'entraînement</h1>
     <p>Trouvez des entraînements adaptés à vos objectifs fitness. Choisissez une catégorie et commencez dès aujourd'hui !</p>
     
     <div class="categories-container">
-        <!-- Boxe -->
-        <div class="category-card boxing">
-        <div class="emoji-wrapper boxing">
-            <img src="https://em-content.zobj.net/source/apple/118/boxing-glove_1f94a.png" alt="Boxing Glove" class="emoji-svg">
+        <!-- Tennis -->
+        <div class="category-card tennis">
+        <div class="emoji-wrapper tennis">
+            <img src="https://emojigraph.org/media/apple/tennis_1f3be.png" alt="Tennis" class="emoji-svg">
         </div>
         <div class="category-info">
-            <h2>Boxe</h2>
-            <p>12 Entraîneurs</p>
+            <h2>Tennis</h2>
+            <p>8 Entraîneurs</p>
         </div>
         </div>
-    
-        <!-- Yoga -->
-        <div class="category-card yoga">
-        <div class="emoji-wrapper yoga">
-            <img src="https://em-content.zobj.net/source/apple/118/person-in-lotus-position_1f9d8.png" alt="Person in Lotus Position" class="emoji-svg">
-        </div>
-        <div class="category-info">
-            <h2>Yoga</h2>
-            <p>16 Entraîneurs</p>
-        </div>
-        </div>
-    
-        <!-- Cardio -->
-        <div class="category-card cardio">
-        <div class="emoji-wrapper cardio">
-            <img src="https://em-content.zobj.net/source/apple/118/runner_1f3c3.png" alt="Runner" class="emoji-svg">
+
+        <!-- Football -->
+        <div class="category-card football">
+        <div class="emoji-wrapper football">
+            <img src="https://emojigraph.org/media/apple/soccer-ball_26bd.png" alt="Football" class="emoji-svg">
         </div>
         <div class="category-info">
-            <h2>Cardio</h2>
-            <p>11 Entraîneurs</p>
-        </div>
-        </div>
-    
-        <!-- Musculation -->
-        <div class="category-card strength-training">
-        <div class="emoji-wrapper strength-training">
-            <img src="https://em-content.zobj.net/source/apple/118/weight-lifter_1f3cb.png" alt="Weight Lifter" class="emoji-svg">
-        </div>
-        <div class="category-info">
-            <h2>Musculation</h2>
+            <h2>Football</h2>
             <p>10 Entraîneurs</p>
         </div>
         </div>
-    
-        <!-- Pilates -->
-        <div class="category-card pilates">
-        <div class="emoji-wrapper pilates">
-            <img src="https://em-content.zobj.net/source/apple/118/monkey-face_1f435.png" alt="Pilates" class="emoji-svg">
+        
+        <!-- Basketball -->
+        <div class="category-card basketball">
+        <div class="emoji-wrapper basketball">
+            <img src="https://emojigraph.org/media/apple/basketball_1f3c0.png" alt="Basketball" class="emoji-svg">
         </div>
         <div class="category-info">
-            <h2>Pilates</h2>
-            <p>7 Entraîneurs</p>
-        </div>
-        </div>
-    
-        <!-- CrossFit -->
-        <div class="category-card crossfit">
-        <div class="emoji-wrapper crossfit">
-            <img src="https://em-content.zobj.net/source/apple/118/monkey-face_1f435.png" alt="CrossFit" class="emoji-svg">
-        </div>
-        <div class="category-info">
-            <h2>CrossFit</h2>
-            <p>3 Entraîneurs</p>
-        </div>
-        </div>
-    
-        <!-- Cyclisme -->
-        <div class="category-card cycling">
-        <div class="emoji-wrapper cycling">
-            <img src="https://em-content.zobj.net/source/apple/118/monkey-face_1f435.png" alt="Cyclisme" class="emoji-svg">
-        </div>
-        <div class="category-info">
-            <h2>Cyclisme</h2>
-            <p>2 Entraîneurs</p>
-        </div>
-        </div>
-    
-        <!-- Zumba -->
-        <div class="category-card zumba">
-        <div class="emoji-wrapper zumba">
-            <img src="https://em-content.zobj.net/source/apple/118/monkey-face_1f435.png" alt="Zumba" class="emoji-svg">
-        </div>
-        <div class="category-info">
-            <h2>Zumba</h2>
-            <p>3 Entraîneurs</p>
-        </div>
-        </div>
-    
-        <!-- Running -->
-        <div class="category-card running">
-        <div class="emoji-wrapper running">
-            <img src="https://em-content.zobj.net/source/apple/118/monkey-face_1f435.png" alt="Running" class="emoji-svg">
-        </div>
-        <div class="category-info">
-            <h2>Running</h2>
+            <h2>Basketball</h2>
             <p>9 Entraîneurs</p>
         </div>
         </div>
-    
-        <!-- Stretching -->
-        <div class="category-card stretching">
-        <div class="emoji-wrapper stretching">
-            <img src="https://em-content.zobj.net/source/apple/118/monkey-face_1f435.png" alt="Stretching" class="emoji-svg">
+
+        <!-- RPM -->
+        <div class="category-card rpm">
+        <div class="emoji-wrapper rpm">
+            <img src="https://emojigraph.org/media/apple/person-biking_1f6b4.png" alt="RPM" class="emoji-svg">
         </div>
         <div class="category-info">
-            <h2>Stretching</h2>
-            <p>13 Entraîneurs</p>
+            <h2>RPM</h2>
+            <p>6 Entraîneurs</p>
         </div>
         </div>
-    
-        <!-- Arts Martiaux -->
-        <div class="category-card martial-arts">
-        <div class="emoji-wrapper martial-arts">
-            <img src="https://em-content.zobj.net/source/apple/118/monkey-face_1f435.png" alt="Martial Arts" class="emoji-svg">
-        </div>
-        <div class="category-info">
-            <h2>Arts Martiaux</h2>
-            <p>5 Entraîneurs</p>
-        </div>
-        </div>
-    
-        <!-- Natation -->
-        <div class="category-card swimming">
-        <div class="emoji-wrapper swimming">
-            <img src="https://em-content.zobj.net/source/apple/118/man-swimming_1f3ca-200d-2642-fe0f.png" alt="Swimming" class="emoji-svg">
+
+        <!-- Yoga -->
+        <div class="category-card musc">
+        <div class="emoji-wrapper musc">
+            <img src="https://emojigraph.org/media/apple/flexed-biceps_1f4aa.png" alt="Yoga" class="emoji-svg">
         </div>
         <div class="category-info">
-            <h2>Natation</h2>
-            <p>10 Entraîneurs</p>
+            <h2>Musculation</h2>
+            <p>12 Entraîneurs</p>
+        </div>
+        </div>
+
+
+        <!-- Boxe -->
+        <div class="category-card boxing">
+        <div class="emoji-wrapper boxing">
+            <img src="https://em-content.zobj.net/source/apple/118/boxing-glove_1f94a.png" alt="Boxe" class="emoji-svg">
+        </div>
+        <div class="category-info">
+            <h2>Boxe</h2>
+            <p>15 Entraîneurs</p>
         </div>
         </div>
     </div>
     </section>
 
-    <section class="testimonials-section">
+    <section id="testimonials" class="testimonials-section">
     <h1>Ce que disent nos clients</h1>
     <p>Découvrez les avis de nos clients sur les services et les entraîneurs de notre salle de sport.</p>
     
     <div class="testimonials-container">
         <div class="testimonial-card">
-        <p>J'ai vu des améliorations massives dans les performances de ma salle de sport grâce aux entraîneurs experts. Je recommande fortement!</p>
-        <div class="avatar-info">
-            <div class="profile">
-            <img src="https://i.pinimg.com/564x/04/a2/3d/04a23d9d800ad8d694ebb47abd422600.jpg" alt="Profil John Cena">
-            <div>
-                <h4>John Cena</h4>
-                <span>Propriétaire de salle de sport</span>
+            <p>Les équipements sont exceptionnels, les coachs sont toujours motivants, et j'ai atteint mes objectifs en un temps record.</p>
+            <div class="avatar-info">
+                <div class="profile">
+                    <img src="https://i.pinimg.com/736x/5f/51/58/5f515894cc6a47c715ab1ab468361790.jpg" alt="Clara Dupont">
+                    <div>
+                        <h4>Clara Dupont</h4>
+                        <span>Cliente</span>
+                    </div>
+                </div>
+                <div class="rating">
+                    <span>5.0</span>
+                    <i class="fas fa-star rating-star"></i>
+                </div>
             </div>
-            </div>
-            <div class="rating">
-            <span>5.0</span>
-            <i class="fas fa-star rating-star"></i>
-            </div>
-        </div>
-        </div>
-    
-        <div class="testimonial-card">
-        <p>Les entraîneurs sont dévoués et professionnels. Mes membres de la salle les adorent!</p>
-        <div class="avatar-info">
-            <div class="profile">
-            <img src="https://i.pinimg.com/564x/ba/17/65/ba176543729250453554df2eb6645501.jpg" alt="Profil Maria Gomez">
-            <div>
-                <h4>Maria Gomez</h4>
-                <span>Entraîneuse personnelle</span>
-            </div>
-            </div>
-            <div class="rating">
-            <span>4.5</span>
-            <i class="fas fa-star rating-star"></i>
-            </div>
-        </div>
-        </div>
-    
-        <div class="testimonial-card">
-        <p>Entraîneurs excellents, un support client fantastique. Je ne pourrais pas en demander plus!</p>
-        <div class="avatar-info">
-            <div class="profile">
-            <img src="https://i.pinimg.com/564x/e4/fe/b9/e4feb9763d6df9dc97dfe5e4df9ff80e.jpg" alt="Profil David Lee">
-            <div>
-                <h4>David Lee</h4>
-                <span>Directeur de salle de sport</span>
-            </div>
-            </div>
-            <div class="rating">
-            <span>4.5</span>
-            <i class="fas fa-star rating-star"></i>
-            </div>
-        </div>
-        </div>
-    
-        <div class="testimonial-card">
-        <p>Résultats incroyables grâce à des entraîneurs dévoués! Ma salle de sport a prospéré.</p>
-        <div class="avatar-info">
-            <div class="profile">
-            <img src="https://i.pinimg.com/564x/9c/02/a4/9c02a4ee1add2a6c2fb4a14a0e770129.jpg" alt="Profil Esther Howard">
-            <div>
-                <h4>Esther Howard</h4>
-                <span>Propriétaire de salle de sport</span>
-            </div>
-            </div>
-            <div class="rating">
-            <span>5.0</span>
-            <i class="fas fa-star rating-star"></i>
-            </div>
-        </div>
-        </div>
-    
-        <div class="testimonial-card">
-        <p>Des entraîneurs experts qui maîtrisent leur art! Je recommande fortement pour toute salle de sport.</p>
-        <div class="avatar-info">
-            <div class="profile">
-            <img src="https://i.pinimg.com/564x/71/fc/99/71fc99915741277e7798816953e3f8de.jpg" alt="Profil Devon Lane">
-            <div>
-                <h4>Devon Lane</h4>
-                <span>Directeur de salle de sport</span>
-            </div>
-            </div>
-            <div class="rating">
-            <span>5.0</span>
-            <i class="fas fa-star rating-star"></i>
-            </div>
-        </div>
-        </div>
-    
-        <div class="testimonial-card">
-        <p>Les entraîneurs ont transformé ma routine d'entraînement! Je suis plus motivé que jamais.</p>
-        <div class="avatar-info">
-            <div class="profile">
-            <img src="https://i.pinimg.com/564x/b4/69/35/b46935e2a26c624c722cdf9063a4ca24.jpg" alt="Profil Marvin McKinney">
-            <div>
-                <h4>Marvin McKinney</h4>
-                <span>Coach fitness</span>
-            </div>
-            </div>
-            <div class="rating">
-            <span>5.0</span>
-            <i class="fas fa-star rating-star"></i>
-            </div>
-        </div>
         </div>
 
         <div class="testimonial-card">
-        <p>Les entraîneurs ont transformé ma routine d'entraînement! Je suis plus motivé que jamais.</p>
-        <div class="avatar-info">
-            <div class="profile">
-            <img src="https://i.pinimg.com/564x/b4/69/35/b46935e2a26c624c722cdf9063a4ca24.jpg" alt="Profil Marvin McKinney">
-            <div>
-                <h4>Marvin McKinney</h4>
-                <span>Coach fitness</span>
+            <p>Une ambiance conviviale qui motive à dépasser ses limites!</p>
+            <div class="avatar-info">
+                <div class="profile">
+                    <img src="https://i.pinimg.com/564x/71/fc/99/71fc99915741277e7798816953e3f8de.jpg" alt="Profil Thomas Garnier">
+                    <div>
+                        <h4>Thomas Garnier</h4>
+                        <span>Directeur</span>
+                    </div>
+                </div>
+                <div class="rating">
+                    <span>5.0</span>
+                    <i class="fas fa-star rating-star"></i>
+                </div>
             </div>
-            </div>
-            <div class="rating">
-            <span>5.0</span>
-            <i class="fas fa-star rating-star"></i>
-            </div>
-        </div>
         </div>
 
         <div class="testimonial-card">
-        <p>Les entraîneurs ont transformé ma routine d'entraînement! Je suis plus motivé que jamais.</p>
-        <div class="avatar-info">
-            <div class="profile">
-            <img src="https://i.pinimg.com/564x/b4/69/35/b46935e2a26c624c722cdf9063a4ca24.jpg" alt="Profil Marvin McKinney">
-            <div>
-                <h4>Marvin McKinney</h4>
-                <span>Coach fitness</span>
+            <p>Des coachs attentifs et compétents, toujours prêts à aider.</p>
+            <div class="avatar-info">
+                <div class="profile">
+                    <img src="https://i.pinimg.com/736x/a6/52/df/a652df5c015d9ff2d008c047df05bbc1.jpg" alt="Profil Camille Morel">
+                    <div>
+                        <h4>Camille Morel</h4>
+                        <span>Cliente</span>
+                    </div>
+                </div>
+                <div class="rating">
+                    <span>4.5</span>
+                    <i class="fas fa-star rating-star"></i>
+                </div>
             </div>
-            </div>
-            <div class="rating">
-            <span>5.0</span>
-            <i class="fas fa-star rating-star"></i>
-            </div>
-        </div>
         </div>
 
         <div class="testimonial-card">
-        <p>Les entraîneurs ont transformé ma routine d'entraînement! Je suis plus motivé que jamais.</p>
-        <div class="avatar-info">
-            <div class="profile">
-            <img src="https://i.pinimg.com/564x/b4/69/35/b46935e2a26c624c722cdf9063a4ca24.jpg" alt="Profil Marvin McKinney">
-            <div>
-                <h4>Marvin McKinney</h4>
-                <span>Coach fitness</span>
-            </div>
-            </div>
-            <div class="rating">
-            <span>5.0</span>
-            <i class="fas fa-star rating-star"></i>
+            <p>Coacher ici est un vrai plaisir grâce à l'excellent matériel.</p>
+            <div class="avatar-info">
+                <div class="profile">
+                    <img src="https://i.pinimg.com/564x/9c/02/a4/9c02a4ee1add2a6c2fb4a14a0e770129.jpg" alt="Profil Lucas Bernard">
+                    <div>
+                        <h4>Lucas Bernard</h4>
+                        <span>Coach Fitness</span>
+                    </div>
+                </div>
+                <div class="rating">
+                    <span>5.0</span>
+                    <i class="fas fa-star rating-star"></i>
+                </div>
             </div>
         </div>
+
+        <div class="testimonial-card">
+            <p>Un cadre agréable et un service toujours à la hauteur.</p>
+            <div class="avatar-info">
+                <div class="profile">
+                    <img src="https://i.pinimg.com/736x/ab/f4/84/abf4849ced34eba94e6a0978f10be841.jpg" alt="Profil Emma Leroy">
+                    <div>
+                        <h4>Emma Leroy</h4>
+                        <span>Cliente</span>
+                    </div>
+                </div>
+                <div class="rating">
+                    <span>4.5</span>
+                    <i class="fas fa-star rating-star"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonial-card">
+            <p>Chaque séance ici est une expérience enrichissante.</p>
+            <div class="avatar-info">
+                <div class="profile">
+                    <img src="https://i.pinimg.com/564x/b4/69/35/b46935e2a26c624c722cdf9063a4ca24.jpg" alt="Profil Hugo Martin">
+                    <div>
+                        <h4>Hugo Martin</h4>
+                        <span>Coach Fitness</span>
+                    </div>
+                </div>
+                <div class="rating">
+                    <span>5.0</span>
+                    <i class="fas fa-star rating-star"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonial-card">
+            <p>Une salle propre, moderne et très bien équipée.</p>
+            <div class="avatar-info">
+                <div class="profile">
+                    <img src="https://i.pinimg.com/736x/00/f6/ec/00f6ec003fe720d821c322c79d7a4792.jpg" alt="Profil Julien Dubois">
+                    <div>
+                        <h4>Julien Dubois</h4>
+                        <span>Client</span>
+                    </div>
+                </div>
+                <div class="rating">
+                    <span>5.0</span>
+                    <i class="fas fa-star rating-star"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonial-card">
+            <p>Les cours collectifs sont géniaux, je les adore!</p>
+            <div class="avatar-info">
+                <div class="profile">
+                    <img src="https://i.pinimg.com/736x/e9/49/87/e949879feb9757d9a5ef84c23de3ede0.jpg" alt="Profil Nathan Simon">
+                    <div>
+                        <h4>Nathan Simon</h4>
+                        <span>Client</span>
+                    </div>
+                </div>
+                <div class="rating">
+                    <span>5.0</span>
+                    <i class="fas fa-star rating-star"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonial-card">
+            <p>L'équipe est accueillante et toujours prête à aider.</p>
+            <div class="avatar-info">
+                <div class="profile">
+                    <img src="https://i.pinimg.com/736x/f9/3e/f5/f93ef56a2965fd27c4e6f5c549914ad6.jpg" alt="Profil Sarah Fontaine">
+                    <div>
+                        <h4>Sarah Fontaine</h4>
+                        <span>Cliente</span>
+                    </div>
+                </div>
+                <div class="rating">
+                    <span>5.0</span>
+                    <i class="fas fa-star rating-star"></i>
+                </div>
+            </div>
         </div>
     </div>
     <button id="show-more-btn" class="show-more-btn">Voir plus</button>
+</section>
 
-    </section>
     
-    <div class="pricing-section">
+    <section id="pricing" class="pricing-section">
     <h1>Facile pour votre compte bancaire</h1>
-    <p>Nos options de tarification flexibles vous assurent l'accès aux fonctionnalités dont vous avez besoin, sans vous ruiner.</p>
-    
-    <div class="pricing-plans">
-        <div class="pricing-card" data-plan="free">
-        <h2>Plan Gratuit</h2>
-        <p>Tout ce dont vous avez besoin pour démarrer avec des fonctionnalités de base</p>
-        <div class="price">
-            <span>0€</span> <span>par mois</span>
-        </div>
-        <ul>
-            <li>✔ Aucune carte de crédit requise</li>
-            <li>✔ Gérez jusqu'à 10 membres</li>
-            <li>✔ Accès aux analyses de base de la salle de sport</li>
-            <li>✔ Outils de planification d'entraîneurs limités</li>
-            <li>✔ Support gratuit</li>
-            <li>✔ Suivi des revenus de la salle</li>
-        </ul>
-        <button><a href="/login" style="color: inherit; text-decoration:none;">Commencer</a></button>
-        </div>
-    
-        <div class="pricing-card active pro-plan" data-plan="pro">
-        <h2>Plan Pro</h2>
-        <p>Outils avancés pour la gestion des salles de sport</p>
-        <div class="price">
-            <span>49€</span> <span>par mois</span>
-        </div>
-        <ul>
-            <li>✔ Gérez jusqu'à 100 membres</li>
-            <li>✔ Analyses avancées de la salle</li>
-            <li>✔ Outils de planification d'entraîneurs illimités</li>
-            <li>✔ Insights personnalisés des membres</li>
-            <li>✔ Support prioritaire</li>
-            <li>✔ Outils de marketing intégrés</li>
-        </ul>
-        <button><a href="/login" style="color: inherit; text-decoration:none;">Commencer</a></button>
-        </div>
-    
-        <div class="pricing-card" data-plan="enterprise">
-        <h2>Plan Entreprise</h2>
-        <p>Solutions personnalisées pour votre entreprise</p>
-        <div class="price">
-            <span class="special-price">***</span>
-        </div>            
-        <ul>
-            <li>✔ Membres illimités</li>
-            <li>✔ Tableau de bord personnalisé</li>
-            <li>✔ Rapports et analyses sur mesure</li>
-            <li>✔ Gestionnaire de compte dédié</li>
-            <li>✔ Support prioritaire 24/7</li>
-            <li>✔ Intégrations API et plus encore</li>
-        </ul>
-        <button><a href="/contact" style="color: inherit; text-decoration:none;">Contactez-nous</a></button>
-        </div>
-    </div>
-    </div>
-    
+  <p>Nos options de tarification flexibles vous assurent l'accès aux fonctionnalités dont vous avez besoin, sans vous ruiner.</p>
 
+  <div class="pricing-plans">
+    <!-- Plan Gratuit -->
+    <div class="pricing-card">
+      <h2>Plan Gratuit</h2>
+      <p>Tout ce dont vous avez besoin pour démarrer avec des fonctionnalités de base</p>
+      <div class="price">
+        <span>0€</span> <span>/ mois</span>
+      </div>
+      <ul>
+        <li><span class="check-icon">✔</span> Accès aux fonctionnalités de base.</li>
+        <li><span class="check-icon">✔</span> Réservation limitée (2 créneaux/semaine).</li>
+        <li><span class="check-icon">✔</span> Consultation des statistiques de base.</li>
+        <li><span class="cross-icon">✘</span> Programme d'entraînement personnalisé.</li>
+        <li><span class="cross-icon">✘</span> Réservations illimitées pour coachs et terrains.</li>
+        <li><span class="cross-icon">✘</span> Création et participation à des tournois exclusifs.</li>
+        <li><span class="cross-icon">✘</span> Tableau de bord collaboratif.</li>
+      </ul>
+      <button>Commencer</button>
+    </div>
+
+    <!-- Plan Normal -->
+    <div class="pricing-card active">
+      <h2>Plan Normal</h2>
+      <p>Des outils essentiels pour une gestion optimale</p>
+      <div class="price">
+        <span>49€</span> <span>/ mois</span>
+      </div>
+      <ul>
+        <li><span class="check-icon">✔</span> Accès aux fonctionnalités de base.</li>
+        <li><span class="check-icon">✔</span> Réservations illimitées pour coachs et terrains.</li>
+        <li><span class="check-icon">✔</span> Consultation des statistiques avancées.</li>
+        <li><span class="check-icon">✔</span> Programme d'entraînement personnalisé.</li>
+        <li><span class="check-icon">✔</span> Création et participation à des tournois exclusifs.</li>
+        <li><span class="cross-icon">✘</span> Tableau de bord collaboratif.</li>
+        <li><span class="cross-icon">✘</span> Assistance dédiée 24/7.</li>
+      </ul>
+      <button><a href="/login" style="color: inherit; text-decoration:none;">Commencer</a></button>
+    </div>
+
+    <!-- Plan Entreprise -->
+    <div class="pricing-card">
+      <h2>Plan Entreprise</h2>
+      <p>Solutions personnalisées pour votre entreprise</p>
+      <div class="price">
+        <span>***</span>
+      </div>
+      <ul>
+        <li><span class="check-icon">✔</span> Accès aux fonctionnalités de base.</li>
+        <li><span class="check-icon">✔</span> Réservations illimitées pour coachs et terrains.</li>
+        <li><span class="check-icon">✔</span> Consultation des statistiques avancées.</li>
+        <li><span class="check-icon">✔</span> Programme d'entraînement personnalisé pour équipes.</li>
+        <li><span class="check-icon">✔</span> Création et gestion d'événements sportifs.</li>
+        <li><span class="check-icon">✔</span> Tableau de bord collaboratif.</li>
+        <li><span class="check-icon">✔</span> Assistance dédiée 24/7 avec gestionnaire de compte.</li>
+      </ul>
+      <button><a href="/login" style="color: inherit; text-decoration:none;">Commencer</a></button>
+    </div>
+  </div>
+</div>
 
 <section class="random-images-section">
     <div class="random-container">
     <img src="https://i.postimg.cc/MTRRBz3t/1.png" alt="Image 1" class="random-img">
-    <img src="https://i.postimg.cc/kGvbjfmb/2.png" alt="Image 2" class="random-img">
-    <img src="https://i.postimg.cc/v8rfHHVZ/3.png" alt="Image 3" class="random-img">
-    <img src="https://i.postimg.cc/MTRRBz3t/1.png" alt="Image 4" class="random-img">
-    <img src="https://i.postimg.cc/kGvbjfmb/2.png" alt="Image 5" class="random-img">
-    <img src="https://i.postimg.cc/v8rfHHVZ/3.png" alt="Image 6" class="random-img">
-    <img src="https://i.postimg.cc/MTRRBz3t/1.png" alt="Image 7" class="random-img">
-    <img src="https://i.postimg.cc/kGvbjfmb/2.png" alt="Image 8" class="random-img">
-    <img src="https://i.postimg.cc/v8rfHHVZ/3.png" alt="Image 9" class="random-img">
+    <img src="https://i.postimg.cc/TYmK648X/1.png" alt="Image 2" class="random-img">
+    <img src="https://i.postimg.cc/9fNmTd3p/2.png" alt="Image 3" class="random-img">
+    <img src="https://i.postimg.cc/wTc9F883/3.png" alt="Image 4" class="random-img">
+    <img src="https://i.postimg.cc/Jhg8tRJY/4.png" alt="Image 5" class="random-img">
+    <img src="https://i.postimg.cc/GpZ0dqwZ/5.png" alt="Image 6" class="random-img">
+    <img src="https://i.postimg.cc/y6hqCmfb/6.png" alt="Image 7" class="random-img">
+    <img src="https://i.postimg.cc/4dC0rypG/7.png" alt="Image 8" class="random-img">
+    <img src="https://i.postimg.cc/4dbWq5Jv/8.png" alt="Image 9" class="random-img">
     </div>
 </section>
 
 <section class="cta-section">
     <div class="cta-container">
     <div class="cta-icons">
-        <img src="https://em-content.zobj.net/source/apple/118/monkey-face_1f435.png" alt="Visage de singe">
-        <img src="https://em-content.zobj.net/source/apple/118/monkey-face_1f435.png" alt="Visage de singe">
-        <img src="https://em-content.zobj.net/source/apple/118/monkey-face_1f435.png" alt="Visage de singe">
+        <img src="https://emojigraph.org/media/apple/flexed-biceps_1f4aa.png" alt="biceps">
+        <img src="https://emojigraph.org/media/apple/beaming-face-with-smiling-eyes_1f601.png" alt="smile">
+        <img src="https://emojigraph.org/media/apple/fire_1f525.png" alt="Feu">
     </div>
     <h1>Prêt à commencer ?</h1>
     <p>Prenez le contrôle des opérations de votre salle de sport en toute simplicité.<br>

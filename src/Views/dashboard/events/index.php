@@ -4,8 +4,10 @@
     <div class="container">
         <div id="myCalendar"></div>
 
-<div>
-        <button id="createEventButton" class="btn btn-primary" onclick="openCreateEventPopup()">Create Event</button>
+    <div>
+        <?php if ($member["status"] === "admin" || $member["status"] == "coach"): ?>
+            <button id="createEventButton" class="btn btn-primary" onclick="openCreateEventPopup()">Créer un événement</button>
+        <?php endif; ?>
     </div>
 
     <!-- Event Details Modal -->

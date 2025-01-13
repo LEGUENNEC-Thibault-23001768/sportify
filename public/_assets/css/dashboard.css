@@ -405,3 +405,125 @@ h1 {
 .small-card {
     background: linear-gradient(145deg, rgba(47, 47, 47, 0.9), rgba(9, 9, 9, 0.8));
 }
+
+.report-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: linear-gradient(145deg, #1a1a1a, #090909);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    width: 80%;
+    margin: 0 auto;
+    color: white;
+  }
+  
+  .report-controls {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-start;
+  }
+  
+  #week-select {
+    background-color: #000;
+    color: #C1FF72;
+    padding: 10px;
+    border: 1px solid #C1FF72;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 200px;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  #week-select:hover {
+    background-color: #C1FF72;
+    color: #000;
+  }
+  
+  .report-card {
+    background: linear-gradient(145deg, #111, #1a1a1a);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: left;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.report-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.7);
+}
+
+.report-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #C1FF72;
+    margin-bottom: 10px;
+}
+  
+.report-percentage {
+    font-size: 24px;
+    color: #C1FF72;
+    margin-bottom: 5px;
+}
+  
+.report-value {
+    font-size: 20px;
+    color: #fff;
+}
+  
+.report-previous, .report-subtitle {
+    font-size: 14px;
+    color: #aaa;
+}
+  
+  .progression-section {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .progression-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #C1FF72;
+  }
+  
+  .circle-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    background-color: #000;
+    border-radius: 50%;
+    margin: 0 auto;
+    box-shadow: 0px 4px 10px rgba(193, 255, 114, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #chart-center-text {
+    position: absolute;
+    font-size: 24px;
+    color: #fff;
+    z-index: 1;
+  }
+  
+
+  .circle-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    background-color: #1a1a1a;
+    border-radius: 50%;
+    margin: 0 auto;
+    box-shadow: 0px 4px 10px rgba(193, 255, 114, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#taskCompletionChart {
+    width: 150px;
+    height: 150px;
+}

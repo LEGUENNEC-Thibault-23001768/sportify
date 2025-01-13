@@ -4,18 +4,16 @@ use PHPUnit\Framework\TestCase;
 
 class AutoloaderTest extends TestCase
 {
-    protected function setUp(): void
+    public function setUp(): void
     {
         // Ensure the autoloader is registered
         require_once __DIR__ . '/../Autoloader.php';
     }
 
-    public function testAutoloaderLoadsClasses()
+    public function testAutoloaderLoadsExistingClasses()
     {
         $this->assertTrue(class_exists('Controllers\HomeController'));
-
         $this->assertTrue(class_exists('Models\User'));
-
         $this->assertTrue(class_exists('Core\Router'));
     }
 
@@ -28,8 +26,11 @@ class AutoloaderTest extends TestCase
     {
         $homeController = new Controllers\HomeController();
         $this->assertInstanceOf('Controllers\HomeController', $homeController);
+    }
 
-        $user = new Models\User();
-        $this->assertInstanceOf('Models\User', $user);
+    public function testAutoloaderRespectsNamespacesForModels()
+    {
+          $user = new Models\User();
+         $this->assertInstanceOf('Models\User', $user);
     }
 }

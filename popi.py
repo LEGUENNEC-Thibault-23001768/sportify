@@ -25,14 +25,22 @@ def find_and_display_files(root_dir, files_to_find):
 
 if __name__ == "__main__":
     files_to_find = [
-        "AuthController.php",
-        "BookingController.php",
-        "CoachBookingController.php",
-        "GoogleAuthController.php",
-        "HomeController.php",
-        "PaymentController.php",
-        "TeamController.php",
-        "TrainingController.php",
+        "User.php",
+        "Router.php",
+        "Database.php",
+        "Config.php",
+        "Auth.php",
+        "APIResponse.php",
+        "APIController.php",
+        "APIControllerTest.php",
+        "APIResponseTest.php",
+        "AuthTest.php",
+        "ConfigTest.php",
+        "RouterTest.php",
+        "UserTest.php",
+        "AutoloaderTest.php",
+        "Autoloader",
+        "phpunit.xml",
     ]
     
     root_directory = "."

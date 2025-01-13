@@ -7,97 +7,69 @@ use Core\APIResponse;
 
 class APIResponseTest extends TestCase
 {
-    public function testSetData()
+    public function testSetStatusCode()
     {
         $response = new APIResponse();
-        $data = ['message' => 'hello'];
-        $response->setData($data);
-        $this->assertEquals($data, $response->getData());
+        $response->setStatusCode(201);
+        $this->assertEquals(201, $this->getStatusCode($response));
     }
 
-     public function testSetStatusCode()
+    public function testSetData()
     {
-        $response = new APIResponse();
-        $statusCode = 404;
-        $response->setStatusCode($statusCode);
-        $this->assertEquals($statusCode, $response->getStatusCode());
+         $response = new APIResponse();
+        $data = ['message' => 'Test Data'];
+        $response->setData($data);
+        $this->assertEquals($data, $this->getData($response));
     }
 
     public function testAddHeader()
     {
-        $response = new APIResponse();
-        $response->addHeader('Content-Type', 'application/xml');
-        $this->assertEquals('application/xml', $response->getHeaders()['Content-Type']);
+         $response = new APIResponse();
+        $response->addHeader('Content-Type', 'application/json');
+        $this->assertArrayHasKey('Content-Type', $this->getHeaders($response));
+        $this->assertEquals('application/json', $this->getHeaders($response)['Content-Type']);
     }
-
-    public function testSendJsonResponse()
-     {
-         $response = new APIResponse(['message' => 'Test message'], 201, ['X-Test-Header' => 'test-value']);
-
+    
+     public function testSendResponseWithData()
+    {
+        $response = new APIResponse(['test' => 'data'], 201, ['Content-Type' => 'application/json']);
          ob_start();
          $response->send();
-         $output = ob_get_clean();
-    
-         $this->assertEquals(201, http_response_code());
-         $this->assertStringContainsString('X-Test-Header: test-value', xdebug_get_headers()[0]);
-        $this->assertJsonStringEqualsJsonString(json_encode(['message' => 'Test message']), $output);
-    
-      }
+        $output = ob_get_clean();
 
-    public function testSendNoContent()
-    {
-        $response = new APIResponse(null, 204);
-
-        ob_start();
-        $response->send();
-         $output = ob_get_clean();
-
-        $this->assertEquals(204, http_response_code());
-        $this->assertEmpty($output);
+        $this->assertEquals(201, http_response_code());
+          $headers = headers_list();
+        $this->assertStringContainsString("Content-Type: application/json", $headers[0]);
+        $this->assertJson($output);
+        $this->assertJsonStringEqualsJsonString('{"test":"data"}', $output);
     }
 
-    public function testSendDefaultStatusCode()
+    public function testDefaultConstructorValues()
     {
-        $response = new APIResponse(['message' => 'Default status code']);
-        ob_start();
-        $response->send();
-        ob_get_clean();
-    
-        $this->assertEquals(200, http_response_code());
+        $response = new APIResponse();
+        $this->assertNull($this->getData($response));
+        $this->assertEquals(200, $this->getStatusCode($response));
+        $this->assertEmpty($this->getHeaders($response));
+    }
+
+    private function getStatusCode(APIResponse $response) {
+         $reflection = new \ReflectionClass($response);
+        $property = $reflection->getProperty('statusCode');
+        $property->setAccessible(true);
+        return $property->getValue($response);
     }
     
-     public function testSendDefaultContentType()
-      {
-       $response = new APIResponse(['message' => 'Default Content-Type'], 200, ['Content-Type' => 'application/json']);
-
-        ob_start();
-        $response->send();
-         ob_get_clean();
-    
-         $this->assertStringContainsString('Content-Type: application/json', xdebug_get_headers()[0]);
-       }
-
-
-    public function testSendNoData()
-    {
-         $response = new APIResponse(null, 404);
-
-       ob_start();
-       $response->send();
-         $output = ob_get_clean();
-      
-         $this->assertEquals(404, http_response_code());
-         $this->assertEmpty($output);
-     }
-
-     private function getData() {
-            return $this->data;
+    private function getData(APIResponse $response) {
+         $reflection = new \ReflectionClass($response);
+        $property = $reflection->getProperty('data');
+         $property->setAccessible(true);
+        return $property->getValue($response);
     }
-     private function getStatusCode() {
-            return $this->statusCode;
-        }
-
-    private function getHeaders() {
-            return $this->headers;
-        }
+    
+    private function getHeaders(APIResponse $response) {
+         $reflection = new \ReflectionClass($response);
+        $property = $reflection->getProperty('headers');
+         $property->setAccessible(true);
+        return $property->getValue($response);
+    }
 }

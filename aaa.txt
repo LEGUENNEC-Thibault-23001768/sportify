@@ -1,0 +1,370 @@
+PHPUnit Started (PHPUnit 10.5.39 using PHP 8.1.2-1ubuntu2.19 (cli) on Linux)
+Test Runner Configured
+Bootstrap Finished (/amuhome/m23006367/Bureau/sportify/Autoloader.php)
+Test Suite Loaded (42 tests)
+Event Facade Sealed
+Test Runner Started
+Test Suite Sorted
+Test Runner Execution Started (42 tests)
+Test Suite Started (/amuhome/m23006367/Bureau/sportify/phpunit.xml, 42 tests)
+Test Suite Started (tests, 42 tests)
+Test Suite Started (AutoloaderTest, 4 tests)
+Test Preparation Started (AutoloaderTest::testAutoloaderLoadsExistingClasses)
+Before Test Method Called (AutoloaderTest::setUp)
+Before Test Method Finished:
+- AutoloaderTest::setUp
+Test Prepared (AutoloaderTest::testAutoloaderLoadsExistingClasses)
+Assertion Succeeded (Constraint: is true, Value: true)
+Assertion Succeeded (Constraint: is true, Value: true)
+Assertion Succeeded (Constraint: is true, Value: true)
+Test Passed (AutoloaderTest::testAutoloaderLoadsExistingClasses)
+Test Finished (AutoloaderTest::testAutoloaderLoadsExistingClasses)
+Test Preparation Started (AutoloaderTest::testAutoloaderHandlesNonexistentClasses)
+Before Test Method Called (AutoloaderTest::setUp)
+Before Test Method Finished:
+- AutoloaderTest::setUp
+Test Prepared (AutoloaderTest::testAutoloaderHandlesNonexistentClasses)
+Assertion Succeeded (Constraint: is false, Value: false)
+Test Passed (AutoloaderTest::testAutoloaderHandlesNonexistentClasses)
+Test Finished (AutoloaderTest::testAutoloaderHandlesNonexistentClasses)
+Test Preparation Started (AutoloaderTest::testAutoloaderRespectsNamespaces)
+Before Test Method Called (AutoloaderTest::setUp)
+Before Test Method Finished:
+- AutoloaderTest::setUp
+Test Prepared (AutoloaderTest::testAutoloaderRespectsNamespaces)
+Assertion Succeeded (Constraint: is an instance of class Controllers\HomeController, Value: {enable export of objects to see this value})
+Test Passed (AutoloaderTest::testAutoloaderRespectsNamespaces)
+Test Finished (AutoloaderTest::testAutoloaderRespectsNamespaces)
+Test Preparation Started (AutoloaderTest::testAutoloaderRespectsNamespacesForModels)
+Before Test Method Called (AutoloaderTest::setUp)
+Before Test Method Finished:
+- AutoloaderTest::setUp
+Test Prepared (AutoloaderTest::testAutoloaderRespectsNamespacesForModels)
+Assertion Succeeded (Constraint: is an instance of class Models\User, Value: {enable export of objects to see this value})
+Test Passed (AutoloaderTest::testAutoloaderRespectsNamespacesForModels)
+Test Finished (AutoloaderTest::testAutoloaderRespectsNamespacesForModels)
+Test Suite Finished (AutoloaderTest, 4 tests)
+Test Suite Started (Tests\Core\APIControllerTest, 3 tests)
+Test Preparation Started (Tests\Core\APIControllerTest::testDefaultMethodsReturn405)
+Test Prepared (Tests\Core\APIControllerTest::testDefaultMethodsReturn405)
+Test Triggered PHP Deprecation (Tests\Core\APIControllerTest::testDefaultMethodsReturn405)
+json_decode(): Passing null to parameter #1 ($json) of type string is deprecated
+Test Triggered PHP Warning (Tests\Core\APIControllerTest::testDefaultMethodsReturn405)
+Trying to access array offset on value of type null
+Assertion Failed (Constraint: is equal to 405, Value: null)
+Test Failed (Tests\Core\APIControllerTest::testDefaultMethodsReturn405)
+Failed asserting that null matches expected 405.
+Test Printed Unexpected Output
+{"error":"GET method not allowed."}{"error":"POST method not allowed."}{"error":"PUT method not allowed."}{"error":"DELETE method not allowed."}
+Test Finished (Tests\Core\APIControllerTest::testDefaultMethodsReturn405)
+Test Preparation Started (Tests\Core\APIControllerTest::testHandleRequestCallsCorrectMethod)
+Test Prepared (Tests\Core\APIControllerTest::testHandleRequestCallsCorrectMethod)
+Assertion Succeeded (Constraint: is equal to 200, Value: 200)
+Assertion Succeeded (Constraint: contains "get method called" [ASCII](length: 17), Value: 'get method called')
+Test Passed (Tests\Core\APIControllerTest::testHandleRequestCallsCorrectMethod)
+Test Finished (Tests\Core\APIControllerTest::testHandleRequestCallsCorrectMethod)
+Test Preparation Started (Tests\Core\APIControllerTest::testHandleRequestReturns405ForInvalidMethod)
+Test Prepared (Tests\Core\APIControllerTest::testHandleRequestReturns405ForInvalidMethod)
+Test Triggered PHP Deprecation (Tests\Core\APIControllerTest::testHandleRequestReturns405ForInvalidMethod)
+json_decode(): Passing null to parameter #1 ($json) of type string is deprecated
+Test Triggered PHP Warning (Tests\Core\APIControllerTest::testHandleRequestReturns405ForInvalidMethod)
+Trying to access array offset on value of type null
+Assertion Failed (Constraint: is equal to 405, Value: null)
+Test Failed (Tests\Core\APIControllerTest::testHandleRequestReturns405ForInvalidMethod)
+Failed asserting that null matches expected 405.
+Test Printed Unexpected Output
+{"error":"Method not allowed."}
+Test Finished (Tests\Core\APIControllerTest::testHandleRequestReturns405ForInvalidMethod)
+Test Suite Finished (Tests\Core\APIControllerTest, 3 tests)
+Test Suite Started (Tests\Core\APIResponseTest, 5 tests)
+Test Preparation Started (Tests\Core\APIResponseTest::testSetStatusCode)
+Test Prepared (Tests\Core\APIResponseTest::testSetStatusCode)
+Assertion Succeeded (Constraint: is equal to 201, Value: 201)
+Test Passed (Tests\Core\APIResponseTest::testSetStatusCode)
+Test Finished (Tests\Core\APIResponseTest::testSetStatusCode)
+Test Preparation Started (Tests\Core\APIResponseTest::testSetData)
+Test Prepared (Tests\Core\APIResponseTest::testSetData)
+Assertion Succeeded (Constraint: is equal to Array &0 [
+    'message' => 'Test Data',
+], Value: Array &0 [
+    'message' => 'Test Data',
+])
+Test Passed (Tests\Core\APIResponseTest::testSetData)
+Test Finished (Tests\Core\APIResponseTest::testSetData)
+Test Preparation Started (Tests\Core\APIResponseTest::testAddHeader)
+Test Prepared (Tests\Core\APIResponseTest::testAddHeader)
+Assertion Succeeded (Constraint: has the key 'Content-Type', Value: Array &0 [
+    'Content-Type' => 'application/json',
+])
+Assertion Succeeded (Constraint: is equal to 'application/json', Value: 'application/json')
+Test Passed (Tests\Core\APIResponseTest::testAddHeader)
+Test Finished (Tests\Core\APIResponseTest::testAddHeader)
+Test Preparation Started (Tests\Core\APIResponseTest::testSendResponseWithData)
+Test Prepared (Tests\Core\APIResponseTest::testSendResponseWithData)
+Assertion Succeeded (Constraint: is equal to 201, Value: 201)
+Test Errored (Tests\Core\APIResponseTest::testSendResponseWithData)
+Call to undefined function Tests\Core\xdebug_get_headers()
+Test Finished (Tests\Core\APIResponseTest::testSendResponseWithData)
+Test Preparation Started (Tests\Core\APIResponseTest::testDefaultConstructorValues)
+Test Prepared (Tests\Core\APIResponseTest::testDefaultConstructorValues)
+Assertion Succeeded (Constraint: is null, Value: null)
+Assertion Succeeded (Constraint: is equal to 200, Value: 200)
+Assertion Succeeded (Constraint: is empty, Value: Array &0 [])
+Test Passed (Tests\Core\APIResponseTest::testDefaultConstructorValues)
+Test Finished (Tests\Core\APIResponseTest::testDefaultConstructorValues)
+Test Suite Finished (Tests\Core\APIResponseTest, 5 tests)
+Test Suite Started (Tests\Core\AuthTest, 13 tests)
+Test Preparation Started (Tests\Core\AuthTest::testIsLoggedInWhenLoggedIn)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsLoggedInWhenLoggedIn)
+Assertion Succeeded (Constraint: is true, Value: true)
+Test Passed (Tests\Core\AuthTest::testIsLoggedInWhenLoggedIn)
+Test Finished (Tests\Core\AuthTest::testIsLoggedInWhenLoggedIn)
+Test Preparation Started (Tests\Core\AuthTest::testIsLoggedInWhenNotLoggedIn)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsLoggedInWhenNotLoggedIn)
+Assertion Succeeded (Constraint: is false, Value: false)
+Test Passed (Tests\Core\AuthTest::testIsLoggedInWhenNotLoggedIn)
+Test Finished (Tests\Core\AuthTest::testIsLoggedInWhenNotLoggedIn)
+Test Preparation Started (Tests\Core\AuthTest::testRequireLoginRedirectsWhenNotLoggedIn)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testRequireLoginRedirectsWhenNotLoggedIn)
+Assertion Succeeded (Constraint: is false, Value: false)
+Assertion Failed (Constraint: matches PCRE pattern "/Location: \/login/", Value: '')
+Test Failed (Tests\Core\AuthTest::testRequireLoginRedirectsWhenNotLoggedIn)
+Failed asserting that '' matches PCRE pattern "/Location: \/login/".
+Test Finished (Tests\Core\AuthTest::testRequireLoginRedirectsWhenNotLoggedIn)
+Test Preparation Started (Tests\Core\AuthTest::testRequireLoginAllowsAccessWhenLoggedIn)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testRequireLoginAllowsAccessWhenLoggedIn)
+Assertion Succeeded (Constraint: is true, Value: true)
+Test Passed (Tests\Core\AuthTest::testRequireLoginAllowsAccessWhenLoggedIn)
+Test Finished (Tests\Core\AuthTest::testRequireLoginAllowsAccessWhenLoggedIn)
+Test Preparation Started (Tests\Core\AuthTest::testIsAdminRedirectsWhenNotLoggedIn)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsAdminRedirectsWhenNotLoggedIn)
+Assertion Succeeded (Constraint: is false, Value: false)
+Assertion Failed (Constraint: matches PCRE pattern "/Location: \/login/", Value: '')
+Test Failed (Tests\Core\AuthTest::testIsAdminRedirectsWhenNotLoggedIn)
+Failed asserting that '' matches PCRE pattern "/Location: \/login/".
+Test Finished (Tests\Core\AuthTest::testIsAdminRedirectsWhenNotLoggedIn)
+Test Preparation Started (Tests\Core\AuthTest::testIsAdminRedirectsWhenNotAdmin)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsAdminRedirectsWhenNotAdmin)
+Mock Object Created (Models\User)
+Test Errored (Tests\Core\AuthTest::testIsAdminRedirectsWhenNotAdmin)
+Property Models\User::$instance does not exist
+Test Finished (Tests\Core\AuthTest::testIsAdminRedirectsWhenNotAdmin)
+Test Preparation Started (Tests\Core\AuthTest::testIsAdminAllowsAccessWhenAdmin)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsAdminAllowsAccessWhenAdmin)
+Mock Object Created (Models\User)
+Test Errored (Tests\Core\AuthTest::testIsAdminAllowsAccessWhenAdmin)
+Property Models\User::$instance does not exist
+Test Finished (Tests\Core\AuthTest::testIsAdminAllowsAccessWhenAdmin)
+Test Preparation Started (Tests\Core\AuthTest::testIsSubscribedRedirectsWhenNotLoggedIn)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsSubscribedRedirectsWhenNotLoggedIn)
+Assertion Succeeded (Constraint: is false, Value: false)
+Assertion Failed (Constraint: matches PCRE pattern "/Location: \/login/", Value: '')
+Test Failed (Tests\Core\AuthTest::testIsSubscribedRedirectsWhenNotLoggedIn)
+Failed asserting that '' matches PCRE pattern "/Location: \/login/".
+Test Finished (Tests\Core\AuthTest::testIsSubscribedRedirectsWhenNotLoggedIn)
+Test Preparation Started (Tests\Core\AuthTest::testIsSubscribedRedirectsWhenNotSubscribed)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsSubscribedRedirectsWhenNotSubscribed)
+Mock Object Created (Models\Subscription)
+Test Errored (Tests\Core\AuthTest::testIsSubscribedRedirectsWhenNotSubscribed)
+Property Models\Subscription::$instance does not exist
+Test Finished (Tests\Core\AuthTest::testIsSubscribedRedirectsWhenNotSubscribed)
+Test Preparation Started (Tests\Core\AuthTest::testIsSubscribedAllowsAccessWhenSubscribed)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsSubscribedAllowsAccessWhenSubscribed)
+Mock Object Created (Models\Subscription)
+Test Errored (Tests\Core\AuthTest::testIsSubscribedAllowsAccessWhenSubscribed)
+Property Models\Subscription::$instance does not exist
+Test Finished (Tests\Core\AuthTest::testIsSubscribedAllowsAccessWhenSubscribed)
+Test Preparation Started (Tests\Core\AuthTest::testIsCoachRedirectsWhenNotLoggedIn)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsCoachRedirectsWhenNotLoggedIn)
+Assertion Succeeded (Constraint: is false, Value: false)
+Assertion Failed (Constraint: matches PCRE pattern "/Location: \/login/", Value: '')
+Test Failed (Tests\Core\AuthTest::testIsCoachRedirectsWhenNotLoggedIn)
+Failed asserting that '' matches PCRE pattern "/Location: \/login/".
+Test Finished (Tests\Core\AuthTest::testIsCoachRedirectsWhenNotLoggedIn)
+Test Preparation Started (Tests\Core\AuthTest::testIsCoachRedirectsWhenNotCoach)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsCoachRedirectsWhenNotCoach)
+Mock Object Created (Models\User)
+Test Errored (Tests\Core\AuthTest::testIsCoachRedirectsWhenNotCoach)
+Property Models\User::$instance does not exist
+Test Finished (Tests\Core\AuthTest::testIsCoachRedirectsWhenNotCoach)
+Test Preparation Started (Tests\Core\AuthTest::testIsCoachAllowsAccessWhenCoach)
+Before Test Method Called (Tests\Core\AuthTest::setUp)
+Before Test Method Finished:
+- Tests\Core\AuthTest::setUp
+Test Prepared (Tests\Core\AuthTest::testIsCoachAllowsAccessWhenCoach)
+Mock Object Created (Models\User)
+Test Errored (Tests\Core\AuthTest::testIsCoachAllowsAccessWhenCoach)
+Property Models\User::$instance does not exist
+Test Finished (Tests\Core\AuthTest::testIsCoachAllowsAccessWhenCoach)
+Test Suite Finished (Tests\Core\AuthTest, 13 tests)
+Test Suite Started (Tests\Core\ConfigTest, 4 tests)
+Test Preparation Started (Tests\Core\ConfigTest::testLoadConfig)
+Before Test Method Called (Tests\Core\ConfigTest::setUp)
+Before Test Method Finished:
+- Tests\Core\ConfigTest::setUp
+Test Prepared (Tests\Core\ConfigTest::testLoadConfig)
+Assertion Succeeded (Constraint: is equal to 'test_value', Value: 'test_value')
+Test Passed (Tests\Core\ConfigTest::testLoadConfig)
+After Test Method Called (Tests\Core\ConfigTest::tearDown)
+After Test Method Finished:
+- Tests\Core\ConfigTest::tearDown
+Test Finished (Tests\Core\ConfigTest::testLoadConfig)
+Test Preparation Started (Tests\Core\ConfigTest::testGetExistingConfig)
+Before Test Method Called (Tests\Core\ConfigTest::setUp)
+Before Test Method Finished:
+- Tests\Core\ConfigTest::setUp
+Test Prepared (Tests\Core\ConfigTest::testGetExistingConfig)
+Assertion Succeeded (Constraint: is equal to 'value1', Value: 'value1')
+Test Passed (Tests\Core\ConfigTest::testGetExistingConfig)
+After Test Method Called (Tests\Core\ConfigTest::tearDown)
+After Test Method Finished:
+- Tests\Core\ConfigTest::tearDown
+Test Finished (Tests\Core\ConfigTest::testGetExistingConfig)
+Test Preparation Started (Tests\Core\ConfigTest::testGetNonExistingConfigWithDefault)
+Before Test Method Called (Tests\Core\ConfigTest::setUp)
+Before Test Method Finished:
+- Tests\Core\ConfigTest::setUp
+Test Prepared (Tests\Core\ConfigTest::testGetNonExistingConfigWithDefault)
+Assertion Succeeded (Constraint: is equal to 'default', Value: 'default')
+Test Passed (Tests\Core\ConfigTest::testGetNonExistingConfigWithDefault)
+After Test Method Called (Tests\Core\ConfigTest::tearDown)
+After Test Method Finished:
+- Tests\Core\ConfigTest::tearDown
+Test Finished (Tests\Core\ConfigTest::testGetNonExistingConfigWithDefault)
+Test Preparation Started (Tests\Core\ConfigTest::testGetNonExistingConfigWithoutDefault)
+Before Test Method Called (Tests\Core\ConfigTest::setUp)
+Before Test Method Finished:
+- Tests\Core\ConfigTest::setUp
+Test Prepared (Tests\Core\ConfigTest::testGetNonExistingConfigWithoutDefault)
+Assertion Succeeded (Constraint: is null, Value: null)
+Test Passed (Tests\Core\ConfigTest::testGetNonExistingConfigWithoutDefault)
+After Test Method Called (Tests\Core\ConfigTest::tearDown)
+After Test Method Finished:
+- Tests\Core\ConfigTest::tearDown
+Test Finished (Tests\Core\ConfigTest::testGetNonExistingConfigWithoutDefault)
+Test Suite Finished (Tests\Core\ConfigTest, 4 tests)
+Test Suite Started (Tests\Core\DatabaseTest, 3 tests)
+Test Preparation Started (Tests\Core\DatabaseTest::testGetConnection)
+Before Test Method Called (Tests\Core\DatabaseTest::setUp)
+Before Test Method Finished:
+- Tests\Core\DatabaseTest::setUp
+Test Prepared (Tests\Core\DatabaseTest::testGetConnection)
+Test Errored (Tests\Core\DatabaseTest::testGetConnection)
+SQLSTATE[HY000] [2002] No such file or directory
+After Test Method Called (Tests\Core\DatabaseTest::tearDown)
+After Test Method Finished:
+- Tests\Core\DatabaseTest::tearDown
+Test Finished (Tests\Core\DatabaseTest::testGetConnection)
+Test Preparation Started (Tests\Core\DatabaseTest::testConnectionIsWorking)
+Before Test Method Called (Tests\Core\DatabaseTest::setUp)
+Before Test Method Finished:
+- Tests\Core\DatabaseTest::setUp
+Test Prepared (Tests\Core\DatabaseTest::testConnectionIsWorking)
+Test Failed (Tests\Core\DatabaseTest::testConnectionIsWorking)
+Database query failed: SQLSTATE[HY000] [2002] No such file or directory
+After Test Method Called (Tests\Core\DatabaseTest::tearDown)
+After Test Method Finished:
+- Tests\Core\DatabaseTest::tearDown
+Test Finished (Tests\Core\DatabaseTest::testConnectionIsWorking)
+Test Preparation Started (Tests\Core\DatabaseTest::testQueryThrowsExceptionOnInvalidSQL)
+Before Test Method Called (Tests\Core\DatabaseTest::setUp)
+Before Test Method Finished:
+- Tests\Core\DatabaseTest::setUp
+Test Prepared (Tests\Core\DatabaseTest::testQueryThrowsExceptionOnInvalidSQL)
+Assertion Succeeded (Constraint: exception of type "PDOException", Value: {enable export of objects to see this value})
+Test Passed (Tests\Core\DatabaseTest::testQueryThrowsExceptionOnInvalidSQL)
+After Test Method Called (Tests\Core\DatabaseTest::tearDown)
+After Test Method Finished:
+- Tests\Core\DatabaseTest::tearDown
+Test Finished (Tests\Core\DatabaseTest::testQueryThrowsExceptionOnInvalidSQL)
+Test Suite Finished (Tests\Core\DatabaseTest, 3 tests)
+Test Suite Started (Tests\Core\RouterTest, 8 tests)
+Test Preparation Started (Tests\Core\RouterTest::testAddRoute)
+PHPUnit Started (PHPUnit 10.5.39 using PHP 8.1.2-1ubuntu2.19 (cli) on Linux)
+Test Runner Configured
+Bootstrap Finished (/amuhome/m23006367/Bureau/sportify/Autoloader.php)
+Test Suite Loaded (42 tests)
+Event Facade Sealed
+Test Runner Started
+Test Suite Sorted
+Test Runner Execution Started (42 tests)
+Test Suite Started (/amuhome/m23006367/Bureau/sportify/phpunit.xml, 42 tests)
+Test Suite Started (tests, 42 tests)
+Test Suite Started (AutoloaderTest, 4 tests)
+Test Preparation Started (AutoloaderTest::testAutoloaderLoadsExistingClasses)
+Before Test Method Called (AutoloaderTest::setUp)
+Before Test Method Finished:
+- AutoloaderTest::setUp
+Test Prepared (AutoloaderTest::testAutoloaderLoadsExistingClasses)
+Assertion Succeeded (Constraint: is true, Value: true)
+Assertion Succeeded (Constraint: is true, Value: true)
+Assertion Succeeded (Constraint: is true, Value: true)
+Test Passed (AutoloaderTest::testAutoloaderLoadsExistingClasses)
+Test Finished (AutoloaderTest::testAutoloaderLoadsExistingClasses)
+Test Preparation Started (AutoloaderTest::testAutoloaderHandlesNonexistentClasses)
+Before Test Method Called (AutoloaderTest::setUp)
+Before Test Method Finished:
+- AutoloaderTest::setUp
+Test Prepared (AutoloaderTest::testAutoloaderHandlesNonexistentClasses)
+Assertion Succeeded (Constraint: is false, Value: false)
+Test Passed (AutoloaderTest::testAutoloaderHandlesNonexistentClasses)
+Test Finished (AutoloaderTest::testAutoloaderHandlesNonexistentClasses)
+Test Preparation Started (AutoloaderTest::testAutoloaderRespectsNamespaces)
+Before Test Method Called (AutoloaderTest::setUp)
+Before Test Method Finished:
+- AutoloaderTest::setUp
+Test Prepared (AutoloaderTest::testAutoloaderRespectsNamespaces)
+Assertion Succeeded (Constraint: is an instance of class Controllers\HomeController, Value: {enable export of objects to see this value})
+Test Passed (AutoloaderTest::testAutoloaderRespectsNamespaces)
+Test Finished (AutoloaderTest::testAutoloaderRespectsNamespaces)
+Test Preparation Started (AutoloaderTest::testAutoloaderRespectsNamespacesForModels)
+Before Test Method Called (AutoloaderTest::setUp)
+Before Test Method Finished:
+- AutoloaderTest::setUp
+Test Prepared (AutoloaderTest::testAutoloaderRespectsNamespacesForModels)
+Assertion Succeeded (Constraint: is an instance of class Models\User, Value: {enable export of objects to see this value})
+Test Passed (AutoloaderTest::testAutoloaderRespectsNamespacesForModels)
+Test Finished (AutoloaderTest::testAutoloaderRespectsNamespacesForModels)
+Test Suite Finished (AutoloaderTest, 4 tests)
+Test Suite Started (Tests\Core\APIControllerTest, 3 tests)
+Test Preparation Started (Tests\Core\APIControllerTest::testDefaultMethodsReturn405)
+Test Prepared (Tests\Core\APIControllerTest::testDefaultMethodsReturn405)
+Test Triggered PHP Warning (Tests\Core\APIControllerTest::testDefaultMethodsReturn405)
+Undefined array key "statusCode"
+Assertion Failed (Constraint: is equal to 405, Value: null)

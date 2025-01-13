@@ -1,12 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap');
  
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+footer {
+  animation: fadeInUp 1.5s ease-in-out;
+  animation-fill-mode: both; /* Reste visible après l'animation */
+}
 
 ::-webkit-scrollbar {
   width: 12px; 
 }
 
 ::-webkit-scrollbar-track {
-  background: #333; 
+  background: #000000; 
 }
 
 ::-webkit-scrollbar-thumb {
@@ -15,7 +30,7 @@
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #C1FF72 #333;
+  scrollbar-color: #C1FF72 #000000;
 }
 
 
@@ -32,6 +47,7 @@ html, body {
   color: white;
   background-color: #000000;
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
  
 header {
@@ -42,11 +58,10 @@ header {
   width: 90%;
   max-width: 1200px;
   padding: 15px 30px;
-  background-color: rgba(128, 128, 128, 0.5);
+  background-color: rgba(20, 20, 20, 0.718); /* Plus noir et légèrement transparent */
   backdrop-filter: blur(10px);
-  border-radius: 40px;
+  border-radius: 16px; /* Border radius ajusté à 6px */
   z-index: 1001;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: top 0.3s ease-in-out;
 }
 
@@ -419,11 +434,16 @@ nav a {
   font-size: 18px;
   margin-bottom: 40px;
 }
+
 .categories-container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  justify-items: center;
+  grid-template-columns: repeat(3, 1fr); /* 3 colonnes */
+  gap: 50px; /* Espacement entre les cartes */
+  justify-content: center; /* Centre les colonnes horizontalement */
+  align-items: center; /* Centre verticalement */
+  max-width: 800px; /* Largeur fixe pour limiter l'étalement */
+  margin: 0 auto; /* Centre le conteneur dans la page */
+  padding: 20px; /* Espacement intérieur */
 }
 
 .category-card {
@@ -453,114 +473,66 @@ nav a {
   height: 40px;
   vertical-align: middle;
 }
+/* Tennis */
+.category-card.tennis {
+  background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(38, 38, 38, 0.8));
+}
 
+.emoji-wrapper.tennis {
+  background-color: rgba(135, 206, 250, 0.9); /* Bleu clair */
+  box-shadow: 0 0 15px rgba(135, 206, 250, 0.5);
+}
+
+/* Football */
+.category-card.football {
+  background: linear-gradient(145deg, rgba(47, 47, 47, 0.9), rgba(9, 9, 9, 0.8));
+}
+
+.emoji-wrapper.football {
+  background-color: rgba(103, 255, 103, 0.9); /* Vert clair */
+  box-shadow: 0 0 15px rgba(103, 255, 103, 0.5);
+}
+
+/* RPM */
+.category-card.rpm {
+  background: linear-gradient(145deg, rgba(19, 19, 19, 0.9), rgba(40, 40, 40, 0.8));
+}
+
+.emoji-wrapper.rpm {
+  background-color: rgba(255, 181, 42, 0.9); /* Orange clair */
+  box-shadow: 0 0 15px rgba(255, 165, 0, 0.5);
+}
+
+/* Muscu */
+.category-card.musc {
+  background: linear-gradient(145deg, rgba(10, 10, 10, 0.9), rgba(30, 30, 30, 0.8)); /* Noir légèrement adouci */
+}
+
+.emoji-wrapper.musc {
+  background-color: rgba(174, 198, 207, 0.9); /* Bleu pastel pâle */
+  box-shadow: 0 0 15px rgba(174, 198, 207, 0.5); /* Ombre douce bleu pastel */
+}
+
+/* Basketball */
+.category-card.basketball {
+  background: linear-gradient(145deg, rgba(58, 58, 58, 0.9), rgba(0, 0, 0, 0.8));
+}
+
+.emoji-wrapper.basketball {
+  background-color: rgba(255, 127, 127, 0.9); /* Rouge clair */
+  box-shadow: 0 0 15px rgba(255, 127, 127, 0.5);
+}
+
+/* Boxe */
 .category-card.boxing {
   background: linear-gradient(145deg, rgba(47, 47, 47, 0.9), rgba(9, 9, 9, 0.8));
 }
 
-.category-card.yoga {
-  background: linear-gradient(145deg, rgba(5, 5, 5, 0.9), rgba(40, 40, 40, 0.8));
-}
-
-.category-card.cardio {
-  background: linear-gradient(145deg, rgba(35, 35, 35, 0.9), rgba(0, 0, 0, 0.8));
-}
-
-.category-card.strength-training {
-  background: linear-gradient(145deg, rgba(19, 19, 19, 0.9), rgba(40, 40, 40, 0.8));
-}
-
-.category-card.pilates {
-  background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(38, 38, 38, 0.8));
-}
-
-.category-card.crossfit {
-  background: linear-gradient(145deg, rgba(58, 58, 58, 0.9), rgba(0, 0, 0, 0.8));
-}
-
-.category-card.zumba {
-  background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(40, 40, 40, 0.8));
-}
-
-.category-card.cycling {
-  background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(40, 40, 40, 0.8));
-}
-
-.category-card.running {
-  background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(47, 47, 47, 0.8));
-}
-
-.category-card.stretching {
-  background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(40, 40, 40, 0.8));
-}
-
-.category-card.martial-arts {
-  background: linear-gradient(145deg, rgba(2, 2, 2, 0.9), rgba(40, 40, 40, 0.8));
-}
-
-.category-card.swimming {
-  background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(40, 40, 40, 0.8));
-}
-
 .emoji-wrapper.boxing {
-  background-color: rgba(103, 255, 103, 0.9);
-  box-shadow: 0 0 15px rgba(103, 255, 103, 0.5);
-}
-
-.emoji-wrapper.yoga {
-  background-color: rgba(255, 239, 168, 0.9);
-  box-shadow: 0 0 15px rgba(255, 239, 168, 0.5);
-}
-
-.emoji-wrapper.cardio {
-  background-color: rgba(173, 216, 230, 0.9);
-  box-shadow: 0 0 15px rgba(173, 216, 230, 0.5);
-}
-
-.emoji-wrapper.strength-training {
-  background-color: rgba(255, 165, 0, 0.9);
-  box-shadow: 0 0 15px rgba(255, 165, 0, 0.5);
-}
-
-.emoji-wrapper.pilates {
-  background-color: rgba(255, 192, 203, 0.9);
-  box-shadow: 0 0 15px rgba(255, 192, 203, 0.5);
-}
-
-.emoji-wrapper.crossfit {
-  background-color: rgba(255, 69, 58, 0.9);
-  box-shadow: 0 0 15px rgba(255, 69, 58, 0.5);
-}
-
-.emoji-wrapper.cycling {
-  background-color: rgba(135, 206, 250, 0.9);
-  box-shadow: 0 0 15px rgba(135, 206, 250, 0.5);
-}
-
-.emoji-wrapper.zumba {
-  background-color: rgba(255, 127, 127, 0.9);
-  box-shadow: 0 0 15px rgba(255, 127, 127, 0.5);
-}
-
-.emoji-wrapper.running {
-  background-color: rgba(192, 192, 192, 0.9);
-  box-shadow: 0 0 15px rgba(192, 192, 192, 0.5);
-}
-
-.emoji-wrapper.stretching {
-  background-color: rgba(173, 216, 230, 0.9);
-  box-shadow: 0 0 15px rgba(173, 216, 230, 0.5);
-}
-
-.emoji-wrapper.martial-arts {
-  background-color: rgba(216, 191, 216, 0.9);
+  background-color: rgba(216, 191, 216, 0.9); /* Violet pastel */
   box-shadow: 0 0 15px rgba(216, 191, 216, 0.5);
 }
 
-.emoji-wrapper.swimming {
-  background-color: rgba(255, 255, 224, 0.9);
-  box-shadow: 0 0 15px rgba(255, 255, 224, 0.5);
-}
 
 .category-info h2 {
   font-size: 20px;
@@ -725,8 +697,6 @@ nav a {
 .testimonial-card:nth-child(9) {
   margin-top: -30px;
 }
-
-
 .pricing-section {
   text-align: center;
   padding: 60px 20px;
@@ -740,66 +710,8 @@ nav a {
   font-weight: bold;
   background: linear-gradient(to right, #ffffff, #000000);
   -webkit-background-clip: text;
-  -moz-background-clip: text;
-  -ms-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.pricing-section p {
-  font-size: 18px;
-  color: #aaa;
-  margin-bottom: 40px;
-}
-
-.pricing-section {
-  text-align: center;
-  padding: 60px 20px;
-  background-color: #000;
-  color: white;
-}
-
-.pricing-section h1 {
-  font-size: 60px;
-  margin-bottom: 20px;
-  font-weight: bold;
-  background: linear-gradient(to right, #ffffff, #000000);
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  -ms-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.pricing-section p {
-  font-size: 18px;
-  color: #aaa;
-  margin-bottom: 40px;
-}
-
-.pricing-section {
-  text-align: center;
-  padding: 60px 20px;
-  background-color: #000;
-  color: white;
-}
-
-.pricing-section h1 {
-  font-size: 60px;
-  margin-bottom: 20px;
-  font-weight: bold;
-  background: linear-gradient(to right, #ffffff, #000000);
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  -ms-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-align: center;
-  margin-bottom: 20px;
 }
 
 .pricing-section p {
@@ -822,16 +734,14 @@ nav a {
   width: 450px;
   text-align: left;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 
 .pricing-card h2 {
   font-size: 28px;
-  margin-bottom: 10px;
   color: white;
+  margin-bottom: 10px;
 }
 
 .pricing-card p {
@@ -852,18 +762,6 @@ nav a {
   margin-right: 5px;
 }
 
-.pricing-card .price span:last-child {
-  font-size: 16px;
-  color: #aaa;
-  line-height: 1.2;
-}
-
-.pricing-card .price span.special-price {
-  font-size: 48px;
-  color: white;
-  margin-right: 5px;
-}
-
 .pricing-card ul {
   list-style: none;
   padding: 0;
@@ -874,10 +772,22 @@ nav a {
   font-size: 16px;
   margin-bottom: 10px;
   color: #aaa;
-  position: relative;
-  padding-left: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
+.check-icon {
+  color: #4caf50; /* Vert clair pour les coches */
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.cross-icon {
+  color: #f44336; /* Rouge clair pour les croix */
+  font-weight: bold;
+  font-size: 18px;
+}
 
 .pricing-card button {
   background-color: #333;
@@ -889,25 +799,18 @@ nav a {
   font-size: 18px;
   width: 100%;
   transition: background-color 0.3s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 50px;
+  font-weight: bold;
 }
 
 .pricing-card button:hover {
   background-color: #a1db60;
 }
 
-.pricing-card.active button {
-  background-color: #c2ff72;
-  color: #111;
-}
-
 .pricing-card.active {
   border: 2px solid #c2ff72;
   box-shadow: 0 0 15px rgba(103, 255, 103, 0.5);
 }
+
 
 @media (max-width: 768px) {
   .pricing-plans {
@@ -1150,17 +1053,26 @@ nav a {
 
   .categories-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    justify-items: center;
+    grid-template-columns: repeat(3, 1fr); /* 3 colonnes */
+    gap: 20px; /* Espacement entre les cartes */
+    justify-content: center; /* Centre les colonnes horizontalement */
+    align-items: center; /* Centre verticalement */
+    max-width: 800px; /* Largeur fixe pour limiter l'étalement */
+    margin: 0 auto; /* Centre le conteneur dans la page */
+    padding: 20px; /* Espacement intérieur */
   }
-
+  
   .category-card {
-    width: 100%;
-    max-width: 220px;
-    height: 150px;
-    padding: 15px;
+    width: 100%; /* Ajuste pour s’adapter à la grille */
+    max-width: 200px; /* Taille maximale pour chaque carte */
+    text-align: center;
+    padding: 10px;
+    background: linear-gradient(145deg, #1a1a1a, #000);
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   }
+  
+  
 
   .category-card .emoji-wrapper {
     width: 50px;

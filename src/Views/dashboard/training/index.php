@@ -7,7 +7,7 @@
              <div class="modal" id="createPlanPopup" style="display:none;">
                  <div class="modal-content">
                      <div class="modal-header">
-                         <h5 class="modal-title">Create Training Plan</h5>
+                         <h5 class="modal-title">Créer votre entraînement</h5>
                          <button type="button" class="modal-close" onclick="closeCreatePlanPopup()" aria-label="Close">
                              <span aria-hidden="true">×</span>
                          </button>
@@ -17,64 +17,64 @@
                            <input type="hidden" name="step" id="step" value="1">
 
                            <div class="form-group" id="question1">
-                               <label for="gender">What's your gender?</label>
+                               <label for="gender">Quel est votre sexe?</label>
                                <select name="gender" id="gender" class="form-control">
-                                   <option value="man">Man</option>
-                                   <option value="woman">Woman</option>
-                                   <option value="other">Other</option>
+                                   <option value="Homme">Homme</option>
+                                   <option value="Femme">Femme</option>
+                                   <option value="Pas spécifié">Autre</option>
                                </select>
                            </div>
 
                            <div class="form-group" id="question2" style="display:none;">
-                               <label for="level">What's your level of physical activity?</label>
+                               <label for="level">Quel est votre niveau d'activité physique?</label>
                                <select name="level" id="level" class="form-control">
-                                   <option value="beginner">Beginner</option>
-                                   <option value="intermediate">Intermediate</option>
-                                   <option value="advanced">Advanced</option>
+                                   <option value="Debutant">Débutant</option>
+                                   <option value="intermediaire">Intermediaire</option>
+                                   <option value="avancee">Avancée</option>
                                </select>
                            </div>
 
                            <div class="form-group" id="question3" style="display:none;">
-                               <label for="goals">What are your training goals?</label>
+                               <label for="goals">Quel est votre objectif d'entraînement?</label>
                                <select name="goals" id="goals" class="form-control">
-                                   <option value="lose_weight">Lose Weight</option>
-                                   <option value="build_muscle">Build Muscle</option>
-                                   <option value="improve_fitness">Improve Fitness</option>
-                                   <option value="marathon">Run a Marathon</option>
+                                   <option value="lose_weight">Perdre du poids</option>
+                                   <option value="build_muscle">Prendre du muscle</option>
+                                   <option value="improve_fitness">Corps entier</option>
+                                   <option value="marathon">Courir un marathon</option>
                                </select>
                            </div>
 
                            <div class="form-group" id="question4" style="display:none;">
-                               <label for="weight">What's your weight? (in kg)</label>
+                               <label for="weight">Votre poids (en kg)</label>
                                <input type="number" name="weight" id="weight" class="form-control" min="30" max="200">
                            </div>
 
                            <div class="form-group" id="question5" style="display:none;">
-                               <label for="height">What's your height? (in cm)</label>
+                               <label for="height">Votre taille (en cm)</label>
                                <input type="number" name="height" id="height" class="form-control" min="140" max="210">
                            </div>
 
                            <div class="form-group" id="question6" style="display:none;">
-                               <label for="constraints">Do you have any medical or physical constraints?</label>
+                               <label for="constraints">Avez-vous des contraintes médicaux ?</label>
                                <textarea name="constraints" id="constraints" class="form-control"></textarea>
                            </div>
 
                            <div class="form-group" id="question7" style="display:none;">
-                               <label for="preferences">What are your training preferences?</label>
+                               <label for="preferences">Quels sont vos préferences d'entraînement?</label>
                                <select name="preferences" id="preferences" class="form-control">
-                                   <option value="no_preference">No Preference</option>
-                                   <option value="home">Home</option>
-                                   <option value="gym">Gym</option>
-                                   <option value="outdoor">Outdoor</option>
+                                   <option value="no_preference">Pas de préference</option>
+                                   <option value="domicile">À domicile</option>
+                                   <option value="Salle de sport">Salle de sport</option>
+                                   <option value="Exterieur">Extérieur</option>
                                </select>
                            </div>
 
                            <div class="form-group" id="question8" style="display:none;">
-                               <label for="equipment">What equipment do you have access to?</label>
+                               <label for="equipment">Quels équipement pouvez-vous utiliser ?</label>
                                <select name="equipment" id="equipment" class="form-control">
-                                   <option value="none">None</option>
-                                   <option value="dumbbells">Dumbbells</option>
-                                   <option value="treadmill">Treadmill</option>
+                                   <option value="aucun">Aucun</option>
+                                   <option value="halteres">Haltères</option>
+                                   <option value="tapis_course">Tapis de course</option>
                                    <option value="resistance_bands">Resistance Bands</option>
                                </select>
                            </div>
@@ -115,10 +115,10 @@
                             <label for="goals">Objectifs :</label>
                             <select name="goals" id="goals">
                                 <option value="">(Non modifié)</option>
-                                <option value="Lose Weight">Perdre du poids</option>
-                                <option value="Build Muscle">Construire du muscle</option>
-                                <option value="Improve Fitness">Améliorer la condition physique</option>
-                                <option value="Run a Marathon">Courir un marathon</option>
+                                <option value="Perdre du poids">Perdre du poids</option>
+                                <option value="Prendre du muscle">Construire du muscle</option>
+                                <option value="Amélioration physique">Améliorer la condition physique</option>
+                                <option value="Courrir un marathon">Courir un marathon</option>
                             </select>
 
                             <label for="weight">Poids :</label>
@@ -142,8 +142,8 @@
                             <select name="equipment" id="equipment">
                                 <option value="">(Non modifié)</option>
                                 <option value="none">Aucun</option>
-                                <option value="dumbbells">Haltères</option>
-                                <option value="treadmill">Tapis de course</option>
+                                <option value="halteres">Haltères</option>
+                                <option value="tapis_course">Tapis de course</option>
                                 <option value="resistance_bands">Bandes de résistance</option>
                             </select>
 

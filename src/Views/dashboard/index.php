@@ -31,15 +31,14 @@
                     </div>
                 </div>
             </div>
-           <div class="progression-section">
-                <div class="task-completion-card">
-                    <div class="progression-title">Progression</div>
-                    <div class="circle-container">
-                        <canvas id="taskCompletionChart"></canvas>
-                        <div id="chart-center-text">71%</div>
-                    </div>
+            <div class="progression-section">
+            <div class="task-completion-card">
+                <div class="progression-title">Progression</div>
+                <div class="circle-container">
+                    <canvas id="taskCompletionChart"></canvas>
                 </div>
             </div>
+        </div>
         </div>
         <div mbsc-page class="demo-mobile-day-view">
             <div style="">  <div id="demo-mobile-day-view"></div>

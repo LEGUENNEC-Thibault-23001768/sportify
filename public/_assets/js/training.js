@@ -54,7 +54,7 @@
     function displayTrainingPlan(plan) {
         currentPlanData = JSON.parse(plan);
         if (currentPlanData) {
-            let html = '<h1>Your Training Plan</h1><div class="training-plan">';
+            let html = '<h1>Votre entraînement personnalisé</h1><div class="training-plan">';
             currentPlanData.days.forEach(day => {
                 html += `<div class="day-card" data-day="${day.day}"><h3>${day.day}</h3><div class="exercises">`;
                 day.exercises.forEach(exercise => {
@@ -65,7 +65,7 @@
                 });
                 html += `</div></div>`;
             });
-            html += '</div><button id="editPlanButton" class="btn btn-secondary">Edit Plan</button><div id="active-training" style="display:none;"><h3 id="active-day"></h3><div id="current-exercise"></div><button id="end-set" class="hidden">End Set</button><div id="rest-timer" style="display: none;"> Resting: <span id="timer-countdown"></span> <button id="skip-timer">Skip</button> </div><button id="next-exercise" class="hidden">Next Exercise</button> <button id="finish-day" class="hidden">Finish Day</button><button id="go-back-exercises" class="hidden">Go Back</button></div>';
+            html += '</div><button id="editPlanButton" class="btn btn-secondary">Modifier le plan</button><div id="active-training" style="display:none;"><h3 id="active-day"></h3><div id="current-exercise"></div><button id="end-set" class="hidden">End Set</button><div id="rest-timer" style="display: none;"> Resting: <span id="timer-countdown"></span> <button id="skip-timer">Skip</button> </div><button id="next-exercise" class="hidden">Next Exercise</button> <button id="finish-day" class="hidden">Finish Day</button><button id="go-back-exercises" class="hidden">Go Back</button></div>';
             trainingContent.html(html);
 
             setupDayCardInteractions();
@@ -362,14 +362,14 @@
 
     let currentStepModal = 0;
     const steps = [
-        { title: "Select your Gender", type: "options", options: ["Man", "Woman", "Other"], key: "gender" },
-        { title: "Select your Level", type: "options", options: ["Beginner", "Intermediate", "Advanced"], key: "level" },
-        { title: "Select your Goals", type: "options", options: ["Lose Weight", "Build Muscle", "Improve Fitness", "Run a Marathon"], key: "goals" },
-        { title: "Enter your Weight (kg)", type: "input", inputType: "number", key: "weight", placeholder: "Ex: 70" },
-        { title: "Enter your Height (cm)", type: "input", inputType: "number", key: "height", placeholder: "Ex: 175" },
-        { title: "Do you have any constraints?", type: "input", inputType: "text", key: "constraints", placeholder: "Ex: Back pain" },
-        { title: "Preferred training styles", type: "options", options: ["Home", "Gym", "Outdoor"], key: "preferences" },
-        { title: "Available equipment", type: "options", options: ["None", "Dumbbells", "Treadmill", "Resistance Bands"], key: "equipment" },
+        { title: "Sélectionnez votre sexe", type: "options", options: ["Homme", "Femme", "Autre"], key: "gender" },
+        { title: "Sélectionnez votre niveau", type: "options", options: ["Débutant", "Intermédiaire", "Avancé"], key: "level" },
+        { title: "Sélectionnez votre objectif", type: "options", options: ["Perdre du poids", "Prendre du muscle", "Amélioration physique", "Courrir un marathon"], key: "goals" },
+        { title: "Entrez votre poids (kg)", type: "input", inputType: "number", key: "weight", placeholder: "Ex: 70" },
+        { title: "Entrez votre taille (cm)", type: "input", inputType: "number", key: "height", placeholder: "Ex: 175" },
+        { title: "Avez-vous des contraintes médicaux ?", type: "input", inputType: "text", key: "constraints", placeholder: "Ex: Mal de dos" },
+        { title: "Emplacement préferré", type: "options", options: ["Domicile", "Salle de sport", "Extérieur"], key: "preferences" },
+        { title: "Equipement disponible", type: "options", options: ["None", "Halteres", "Tapis de course", "Bande résistante"], key: "equipment" },
     ];
 
     let formDataModal = {};
@@ -465,7 +465,7 @@
                     showSuccessToast("Training plan updated successfully");
                 },
                 error: function(xhr, status, error) {
-                    console.error("Error updating training plan:", error);
+                    console.error("Error updating training plan:", xhr);
                     showErrorToast("Error updating plan", 'error');
                 }
             });
