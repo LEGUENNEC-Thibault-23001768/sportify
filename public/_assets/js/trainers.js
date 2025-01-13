@@ -171,7 +171,7 @@
                     }
                 
                     const reservationData = {
-                        member_id: memberId,
+                        member_id: window.currentUserId,
                         activity,
                         reservation_date: reservationDate,
                         start_time: startTime,

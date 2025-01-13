@@ -193,24 +193,23 @@ button:hover {
       background-color: #3962bf;
     }
 
+
     #reservation-container,
     #edit-reservation-container {
-       display: none;
+        display: none;
         position: fixed;
         top: 50%;
          left: 50%;
-          transform: translate(-50%, -50%);
-          background-color: #f5f3f2;
-          padding: 25px 20px 20px;/*ajustemant avec padings haut et bas*/
-           box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-           border-radius: 10px;
-         border: 2px solid #C1FF72;
-         max-width: 400px;
-           width: 100%;
-            z-index: 1001;
-
-    }
-
+        transform: translate(-50%, -50%);
+        background-color: #f5f3f2;
+     padding: 25px 20px 20px; /*modification des paddings*/
+       box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+       border: 2px solid #C1FF72;
+     max-width: 400px;
+       width: 100%;
+      z-index: 1001;
+   }
 
 #reservation-container h3,
 #edit-reservation-container h2 {
@@ -370,21 +369,16 @@ input[type="time"]:focus {
      padding: 10px;
     }
 
-
-.close-button {
-        position: absolute;
-      top: -5px;
-       right: 10px;
-      font-size: 1.2em;
-       background: none;  /* retire background de base */
-         border: none;  /* retire bordures base */
-        cursor: pointer;
-        color: #1d1c1c96;
-       transition: color 0.3s ease-in-out;  /*  adoucir le selection user  */
-     z-index:1002;
-   
-   }
-     .close-button:hover{
-             color: #000; /* Couleur noir pour le X , a la selection */
-   
-   }
+    .close-button {
+        position: absolute; /* positionnement haut et droit */
+      top: -5px;    
+     right: 10px;   
+        font-size: 1.2em;
+          background: none; /*pas d arriere plan */
+          border: none;/* suppression bordure de base*/
+            cursor: pointer;
+       color: #1d1c1c96;    
+    /* Ajout d'une petite transition pour adoucir  la selection couleur des element s */
+   z-index:1002; /* On le force  a s'afficher au-dessus de tous les autres element du DOM (cas du overlay qui peuvent empecher l'action de la petite croix , ou tout elements en position relative)*/
+ }
+ 

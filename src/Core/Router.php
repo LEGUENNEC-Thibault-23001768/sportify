@@ -1,64 +1,24 @@
 <?php
 
 namespace Core;
-
-class Router
-{
-    private static $routes = [];
-    private static $controllers = [];
-    private static $initialized = false;
-    private static $baseNamespace = "Controllers\\";
-
-    public static function setup()
+class Router {
+    private $routes = [];
+    public function addRoute($method, $url, $handler, $middleware = null): void
     {
-        if (self::$initialized) return;
-        self::loadControllers();
-        self::$initialized = true;
+         $this->routes[$method][$url] = [
+            'handler' => $handler,
+            'middleware' => $middleware
+        ];
     }
 
-    public static function get($url, $handler, $middleware = null)
+    public static function dispatch($uri)
     {
-        self::addRoute('GET', $url, $handler, $middleware);
-    }
-
-    public static function post($url, $handler, $middleware = null)
-    {
-        self::addRoute('POST', $url, $handler, $middleware);
-    }
-
-    public static function put($url, $handler, $middleware = null)
-    {
-        self::addRoute('PUT', $url, $handler, $middleware);
-    }
-
-    public static function delete($url, $handler, $middleware = null)
-    {
-        self::addRoute('DELETE', $url, $handler, $middleware);
-    }
-
-    public static function apiResource($url, $controller, $middleware = null)
-    {
-         self::get($url, "$controller@get", $middleware);
-         self::get($url . '/{id}', "$controller@get", $middleware);
-        self::post($url, "$controller@post", $middleware);
-        self::put($url, "$controller@put", $middleware);
-        self::put($url . '/{id}', "$controller@put", $middleware);
-        self::delete($url . '/{id}', "$controller@delete", $middleware);
-    }
-
-    private static function addRoute($method, $url, $handler, $middleware = null)
-    {
-        self::$routes[$method][$url] = ['handler' => $handler, 'middleware' => $middleware];
-    }
-
-    public static function dispatch($url)
-    {
-        if (!self::$initialized) {
+         if (!self::$initialized) {
             self::setup();
         }
 
         $method = $_SERVER['REQUEST_METHOD'];
-        $urlPath = parse_url($url, PHP_URL_PATH);
+        $urlPath = parse_url($uri, PHP_URL_PATH);
 
          if (!isset(self::$routes[$method])) {
             throw new \Exception("No routes defined for method: $method");
@@ -157,7 +117,7 @@ class Router
         $controller = $controllerName;
 
         if (!class_exists($controller)) {
-            throw new \Exception("Controller not found: $controller");
+            throw new \Exception("Controller class not found: $controller");
         }
 
         $controllerInstance = new $controller();
@@ -200,5 +160,14 @@ class Router
             }
         }
        }
+    }
+    
+       public static function getRoutes($method = null)
+    {
+        if($method){
+           return  self::$routes[$method] ?? [];
+        }
+       
+        return  self::$routes;
     }
 }

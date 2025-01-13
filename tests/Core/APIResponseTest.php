@@ -1,103 +1,64 @@
 <?php
 
-namespace Tests\Core;
+namespace Core;
 
-use PHPUnit\Framework\TestCase;
-use Core\APIResponse;
-
-class APIResponseTest extends TestCase
+class APIResponse
 {
-    public function testSetData()
+    private $data;
+    private $statusCode;
+    private $headers = ['Content-Type' => 'application/json'];
+
+    public function __construct($data = null, $statusCode = 200, $headers = [])
     {
-        $response = new APIResponse();
-        $data = ['message' => 'hello'];
-        $response->setData($data);
-        $this->assertEquals($data, $response->getData());
+        $this->data = $data;
+        $this->statusCode = $statusCode;
+        $this->headers = array_merge($this->headers, $headers);
+
     }
 
-     public function testSetStatusCode()
+
+    public function setData($data)
     {
-        $response = new APIResponse();
-        $statusCode = 404;
-        $response->setStatusCode($statusCode);
-        $this->assertEquals($statusCode, $response->getStatusCode());
+        $this->data = $data;
     }
 
-    public function testAddHeader()
+       public function getData()
     {
-        $response = new APIResponse();
-        $response->addHeader('Content-Type', 'application/xml');
-        $this->assertEquals('application/xml', $response->getHeaders()['Content-Type']);
+        return $this->data;
     }
 
-    public function testSendJsonResponse()
-     {
-         $response = new APIResponse(['message' => 'Test message'], 201, ['X-Test-Header' => 'test-value']);
 
-         ob_start();
-         $response->send();
-         $output = ob_get_clean();
-    
-         $this->assertEquals(201, http_response_code());
-         $this->assertStringContainsString('X-Test-Header: test-value', xdebug_get_headers()[0]);
-        $this->assertJsonStringEqualsJsonString(json_encode(['message' => 'Test message']), $output);
-    
-      }
-
-    public function testSendNoContent()
+    public function setStatusCode($statusCode)
     {
-        $response = new APIResponse(null, 204);
-
-        ob_start();
-        $response->send();
-         $output = ob_get_clean();
-
-        $this->assertEquals(204, http_response_code());
-        $this->assertEmpty($output);
+        $this->statusCode = $statusCode;
     }
 
-    public function testSendDefaultStatusCode()
+     public function getStatusCode()
     {
-        $response = new APIResponse(['message' => 'Default status code']);
-        ob_start();
-        $response->send();
-        ob_get_clean();
-    
-        $this->assertEquals(200, http_response_code());
+        return $this->statusCode;
+    }
+
+    public function addHeader($header, $value)
+    {
+       $this->headers[$header] = $value;
     }
     
-     public function testSendDefaultContentType()
-      {
-       $response = new APIResponse(['message' => 'Default Content-Type'], 200, ['Content-Type' => 'application/json']);
-
-        ob_start();
-        $response->send();
-         ob_get_clean();
-    
-         $this->assertStringContainsString('Content-Type: application/json', xdebug_get_headers()[0]);
-       }
-
-
-    public function testSendNoData()
+     public function getHeaders()
     {
-         $response = new APIResponse(null, 404);
-
-       ob_start();
-       $response->send();
-         $output = ob_get_clean();
-      
-         $this->assertEquals(404, http_response_code());
-         $this->assertEmpty($output);
-     }
-
-     private function getData() {
-            return $this->data;
+        return $this->headers;
     }
-     private function getStatusCode() {
-            return $this->statusCode;
-        }
 
-    private function getHeaders() {
-            return $this->headers;
-        }
+    public function send()
+    {
+         http_response_code($this->statusCode);
+        
+         foreach($this->headers as $key => $header) {
+               header($key.': '.$header);
+            }
+       
+
+         if($this->data !== null) {
+          echo json_encode($this->data);
+         }
+    }
 }

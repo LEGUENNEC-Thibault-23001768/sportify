@@ -1,14 +1,11 @@
 <?php
 
 namespace Core;
-
 use PDO;
 use PDOException;
 use Core\Config;
 
-
-class Database
-{
+class Database {
     private static $instance = null;
     private static $conn;
 
@@ -16,7 +13,13 @@ class Database
     {
     }
 
-    private static function connect()
+  public static function getInstance() {
+        if (self::$instance === null) {
+            self::$instance = new Database();
+        }
+        return self::$instance;
+    }
+     private static function connect()
     {
         if (self::$conn === null) {
             $charset = 'utf8mb4';

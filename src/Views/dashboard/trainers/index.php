@@ -1,8 +1,4 @@
 <?php
-    $user_id = $_SESSION['user_id'] ?? null;
-?>
-
-<?php
 use Core\Database;
 $pdo = Database::getConnection();
 $sql = "SELECT * FROM COACH";
@@ -38,3 +34,7 @@ $image_urls = [
         </div>
     </div>
 </div>
+
+<script>
+    window.currentUserId = <?php echo isset($user['member_id']) ? $user['member_id'] : 'null'; ?>;
+</script>

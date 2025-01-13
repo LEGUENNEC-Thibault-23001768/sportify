@@ -15,7 +15,7 @@ class AuthTest extends TestCase
             session_start();
         }
          $_SESSION = []; // clear session for tests
-        $user = new \Models\User;
+        $user = new User;
         $userData = [
             'email' => 'test@example.com',
             'password' => 'test',

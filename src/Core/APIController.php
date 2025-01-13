@@ -2,40 +2,37 @@
 
 namespace Core;
 
-use Core\APIResponse;
-
-abstract class APIController
+class APIController
 {
-    protected function get($id = null)
+    public function handleRequest($method, $id = null)
     {
-        $response = new APIResponse();
-        return $response->setStatusCode(405)->setData(['error' => 'GET method not allowed.'])->send();
-    }
+        switch ($method) {
+            case 'GET':
+              if (method_exists($this, 'get')) {
+                   return $this->get($id);
+                }
+                break;
 
-    protected function post()
-    {
-        $response = new APIResponse();
-        return $response->setStatusCode(405)->setData(['error' => 'POST method not allowed.'])->send();
-    }
+             case 'POST':
+                if (method_exists($this, 'post')) {
+                   return $this->post();
+                }
+               break;
 
-    protected function put($id = null)
-    {
-        $response = new APIResponse();
-        return $response->setStatusCode(405)->setData(['error' => 'PUT method not allowed.'])->send();
-    }
 
-    protected function delete($id = null)
-    {
-        $response = new APIResponse();
-        return $response->setStatusCode(405)->setData(['error' => 'DELETE method not allowed.'])->send();
-    }
-
-    public function handleRequest($method, ...$params)
-    {
-         if (method_exists($this, strtolower($method))) {
-           return call_user_func_array([$this, strtolower($method)], $params);
+            case 'PUT':
+              if (method_exists($this, 'put')) {
+                    return $this->put($id);
+                }
+                break;
+           case 'DELETE':
+                 if (method_exists($this, 'delete')) {
+                     return $this->delete($id);
+                 }
+               break;
+           default:
+                
         }
-        $response = new APIResponse();
-        return $response->setStatusCode(405)->setData(['error' => 'Method not allowed.'])->send();
+        return new APIResponse(['error' => 'Method not allowed.'],405);
     }
 }
