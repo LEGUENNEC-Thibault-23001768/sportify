@@ -4,7 +4,6 @@ namespace Controllers;
 
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
-use Stripe\Invoice;
 use Stripe\StripeClient;
 use Models\Subscription;
 use Core\Config;
@@ -20,7 +19,7 @@ class PaymentController implements RouteProvider
     {
         Router::post('/create-checkout-session', self::class . '@createCheckoutSession', Auth::requireLogin());
         Router::get('/success', self::class . '@success', Auth::requireLogin());
-        Router::get('/invoices', self::class . '@listInvoices', Auth::requireLogin());
+        //Router::get('/invoices', self::class . '@listInvoices', Auth::requireLogin());
         Router::post('/cancel-subscription', self::class . '@cancelSubscriptionAction', Auth::requireLogin());
         Router::post('/resume-subscription', self::class . '@resumeSubscriptionAction', Auth::requireLogin());
     }

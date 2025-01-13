@@ -130,12 +130,13 @@ class AuthController implements RouteProvider
     public function verifyEmail()
     {
         $token = $_GET['token'] ?? '';
+        $message = '';
         if (User::verifyEmail($token)) {
             $message = "Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.";
         } else {
             $message = "Le lien de vérification est invalide ou a expiré.";
         }
-        View::render('auth/login', ['message' => $message]);
+        echo View::render('auth/login', ['message' => $message]);
     }
 
     public function sendResetLink()

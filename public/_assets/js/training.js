@@ -1,6 +1,6 @@
 (function() {
     let currentStep = 1;
-    const trainingContent = $('#trainingContent');
+    let trainingContent = $('#trainingContent');
     let currentPlanData;
     let currentDayData = null;
     let currentExerciseIndex = 0;
@@ -19,31 +19,37 @@
                     plan = plan.replace(/```$/, '');
                     plan = plan.trim();
                     try {
+                        console.log("Plan data:", plan);
                         currentPlanData = JSON.parse(plan);
                     } catch (e) {
                         console.error('Error parsing JSON:', e, plan);
+                        console.log("no plan : displayCreatePlanButton called");
                         displayCreatePlanButton();
-                            return;
+                        return;
                     }
                     displayTrainingPlan(response.plan);
                 } else {
-                     displayCreatePlanButton();
+                    console.log("no plan : displayCreatePlanButton called");
+                    displayCreatePlanButton();
                 }
             },
             error: function(error) {
-                console.error("Error loading training data:", error);
+                console.error("Error loading training data:", error.responseJSON);
+                console.log("error : displayCreatePlanButton called", error.responseJSON);
                 displayCreatePlanButton();
             }
         });
     }
 
     function displayCreatePlanButton() {
+        console.log("displayCreatePlanButton called");
+        console.log("trainingContent", trainingContent);
         trainingContent.html('<button id="createPlanButton" class="btn btn-primary">Create Training Plan</button>');
+        console.log("Button HTML:", trainingContent.html());
         $('#createPlanButton').on('click', function() {
             openCreatePlanPopup();
         });
     }
-
 
     function displayTrainingPlan(plan) {
         currentPlanData = JSON.parse(plan);
@@ -59,19 +65,17 @@
                 });
                 html += `</div></div>`;
             });
-            html += '</div><button id="editPlanButton" class="btn btn-secondary">Edit Plan</button><div id="active-training" style="display:none;"><h3 id="active-day"></h3><div id="current-exercise"></div><button id="end-set" class="hidden">End Set</button><div id="rest-timer" style="display: none;"> Resting: <span id="timer-countdown"></span> <button id="skip-timer">Skip</button> </div><button id="next-exercise" class="hidden">Next Exercise</button> <button id="finish-day" class="hidden">Finish Day</button><button id="go-back-exercises" class="hidden">Go Back</button></div>'
+            html += '</div><button id="editPlanButton" class="btn btn-secondary">Edit Plan</button><div id="active-training" style="display:none;"><h3 id="active-day"></h3><div id="current-exercise"></div><button id="end-set" class="hidden">End Set</button><div id="rest-timer" style="display: none;"> Resting: <span id="timer-countdown"></span> <button id="skip-timer">Skip</button> </div><button id="next-exercise" class="hidden">Next Exercise</button> <button id="finish-day" class="hidden">Finish Day</button><button id="go-back-exercises" class="hidden">Go Back</button></div>';
             trainingContent.html(html);
-    
+
             setupDayCardInteractions();
             setupExerciseStart();
             $('#editPlanButton').on('click', openEditPlanPopup);
-    
-    
         } else {
             trainingContent.html('Invalid plan format');
         }
     }
-    
+
     function setupExerciseStart() {
         trainingContent.on('click', '.day-card', function(event) {
             if (event.target === this || event.target.closest('h3') === this.querySelector('h3')) {
@@ -79,11 +83,10 @@
                 currentDayData = currentPlanData.days.find(d => d.day === day);
                 currentExerciseIndex = 0;
                 currentSetIndex = 0;
-    
-                $(this).find('.exercise-card .start-exercise').removeClass('hidden')
+                $(this).find('.exercise-card .start-exercise').removeClass('hidden');
             }
         });
-    
+
         trainingContent.on('click', '.start-exercise', function() {
             const exerciseCard = $(this).closest('.exercise-card');
             $('.training-plan').hide();
@@ -92,42 +95,102 @@
             displayCurrentExercise(exerciseCard);
         });
     }
-    
-    
+
+
     function setupDayCardInteractions() {
         const dayCards = document.querySelectorAll('.day-card');
-    
-        dayCards.forEach(card => {
+
+         dayCards.forEach(card => {
             card.addEventListener('click', function(event) {
-                // Prevent triggering active training if clicking on interactive elements
                 if (!event.target.closest('.toggle-description, .star')) {
-                    toggleExercisesVisibility(card);
+                    if (!card.classList.contains('selected-day')) {
+                        showSelectedDay(card);
+                    } else {
+                        removeSelectedDay(card);
+                    }
                 }
             });
         });
+
+        function showBackButton(card) {
+            let backButton = card.querySelector('.back-button');
+            if (!backButton) {
+                backButton = document.createElement('button');
+                backButton.textContent = 'Retour';
+                backButton.classList.add('back-button');
+                backButton.style.marginTop = '20px';
+                backButton.addEventListener('click', () => {
+                    removeSelectedDay(card);
+                });
+                card.appendChild(backButton);
+            }
+            backButton.style.display = 'block';
+        }
     
+        function showSelectedDay(card) {
+            dayCards.forEach(otherCard => {
+                if (otherCard !== card) {
+                    otherCard.classList.add('hidden');
+                }
+            });
+            card.classList.add('selected-day');
+            updateDayView(card);
+            toggleExercisesVisibility(card);
+            showBackButton();
+        }
+    
+        function removeSelectedDay(card) {
+            dayCards.forEach(otherCard => {
+                otherCard.classList.remove('hidden');
+            });
+            card.classList.remove('selected-day');
+            removeBackButton(card);
+            resetDayCards(card);
+            hideBackButton();
+        }
+    
+        function removeBackButton(card) {
+            const backButton = card.querySelector('.back-button');
+            if (backButton) {
+                backButton.remove();
+            }
+        }
+    
+         function updateDayView(card) {
+            const day = card.dataset.day;
+            currentDayData = currentPlanData.days.find(d => d.day === day);
+        }
+    
+        function resetDayCards(card) {
+           dayCards.forEach(otherCard => {
+                otherCard.classList.remove('hidden');
+            });
+            if (card) {
+                toggleExercisesVisibility(card);
+            }
+        }
+
         document.querySelectorAll('.toggle-description').forEach(button => {
             button.addEventListener('click', function(event) {
-                event.stopPropagation(); // Prevent event from bubbling up to the card
+                event.stopPropagation();
                 const description = button.previousElementSibling;
                 description.style.display = description.style.display === 'none' ? 'block' : 'none';
                 button.textContent = description.style.display === 'none' ? 'Show Description' : 'Hide Description';
             });
         });
     }
-    
-    function toggleExercisesVisibility(card) {
+
+     function toggleExercisesVisibility(card) {
         const exercises = card.querySelector('.exercises');
-        exercises.style.display = exercises.style.display === 'none' || exercises.style.display === '' ? 'block' : 'none';
+        exercises.style.display = exercises.style.display === 'none' || exercises.style.display === '' ? 'flex' : 'none';
     
-        if (exercises.style.display === 'block') {
+        if (exercises.style.display === 'flex') {
             const exerciseCards = exercises.querySelectorAll('.exercise-card');
             exerciseCards.forEach(exerciseCard => {
                 const setsContainer = exerciseCard.querySelector('.sets');
                 const sets = exerciseCard.dataset.sets;
     
                 setsContainer.innerHTML = '';
-    
                 const numSets = parseInt(sets);
                 for (let i = 0; i < numSets; i++) {
                     const star = document.createElement('span');
@@ -138,8 +201,8 @@
             });
         }
     }
-    
-    
+
+
     function displayCurrentExercise(exerciseCard) {
         const activeTrainingSection = $('#active-training');
         const currentExerciseContainer = $('#current-exercise');
@@ -166,9 +229,7 @@
     
         currentSetIndex = 0;
         updateStars(numSets);
-    
-    
-        endSetButton.removeClass('hidden');
+         endSetButton.text('Start').removeClass('hidden');
         nextExerciseButton.addClass('hidden');
         finishDayButton.addClass('hidden');
         activeTrainingSection.find('#active-day').text(currentDayData.day);
@@ -199,33 +260,7 @@
             $('#next-exercise').removeClass('hidden');
         }
     }
-    trainingContent.on('click', '#end-set', () => {
-        currentSetIndex++;
-        const currentExerciseContainer = $('#current-exercise');
-        const numSets = parseInt(currentExerciseContainer.find('.sets').children().length);
-    
-    
-        updateStars(numSets);
-        const currentExerciseData = $(currentExerciseContainer).closest('#active-training').find('#current-exercise').find('h4').text();
-        const exercise = currentDayData.exercises.find(ex => ex.name === currentExerciseData)
-        const restTime = exercise.repos ? parseInt(exercise.repos) : 60;
-        startRestTimer(restTime);
-        if (currentSetIndex === numSets) {
-            $('#end-set').addClass('hidden');
-        }
-    });
-    
-    trainingContent.on('click', '#next-exercise', () => {
-        currentExerciseIndex++;
-        $('#next-exercise').addClass('hidden');
-        const exerciseCard = $('.exercise-card').filter((index, element) => {
-            const name = $(element).find('h4').text();
-            return currentDayData.exercises[currentExerciseIndex] && currentDayData.exercises[currentExerciseIndex].name === name
-        }).first()
-    
-        displayCurrentExercise(exerciseCard);
-    });
-    
+
     
     
     function startRestTimer(seconds) {
@@ -246,7 +281,6 @@
             }
         }, 1000);
     
-        // Skip Timer Button
         const skipTimerButton = $('#skip-timer');
         skipTimerButton.off('click').on('click', () => {
             clearInterval(restTimer);
@@ -266,67 +300,7 @@
         nextExerciseButton.addClass('hidden');
         finishDayButton.removeClass('hidden');
     }
-    
-    trainingContent.on('click', '#finish-day', () => {
-        $('.training-plan').show();
-        $('#active-training').hide();
-        $('#go-back-exercises').hide();
-        $('#finish-day').addClass('hidden');
-    });
-    trainingContent.on('click', '#go-back-exercises', () => {
-        $('.training-plan').show();
-        $('#active-training').hide();
-        $('#go-back-exercises').hide();
-    });
-    
-    
-    
-    $('#editTrainingForm').on('submit', function(e) {
-        e.preventDefault();
-        $.ajax({
-            url: $(this).attr('action'),
-            type: 'POST',
-            dataType: 'json',
-            data: $(this).serialize(),
-            success: function(response) {
-                loadTrainingData();
-                closeEditPlanPopup();
-                showSuccessToast("Training plan updated successfully", 'success');
-            },
-            error: function(xhr, status, error) {
-                console.error("Error updating training plan:", error);
-                showToast("Error updating plan", 'error');
-            }
-        });
-    });
-    
-    $('#nextButton').click(function() {
-        let input = $(`#question${currentStep} :input`).val();
-    
-        $.ajax({
-            url: '/api/training/process-step',
-            method: 'POST',
-            dataType: 'json',
-            data: {
-                step: currentStep,
-                data: input
-            },
-            success: function(response) {
-                if (response.next_step === 'generate') {
-                    generateTrainingPlan();
-                } else {
-                    $(`#question${currentStep}`).hide();
-                    $(`#question${response.next_step}`).show();
-                    currentStep = response.next_step;
-                    $('#step').val(currentStep);
-                }
-            },
-            error: function(error) {
-                console.error("Error processing step:", error);
-                showToast("Error processing step", 'error');
-            }
-        });
-    });
+
     
     
     function generateTrainingPlan() {
@@ -340,12 +314,12 @@
                     closeCreatePlanPopup();
                 } else {
                     console.error("Error: Invalid response format", response);
-                    showToast("Error generating plan", 'error');
+                    showErrorToast("Error generating plan", 'error');
                 }
             },
             error: function(error) {
                 console.error("Error generating training plan:", error);
-                showToast("Error generating plan", 'error');
+                showErrorToast("Error generating plan", 'error');
             }
         });
     }
@@ -356,7 +330,7 @@
         $('#popupOverlay').show();
     }
     
-    function closeCreatePlanPopup() {
+    window.closeCreatePlanPopup = () => {
         $('#createPlanPopup').hide();
         $('#popupOverlay').hide();
     }
@@ -364,9 +338,10 @@
     function openEditPlanPopup() {
         $('#editPlanPopup').show();
         $('#popupOverlay').show();
+        setupEditPlanForm();
     }
     
-    function closeEditPlanPopup() {
+    window.closeEditPlanPopup = () => {
         $('#editPlanPopup').hide();
         $('#popupOverlay').hide();
     }
@@ -384,10 +359,221 @@
         toastContainer.append(toast);
         setTimeout(() => toast.remove(), 3000);
     }
-    
-    
-    window.initialize = function(){
-     console.log("Training view initialized");
-       loadTrainingData();
+
+    let currentStepModal = 0;
+    const steps = [
+        { title: "Select your Gender", type: "options", options: ["Man", "Woman", "Other"], key: "gender" },
+        { title: "Select your Level", type: "options", options: ["Beginner", "Intermediate", "Advanced"], key: "level" },
+        { title: "Select your Goals", type: "options", options: ["Lose Weight", "Build Muscle", "Improve Fitness", "Run a Marathon"], key: "goals" },
+        { title: "Enter your Weight (kg)", type: "input", inputType: "number", key: "weight", placeholder: "Ex: 70" },
+        { title: "Enter your Height (cm)", type: "input", inputType: "number", key: "height", placeholder: "Ex: 175" },
+        { title: "Do you have any constraints?", type: "input", inputType: "text", key: "constraints", placeholder: "Ex: Back pain" },
+        { title: "Preferred training styles", type: "options", options: ["Home", "Gym", "Outdoor"], key: "preferences" },
+        { title: "Available equipment", type: "options", options: ["None", "Dumbbells", "Treadmill", "Resistance Bands"], key: "equipment" },
+    ];
+
+    let formDataModal = {};
+
+    function clearAllButtonClass( className)  {
+        $(`${className}`).removeClass('selected')
     };
+
+    function updateSelectState (  buttonElement , formDataModalKey , newValue ) {
+       const button = $(buttonElement)
+        clearAllButtonClass('.square-option')
+        button.addClass('selected')
+        formDataModal[formDataModalKey] = newValue
+    };
+
+    function setupEditPlanForm() {
+        const modalBody = $("#editPlanPopup .modal-body")[0];
+        const nextButton = document.createElement("button");
+        nextButton.textContent = "Next";
+        nextButton.classList.add("btn", "btn-primary");
+        nextButton.style.marginTop = "20px";
+        const stepTitle = document.createElement("h5");
+        stepTitle.style.color = '#A2D149';
+        modalBody.innerHTML = "";
+        currentStepModal = 0;
+        formDataModal = {};
+        displayModalStep();
+    
+        function displayModalStep() {
+            const step = steps[currentStepModal];
+            modalBody.innerHTML = "";
+            stepTitle.textContent = step.title;
+            modalBody.appendChild(stepTitle);
+    
+            if (step.type === "options") {
+                const optionsContainer = document.createElement('div');
+                optionsContainer.classList.add('options-container');
+    
+                step.options.forEach(option => {
+                    const button = document.createElement("button");
+                    button.textContent = option;
+                    button.classList.add("btn", "square-option");
+                    button.dataset.value = option;
+    
+                    button.addEventListener("click", (event) => {
+                        updateSelectState(event.target, step.key, event.target.dataset.value);
+                        nextButton.disabled = false;
+                    });
+                    optionsContainer.appendChild(button);
+                });
+                modalBody.appendChild(optionsContainer);
+            } else if (step.type === "input") {
+    
+                const input = document.createElement("input");
+                input.type = step.inputType;
+                input.placeholder = step.placeholder || "";
+                input.classList.add("form-control");
+                input.style.marginTop = "10px";
+    
+                input.addEventListener("input", (event) => {
+                    if (event.target.value.trim() !== "") {
+                        formDataModal[step.key] = event.target.value;
+                        nextButton.disabled = false;
+                    } else {
+                        nextButton.disabled = true;
+                    }
+                });
+                modalBody.appendChild(input);
+            }
+            modalBody.appendChild(nextButton);
+            nextButton.disabled = true;
+        };
+    
+        nextButton.addEventListener("click", () => {
+            currentStepModal++;
+            if (currentStepModal < steps.length) {
+                displayModalStep();
+            } else {
+                modalBody.innerHTML = `<h5 style="color: #A2D149;">Changes finished!</h5> <pre style="color: #fff;">${JSON.stringify(formDataModal, null, 2)}</pre>`;
+                nextButton.style.display = "none";
+                sendUpdatedData(formDataModal);
+            }
+        });
+    
+        function sendUpdatedData(updatedData) {
+            $.ajax({
+                url: "/api/training/update",
+                type: "POST",
+                dataType: 'json',
+                data: updatedData,
+                success: function(response) {
+                    loadTrainingData();
+                    showSuccessToast("Training plan updated successfully");
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error updating training plan:", error);
+                    showErrorToast("Error updating plan", 'error');
+                }
+            });
+        }
+    };
+
+
+    window.initialize = () => {
+        trainingContent = $('#trainingContent');
+        loadTrainingData();
+
+        trainingContent.on('click', '#finish-day', () => {
+            $('.training-plan').show();
+            $('#active-training').hide();
+            $('#go-back-exercises').hide();
+            $('#finish-day').addClass('hidden');
+        });
+        
+        trainingContent.on('click', '#go-back-exercises', () => {
+            $('#active-training').hide();
+            $('#go-back-exercises').hide();
+            $('.training-plan').show();
+        });
+        
+        $('#editTrainingForm').on('submit', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                dataType: 'json',
+                data: $(this).serialize(),
+                success: function(response) {
+                    loadTrainingData();
+                    closeEditPlanPopup();
+                    showSuccessToast("Training plan updated successfully", 'success');
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error updating training plan:", error);
+                    showErrorToast("Error updating plan", 'error');
+                }
+            });
+        });
+        
+        $('#nextButton').click(function() {
+            let input = $(`#question${currentStep} :input`).val();
+        
+            $.ajax({
+                url: '/api/training/process-step',
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    step: currentStep,
+                    data: input
+                },
+                success: function(response) {
+                    if (response.next_step === 'generate') {
+                        generateTrainingPlan();
+                    } else {
+                        $(`#question${currentStep}`).hide();
+                        $(`#question${response.next_step}`).show();
+                        if ($(`#question${response.next_step}`).find('.options-container').length) {
+                            const optionsContainer = $(`#question${response.next_step}`).find('.options-container')[0];
+        
+                            $(optionsContainer).find('button').each((_, button) => {
+                                $(button).on('click', () => {
+                                    $(optionsContainer).find('.square-option').removeClass('selected');
+                                    $(button).addClass('selected');
+                                    $('#nextButton').prop('disabled', false);
+                                });
+                            });
+                        }
+                        currentStep = response.next_step;
+                        $('#step').val(currentStep);
+                        $('#nextButton').prop('disabled', $(`#question${currentStep} select, #question${currentStep} input, #question${currentStep} textarea`).val() === "");
+                    }
+                },
+                error: function(error) {
+                    console.error("Error processing step:", error);
+                    showErrorToast("Error processing step", 'error');
+                }
+            });
+        });
+
+        trainingContent.on('click', '#end-set', () => {
+            currentSetIndex++;
+            const currentExerciseContainer = $('#current-exercise');
+            const numSets = parseInt(currentExerciseContainer.find('.sets').children().length);
+        
+        
+            updateStars(numSets);
+            const currentExerciseData = $(currentExerciseContainer).closest('#active-training').find('#current-exercise').find('h4').text();
+            const exercise = currentDayData.exercises.find(ex => ex.name === currentExerciseData);
+            const restTime = exercise.repos ? parseInt(exercise.repos) : 60;
+            startRestTimer(restTime);
+            if (currentSetIndex === numSets) {
+                $('#end-set').addClass('hidden');
+            }
+        });
+        
+        trainingContent.on('click', '#next-exercise', () => {
+            currentExerciseIndex++;
+            $('#next-exercise').addClass('hidden');
+            const exerciseCard = $('.exercise-card').filter((index, element) => {
+                const name = $(element).find('h4').text();
+                return currentDayData.exercises[currentExerciseIndex] && currentDayData.exercises[currentExerciseIndex].name === name;
+            }).first();
+        
+            displayCurrentExercise(exerciseCard);
+        });
+    }
 })();

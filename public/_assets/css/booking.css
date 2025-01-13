@@ -1,11 +1,4 @@
-/* --- General styles --- */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #000000;
-    color: #FFFFFF;
-}
 
-/* --- Modal Blur Effect --- */
 .modal-open {
     filter: blur(4px);
     -webkit-filter: blur(4px);
@@ -132,7 +125,6 @@ button:hover {
     background-color: #A0E65E;
 }
 
-/* --- Reservation List --- */
 #reservations {
     text-align: center;
     margin-top: 20px;
@@ -142,80 +134,91 @@ button:hover {
 
 #reservations h3 {
     color: #FFFFFF;
-    /* White text for the heading */
     font-size: 1.5em;
-    /* Increased font size */
     font-weight: bold;
-    /* Bold font weight */
     margin-bottom: 15px;
-    /* Added margin bottom */
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    /* Added text shadow */
+    color: #4e4949;
 }
 
 #reservation-list li {
     margin: 10px auto;
-    /* Centered the list items */
     background-color: #4e4949;
-    padding: 10px;
+     padding: 10px;
     border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.9em;
+        display: flex;
+       flex-direction: column;
+      font-size: 0.9em;
     color: #fff;
-    width: 79%;
-      word-break: break-word; /* Allow text to wrap */
+    max-width: 800px;
+         width: 90%;
+    word-break: break-word;
+
+}
+
+#reservation-list li .reservation-details {
+    margin-bottom: 5px;
+}
+
+#reservation-list li .button-container {
+      display: flex;
+  white-space: nowrap;
+   justify-content: center;
 }
 
 #reservation-list li button {
-    background-color: #ff4c4c;
-    color: #FFFFFF;
-    padding: 5px 10px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-}
+        margin: 3px;
 
-#reservation-list li button:hover {
+ }
+
+#reservation-list li .delete-button {
     background-color: #ff1f1f;
+    color: #FFFFFF;
+
 }
 
-/* --- Reservation & Edit Form Containers --- */
-#reservation-container,
-#edit-reservation-container {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #282828;
-    /* Dark background */
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    border: 2px solid #C1FF72;
-    /* Green border */
-    max-width: 400px;
-    width: 100%;
-    z-index: 1001;
+#reservation-list li .delete-button:hover {
+     background-color: #ff4c4c;
 }
+    #reservation-list li .edit-button {
+          background-color: #330be4;
+    color: #FFFFFF;
+  }
+
+    #reservation-list li .edit-button:hover {
+      background-color: #3962bf;
+    }
+
+    #reservation-container,
+    #edit-reservation-container {
+       display: none;
+        position: fixed;
+        top: 50%;
+         left: 50%;
+          transform: translate(-50%, -50%);
+          background-color: #f5f3f2;
+          padding: 25px 20px 20px;/*ajustemant avec padings haut et bas*/
+           box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+           border-radius: 10px;
+         border: 2px solid #C1FF72;
+         max-width: 400px;
+           width: 100%;
+            z-index: 1001;
+
+    }
+
 
 #reservation-container h3,
 #edit-reservation-container h2 {
     text-align: center;
     margin-bottom: 10px;
-    color: #C1FF72;
-    /* Green text */
+    color: #1d1c1c96;
     font-size: 1.5em;
 }
 
-/* --- Form Styles --- */
 label {
     font-size: 1em;
     margin-bottom: 5px;
-    color: #C1FF72;
-    /* Green text */
+    color: #1d1c1c96;
 }
 
 input[type="text"],
@@ -223,22 +226,19 @@ input[type="date"],
 input[type="time"] {
     padding: 10px;
     border: 1px solid #C1FF72;
-    /* Green border */
     border-radius: 5px;
-    background-color: #4d4949;
-    /* Dark background */
-    color: #eee;
+    background-color: #ece4e4;
+    color: #1d1c1c96;
     /* Light text */
     font-size: 1em;
-        width: 100%;
+     width: 100%;
     box-sizing: border-box;
 }
 
 input[type="text"]:focus,
 input[type="date"]:focus,
 input[type="time"]:focus {
-    border-color: #A0E65E;
-    /* Lighter green on focus */
+    border-color: #C1FF72;
     outline: none;
 }
 
@@ -250,24 +250,16 @@ input[type="time"]:focus {
 }
 
 /* --- Edit and Delete Buttons --- */
-.edit-button,
 .delete-button {
-    margin: 0 5px;
-    background-color: #A0E65E;
-    /* Initial background color similar to hover effect */
-    color: #000000;
-    /* Black text color for contrast */
-    padding: 5px 10px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    /* Smooth transition for hover effect */
+     margin: 0 5px;
+      color: #000000;
+      /* Black text color for contrast */
+      transition: background-color 0.2s ease;
 }
-
-#reservation-list li .edit-button:hover,
-#reservation-list li .delete-button:hover {
-    background-color: #ff1f1f;
+.edit-button {
+  margin: 0 5px;
+      color: #000000;
+    transition: background-color 0.2s ease;
 }
 
 /* --- Toast Container --- */
@@ -279,7 +271,7 @@ input[type="time"]:focus {
 }
 
 .toast {
-    background-color: #333;
+    background-color: #cacaca;
     color: white;
     padding: 10px 20px;
     margin-bottom: 10px;
@@ -297,7 +289,8 @@ input[type="time"]:focus {
 }
 
 /* --- Available Hours Buttons --- */
-#available-hours, #edit-available-hours {
+#available-hours,
+#edit-available-hours {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
@@ -305,9 +298,10 @@ input[type="time"]:focus {
     justify-content: center;
 }
 
-#available-hours button, #edit-available-hours button {
-    background-color: #4d4949;
-    color: #fff;
+#available-hours button,
+#edit-available-hours button {
+    background-color: #ece4e4;
+    color: #252525;
     padding: 8px 15px;
     border: none;
     border-radius: 5px;
@@ -316,24 +310,28 @@ input[type="time"]:focus {
     font-size: 0.9em;
 }
 
-#available-hours button:hover:not(.selected):not(.booked), #edit-available-hours button:hover:not(.selected):not(.booked) {
-    background-color: #5a5454;
+#available-hours button:hover:not(.selected):not(.booked),
+#edit-available-hours button:hover:not(.selected):not(.booked) {
+    background-color: #b3acac;
 }
-#available-hours button.selected, #edit-available-hours button.selected {
-    background-color: #A0E65E;
+
+#available-hours button.selected,
+#edit-available-hours button.selected {
+    background-color: #C1FF72;
     color: #000000;
 }
 
-#available-hours button.booked, #edit-available-hours button.booked {
-     background-color: #282828;
-    color: #808080;
-    cursor: not-allowed;
-}
-
-#available-hours button.past, #edit-available-hours button.past{
-   background-color: #282828;
-   color: #808080;
+#available-hours button.booked,
+#edit-available-hours button.booked {
+     background-color: #b3acac;
+    color: #252525;
    cursor: not-allowed;
+}
+#available-hours button.past,
+#edit-available-hours button.past{
+   background-color: #b3acac;
+    color: #252525;
+     cursor: not-allowed;
 }
 
 /* Tabs */
@@ -354,13 +352,34 @@ input[type="time"]:focus {
     font-size: 0.9em;
      transition: background-color 0.3s ease;
 }
- .tab-button:hover{
+
+.tab-button:hover {
      background-color: #5a5454;
- }
- .tab-button.active {
-     background-color: #A0E65E;
-      color: #000;
- }
- .tab-content{
-       padding: 10px;
-   }
+}
+
+.tab-button.active {
+      background-color: #C1FF72;
+     color: #000;
+}
+.tab-content{
+     padding: 10px;
+    }
+
+
+.close-button {
+    position: absolute;
+    top: -5px;
+    right: 10px;
+    font-size: 1.2em;
+    background: none;  /* retire background de base */
+    border: none;  /* retire bordures base */
+    cursor: pointer;
+    color: #1d1c1c96;
+    transition: color 0.3s ease-in-out;  /*  adoucir le selection user  */
+    z-index:1002;
+   
+}
+    .close-button:hover{
+            color: #000; /* Couleur noir pour le X , a la selection */
+
+}

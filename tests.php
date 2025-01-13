@@ -9,8 +9,8 @@ class AllTests
     {
         $suite = new TestSuite('All Tests');
 
-        $suite->addTestSuite(Tests\AutoloaderTest::class);
-        $suite->addTestSuite(Tests\CoreAPIControllerTest::class);
+        $suite->addTestSuite(\Tests\AutoloaderTest::class);
+        $suite->addTestSuite(\Tests\Core\APIControllerTest::class);
         $suite->addTestSuite(Tests\Core\APIResponseTest::class);
         $suite->addTestSuite(Tests\Core\AuthTest::class);
         $suite->addTestSuite(Tests\Core\ConfigTest::class);

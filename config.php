@@ -7,7 +7,6 @@ ini_set('SMTP', 'smtp-sportify.alwaysdata.net');
 ini_set('smtp_port', 587);
 ini_set('sendmail_from', 'sportify@alwaysdata.net');
 
-
 define("SERVER_URL",  IS_LOCAL ? 'http://localhost:8080' : 'https://sportify.alwaysdata.net',);
 
 return [

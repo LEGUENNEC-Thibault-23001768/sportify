@@ -1,6 +1,6 @@
 <?php use Models\Booking; ?>
 
-<div data-view="events_dash">
+<div class="events-view" data-view="events_dash">
     <div class="container">
         <div id="myCalendar"></div>
 
