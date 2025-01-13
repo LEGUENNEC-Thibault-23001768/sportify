@@ -286,39 +286,75 @@
     }
 
     function handleEditHourClick(event) {
-         const clickedButton = event.target;
-         const startHour = parseInt(clickedButton.dataset.hour);
-         const selectedButtons = document.querySelectorAll('#edit-available-hours button.selected');
-
-       if (clickedButton.classList.contains('selected')) {
+        const clickedButton = event.target;
+        const selectedButtons = document.querySelectorAll('#edit-available-hours button.selected');
+   
+        if (clickedButton.classList.contains('selected')) {
             clickedButton.classList.remove('selected');
-          } else {
-              if(selectedButtons.length >= 2){
-                   alert("Vous ne pouvez sélectionner que deux heures maximum.");
-                  return;
-         }
-              clickedButton.classList.add('selected');
-          }
-
-      const selectedHours = Array.from(document.querySelectorAll('#edit-available-hours button.selected'))
-       .map(btn => parseInt(btn.dataset.hour))
-         .sort((a, b) => a - b);
-
-     if (selectedHours.length > 0) {
-        document.getElementById('edit_start-time').value = selectedHours.map(hour => hour.toString().padStart(2, '0') + ':00').join(',');
-             document.getElementById('edit_end-time').value =  selectedHours.length > 1 ? selectedHours.map(hour => (hour+1).toString().padStart(2, '0') + ':00').slice(-1)[0] :  document.getElementById('edit_end-time').value ;
-
-       if (selectedHours.length === 2 && selectedHours[1] - selectedHours[0] !== 1) {
-                   alert("Veuillez sélectionner des heures consécutives.");
-               selectedButtons.forEach(btn => btn.classList.remove('selected'));
-                  document.getElementById('edit_start-time').value = '';
-                   document.getElementById('edit_end-time').value = '';
-          }
-       } else {
-              document.getElementById('edit_start-time').value = '';
-            document.getElementById('edit_end-time').value = '';
-         }
+            } else {
+                if(selectedButtons.length >= 1){
+                    alert("Vous ne pouvez sélectionner qu'une seule heure pour la modification.");
+                    return;
+                    }
+            clickedButton.classList.add('selected');
         }
+    
+        const selectedHours = Array.from(document.querySelectorAll('#edit-available-hours button.selected'))
+            .map(btn => parseInt(btn.dataset.hour))
+            .sort((a, b) => a - b);
+        
+        if (selectedHours.length > 0) {
+        document.getElementById('edit_start-time').value = selectedHours.map(hour => hour.toString().padStart(2, '0') + ':00').join(',');
+                const endHour = selectedHours[0] + 1;
+                document.getElementById('edit_end-time').value = endHour.toString().padStart(2, '0') + ':00';
+            
+        } else {
+                document.getElementById('edit_start-time').value = '';
+            document.getElementById('edit_end-time').value = '';
+        }
+     }
+
+
+      $('#update-button').click(function() {
+         const reservationId = $('#edit_reservation_id').val();
+         const startTime = $('#edit_start-time').val();
+         const endTime =  $('#edit_end-time').val();
+
+       if (!startTime || !endTime) {
+                showErrorToast("Veuillez sélectionner une heure de début et de fin.");
+                return;
+            }
+        
+      const formData = {
+             reservation_date: $('#edit_date').val(),
+                start_time: startTime,
+           end_time: endTime
+          };
+
+      $.ajax({
+                url: '/api/booking/' + reservationId,
+                  type: 'PUT',
+                  contentType: 'application/json',
+                  data: JSON.stringify(formData),
+                   success: function(response) {
+                         if (response.data && response.data.message) {
+                             showSuccessToast(response.data.message);
+                     } else {
+                        showSuccessToast('Réservation mise à jour avec succès!');
+                   }
+                        closeEditReservation();
+                        loadReservations();
+               },
+               error: function(xhr, status, error) {
+                  let errorMessage = "Erreur lors de la mise à jour de la réservation.";
+                      if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.error) {
+                       errorMessage = xhr.responseJSON.data.error;
+                      }
+                    showErrorToast(errorMessage);
+                   console.error("Error: " + status + " - " + error);
+              }
+           });
+          });
 
 
     window.closeEditReservation = function() {
@@ -366,7 +402,7 @@
             const reservationId = $('#edit_reservation_id').val();
             const startTime = $('#edit_start-time').val();
             const endTime =  $('#edit_end-time').val();
-
+            console.log(startTime, endTime);
             if (!startTime || !endTime) {
                     showErrorToast("Veuillez sélectionner une heure de début et de fin.");
                     return;
