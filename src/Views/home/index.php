@@ -1,7 +1,7 @@
 <header id="main-header">
   <div class="header-container">
     <a href="#" class="logo-link">
-      <img src="https://cdn.discordapp.com/attachments/1291132446837837896/1329089651671044279/Sport_400_x_250_px_300_x_100_px-removebg-preview.png?ex=678912b2&is=6787c132&hm=4776819918522806860f8164b469734aba60eeb11458f5aa23d5b3ee0c5b2cb3&" alt="Logo Sportify" class="logo">
+      <img src="https://cdn.discordapp.com/attachments/1291132446837837896/1329089651671044279/Sport_400_x_250_px_300_x_100_px-removebg-preview.png?ex=67ad53f2&is=67ac0272&hm=32b943dbe3b21809891cf50fa84580990bb93c7e7708a2b440bc5df7df3a307b&" alt="Logo Sportify" class="logo">
       </a>
     <nav class="nav-links">
       <a href="#coachs">Coachs</a>

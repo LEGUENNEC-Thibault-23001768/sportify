@@ -35,7 +35,7 @@
 <body>
     <div class="sidebar">
         <div class="logo">
-            <img src="https://cdn.discordapp.com/attachments/1291132446837837896/1327212672277807174/Sport_400_x_250_px_300_x_100_px.png?ex=6788d61f&is=6787849f&hm=90ac4cc2cc452781e914ad31cfe32b3007486b08e59fe9ba1ddb87ec31e8a321&" alt="Logo Sportify">
+            <img src="https://cdn.discordapp.com/attachments/1291132446837837896/1329089651671044279/Sport_400_x_250_px_300_x_100_px-removebg-preview.png?ex=67ad53f2&is=67ac0272&hm=32b943dbe3b21809891cf50fa84580990bb93c7e7708a2b440bc5df7df3a307b&" alt="Logo Sportify">
         </div>
         <ul>
             <li><a href="/dashboard" data-target="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
