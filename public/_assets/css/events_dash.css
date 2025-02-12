@@ -1,39 +1,39 @@
 /* Mobiscroll Calendar Styles */
-.mbsc-schedule-event {
+.dashboard-content .events-view .mbsc-schedule-event {
     background-color: #4A6572;
     color: #eee;
     border: none;
 }
 
-.mbsc-schedule-event-title {
+.dashboard-content .events-view .mbsc-schedule-event-title {
     color: #eee;
 }
 
-.mbsc-schedule-event-inner {
+.dashboard-content .events-view .mbsc-schedule-event-inner {
     padding: 10px;
 }
 
-.mbsc-schedule-header-month,
-.mbsc-schedule-header-day,
-.mbsc-schedule-day,
-.mbsc-schedule-date,
-.mbsc-schedule-time-col-header,
-.mbsc-schedule-time-col-time {
+.dashboard-content .events-view .mbsc-schedule-header-month,
+.dashboard-content .events-view .mbsc-schedule-header-day,
+.dashboard-content .events-view .mbsc-schedule-day,
+.dashboard-content .events-view .mbsc-schedule-date,
+.dashboard-content .events-view .mbsc-schedule-time-col-header,
+.dashboard-content .events-view .mbsc-schedule-time-col-time {
     color: #ccc;
     background-color: #182825;
 }
 
-.mbsc-schedule-time-col-header,
-.mbsc-schedule-time-col-time {
+.dashboard-content .events-view .mbsc-schedule-time-col-header,
+.dashboard-content .events-view .mbsc-schedule-time-col-time {
     color: #A2D149;
 }
 
-.mbsc-schedule-table {
+.dashboard-content .events-view .mbsc-schedule-table {
     border-color: #2f4843;
 }
 
 /* Custom Popup Styles */
-.modal {
+.dashboard-content .events-view .modal {
     display: none;
     position: fixed;
     top: 0;
@@ -45,7 +45,7 @@
     overflow: hidden;
 }
 
-.modal-content {
+.dashboard-content .events-view .modal-content {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -59,21 +59,21 @@
     max-height: 90vh;
     overflow-y: auto;
 }
-.modal-header {
+.dashboard-content .events-view .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
     border-bottom: 1px solid #2f4843;
 }
-.modal-header h5.modal-title {
+.dashboard-content .events-view .modal-header h5.modal-title {
     margin: 0;
     font-size: 1.4em;
     color: #A2D149;
     width: auto;
      text-align: left;
 }
-.modal-close {
+.dashboard-content .events-view .modal-close {
     cursor: pointer;
     font-size: 1.4em;
     color: #999;
@@ -82,30 +82,30 @@
     border: none;
 }
 
-.modal-close:hover {
+.dashboard-content .events-view .modal-close:hover {
     color: #eee;
 }
 
-.modal-body {
+.dashboard-content .events-view .modal-body {
     padding: 20px;
     overflow-y: auto;
      max-height: 70vh;
 }
 
-.modal-body p {
+.dashboard-content .events-view .modal-body p {
     margin: 0 0 10px 0;
     line-height: 1.5;
 }
 
-.modal-body strong {
+.dashboard-content .events-view .modal-body strong {
     color: #A2D149;
 }
-.modal-footer {
+.dashboard-content .events-view .modal-footer {
    text-align: right;
     margin-top: 20px;
 }
 
-.modal-footer button {
+.dashboard-content .events-view .modal-footer button {
     padding: 8px 15px;
     border: none;
    border-radius: 4px;
@@ -113,25 +113,25 @@
   cursor: pointer;
    transition: background-color 0.3s ease;
 }
-.modal-footer .btn-primary {
+.dashboard-content .events-view .modal-footer .btn-primary {
     background-color: #4A6572;
      color: #eee;
 }
-.modal-footer .btn-primary:hover {
+.dashboard-content .events-view .modal-footer .btn-primary:hover {
    background-color: #344955;
 }
-.modal-footer .btn-secondary {
+.dashboard-content .events-view .modal-footer .btn-secondary {
    background-color: #6c757d;
     color: #fff;
    transition: background-color 0.3s ease;
   margin-right: 10px;
 }
-.modal-footer .btn-secondary:hover {
+.dashboard-content .events-view .modal-footer .btn-secondary:hover {
      background-color: #5a6268;
 }
 
 /* Overlay Styles */
-.overlay {
+.dashboard-content .events-view .overlay {
     display: none;
     position: fixed;
    top: 0;
@@ -142,17 +142,18 @@
     z-index: 999;
 }
 /* Form Styles */
-.form-group {
+.dashboard-content .events-view .form-group {
   margin-bottom: 15px;
 }
-.form-group label {
+.dashboard-content .events-view .form-group label {
   display: block;
     margin-bottom: 5px;
    color: #ddd;
 }
-.form-control,
-.mbsc-textfield-input,
-.mbsc-textarea, #location {
+.dashboard-content .events-view .form-control,
+.dashboard-content .events-view .mbsc-textfield-input,
+.dashboard-content .events-view .mbsc-textarea,
+.dashboard-content .events-view #location {
     width: 93%;
    padding: 10px;
   border: 1px solid #2f4843;
@@ -168,11 +169,12 @@
    background-position-x: right;
  background-position-y: 50%;
 }
-.mbsc-textfield-input {
+.dashboard-content .events-view .mbsc-textfield-input {
    width: calc(100% - 20px);
 }
 /* Button Styles */
-.btn-primary, #showCreateEventPopup {
+.dashboard-content .events-view .btn-primary,
+.dashboard-content .events-view #showCreateEventPopup {
      background-color: #4A6572;
     color: #eee;
    border: none;
@@ -182,10 +184,11 @@
   transition: background-color 0.3s ease;
 }
 
-.btn-primary:hover, #showCreateEventPopup:hover {
+.dashboard-content .events-view .btn-primary:hover,
+.dashboard-content .events-view #showCreateEventPopup:hover {
     background-color: #344955;
 }
-.btn-secondary {
+.dashboard-content .events-view .btn-secondary {
     background-color: #6c757d;
    color: #fff;
     border: none;
@@ -194,11 +197,11 @@
   cursor: pointer;
     transition: background-color 0.3s ease;
 }
-.btn-secondary:hover {
+.dashboard-content .events-view .btn-secondary:hover {
       background-color: #5a6268;
 }
 
-.btn-danger {
+.dashboard-content .events-view .btn-danger {
     background-color: #dc3545;
    color: #fff;
    border: none;
@@ -207,21 +210,21 @@
  cursor: pointer;
     transition: background-color 0.3s ease;
 }
-.btn-danger:hover {
+.dashboard-content .events-view .btn-danger:hover {
   background-color: #c82333;
 }
 
 /* Other Styles */
-.event-actions {
+.dashboard-content .events-view .event-actions {
     margin-bottom: 30px;
 }
-#toast-container {
+.dashboard-content .events-view #toast-container {
     position: fixed;
     top: 20px;
     right: 20px;
    z-index: 10000;
 }
-.toast-message {
+.dashboard-content .events-view .toast-message {
      padding: 15px;
     margin-bottom: 10px;
     border-radius: 5px;
@@ -230,25 +233,25 @@
     align-items: center;
    justify-content: space-between;
 }
-.toast-message .close-toast {
+.dashboard-content .events-view .toast-message .close-toast {
   cursor: pointer;
   font-size: 1.2em;
   color: #d4edda;
   margin-left: 15px;
 }
 
-.toast-success {
+.dashboard-content .events-view .toast-success {
   background-color: #284228;
    color: #d4edda;
   border: 1px solid #28a745;
 }
 
-.toast-error {
+.dashboard-content .events-view .toast-error {
   background-color: #5a202c;
     color: #f8d7da;
     border: 1px solid #721c24;
 }
 
-.modal.show {
+.dashboard-content .events-view .modal.show {
     display: block;
 }

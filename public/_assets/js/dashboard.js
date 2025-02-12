@@ -47,5 +47,30 @@ function initialize() {
                 }
             }
         });
-    }   
+    } 
+    
+    if (document.getElementById('taskCompletionChart')) {
+        var ctxTaskCompletion = document.getElementById('taskCompletionChart').getContext('2d');
+        new Chart(ctxTaskCompletion, {
+            type: 'doughnut',
+            data: {
+                labels: ['Complété', 'Restant'],
+                datasets: [{
+                    data: [71, 29], // Ex. 71% complété
+                    backgroundColor: ['#C1FF72', '#333'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                cutout: '80%',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    
 }

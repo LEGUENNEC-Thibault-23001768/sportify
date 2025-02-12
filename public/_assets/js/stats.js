@@ -1,13 +1,12 @@
 (function() {
     const sportsStats = {
-        tennis: ["Temps total joué (en minutes)", "Nombre de sets gagnés", "Nombre d'aces"],
-        football: ["Temps total joué (en minutes)", "Buts marqués", "Nombre de passes"],
-        basketball: ["Temps total joué (en minutes)", "Points marqués", "Tirs cadrés"],
+        tennis: ["Temps total joué (en minutes)", "Distance parcourue (km)", "Calories brûlées (kcal)"],
+        football: ["Temps total joué (en minutes)", "Distance parcourue (km)", "Calories brûlées (kcal)"],
+        basketball: ["Temps total joué (en minutes)", "Distance parcourue (km)", "Calories brûlées (kcal)"],
         rpm: ["Temps total (en minutes)", "Calories brûlées (en kcal)", "Distance parcourue (en kilomètres)"],
         musculation: ["Temps total (en minutes)", "Poids maximum soulevé (en kg)", "Nombre de répétitions"],
         boxe: ["Temps de combat (en minutes)", "Coups réussis", "Coups encaissés"],
     };
-
 
     let selectedSport = "";
     let currentStatIndex = 0;
@@ -17,7 +16,7 @@
     let prevButton;
 
     // Function to load stats data from API
-   async function loadStatsData() {
+    async function loadStatsData() {
         try {
             const statsData = await getStatsData();
             console.log("Stats data: ", statsData);
@@ -30,45 +29,38 @@
 
     // Function to fetch stats data from API
     async function getStatsData() {
-         return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             $.ajax({
                 url: '/api/stats',
-               method: 'GET',
+                method: 'GET',
                 dataType: 'json',
                 success: function(data) {
                     resolve(data);
                 },
                 error: function(error) {
                     console.error("Error fetching stats data:", error);
-                   showToast("Error fetching stats data", 'error');
+                    showToast("Error fetching stats data", 'error');
                     reject(error)
-               }
+                }
             });
         });
     }
 
-    // Function to update the user interface with the fetched data
     function updateUI(statsData) {
         let chartData;
+    
         if (window.memberStatus === 'admin') {
             chartData = updateAdminUI(statsData);
         } else {
             chartData = updateMemberUI(statsData);
         }
+    
         renderBarChart(chartData);
         renderTaskCompletionChart(71);
     }
+    
 
     function updateAdminUI(statsData) {
-        if (statsData) {
-            // Handle admin UI updates if needed
-        }
-        return [0.5, 1, 1.5, 2, 0.5, 1.5, 0.25];
-    }
-
-
-    function updateMemberUI(statsData) {
-        const sportSelect = document.getElementById("sport-select");
         const statTitles = [
             document.querySelector("#stat-1 .report-title"),
             document.querySelector("#stat-2 .report-title"),
@@ -81,53 +73,76 @@
             document.getElementById("stat-3-value")
         ];
 
-        const updateStatsValues = (selectedSport, data) => {
-            if (data && data.topActivities) {
-                const activityData = data.topActivities.find((activity) => activity.sport_name === selectedSport);
+       if (statsData && statsData.averageRpmStats && statsData.averageRpmStats.length > 0) {
+            const rpmStats = statsData.averageRpmStats[0];
 
-                if (activityData) {
-                    statValues[0].textContent = activityData.total_time;
-                    statValues[1].textContent = activityData.score1;
-                    statValues[2].textContent = activityData.score2;
-                } else {
-                    statValues[0].textContent = "0";
-                    statValues[1].textContent = "0";
-                    statValues[2].textContent = "0";
-                }
-            } else {
-                statValues[0].textContent = "0";
-                statValues[1].textContent = "0";
-                statValues[2].textContent = "0";
-            }
-        };
+            statTitles[0].textContent = "Temps moyen (min)";
+            statTitles[1].textContent = "Calories moyennes (kcal)";
+            statTitles[2].textContent = "Distance moyenne (km)";
 
+            statValues[0].textContent = rpmStats.avg_time ? rpmStats.avg_time.toFixed(1) : "0";
+            statValues[1].textContent = rpmStats.avg_calories ? rpmStats.avg_calories.toFixed(1) : "0";
+            statValues[2].textContent = rpmStats.avg_distance ? rpmStats.avg_distance.toFixed(1) : "0";
 
-        const updateStats = () => {
-            const selectedSport = sportSelect.value;
-            const stats = sportsStats[selectedSport] || ["--", "--", "--"];
-            statTitles.forEach((title, index) => {
-                title.textContent = stats[index] || "--";
-            });
-            updateStatsValues(selectedSport, statsData)
-        };
-
-        sportSelect.addEventListener("change", updateStats);
-        updateStats();
-        if(statsData.performanceDataFootball) {
-            return [statsData.performanceDataFootball.monday || 0, statsData.performanceDataFootball.tuesday || 0, statsData.performanceDataFootball.wednesday || 0,
-                statsData.performanceDataFootball.thursday || 0, statsData.performanceDataFootball.friday || 0, statsData.performanceDataFootball.saturday || 0, statsData.performanceDataFootball.sunday || 0]
-        }  else if(statsData.performanceDataBasketball) {
-            return [statsData.performanceDataBasketball.monday || 0, statsData.performanceDataBasketball.tuesday || 0, statsData.performanceDataBasketball.wednesday || 0,
-                statsData.performanceDataBasketball.thursday || 0, statsData.performanceDataBasketball.friday || 0, statsData.performanceDataBasketball.saturday || 0, statsData.performanceDataBasketball.sunday || 0]
-        }
-        else if(statsData.performanceDataMusculation) {
-            return [statsData.performanceDataMusculation.monday || 0, statsData.performanceDataMusculation.tuesday || 0, statsData.performanceDataMusculation.wednesday || 0,
-                statsData.performanceDataMusculation.thursday || 0, statsData.performanceDataMusculation.friday || 0, statsData.performanceDataMusculation.saturday || 0, statsData.performanceDataMusculation.sunday || 0]
         } else {
-            return [0, 0, 0, 0, 0, 0, 0]
-        }
+           statTitles[0].textContent = "Temps total joué";
+           statTitles[1].textContent = "Buts marqués";
+           statTitles[2].textContent = "Passes réussies";
+            statValues[0].textContent = "0";
+            statValues[1].textContent = "0";
+            statValues[2].textContent = "0";
+       }
+         return [0.5, 1, 1.5, 2, 0.5, 1.5, 0.25];
     }
 
+    function updateMemberUI(statsData) {
+        const sportSelect = document.getElementById("sport-select");
+        const statTitles = [
+            document.querySelector("#stat-1 .report-title"),
+            document.querySelector("#stat-2 .report-title"),
+            document.querySelector("#stat-3 .report-title"),
+        ];
+    
+        const statValues = [
+            document.getElementById("stat-1-value"),
+            document.getElementById("stat-2-value"),
+            document.getElementById("stat-3-value"),
+        ];
+    
+        if (statsData.averageRpmStats) {
+            const rpmStats = statsData.averageRpmStats;
+    
+            statTitles[0].textContent = "Temps moyen (minutes)";
+            statTitles[1].textContent = "Calories moyennes (kcal)";
+            statTitles[2].textContent = "Distance moyenne (km)";
+    
+            statValues[0].textContent = rpmStats.avg_time ? rpmStats.avg_time.toFixed(1) : "0";
+            statValues[1].textContent = rpmStats.avg_calories ? rpmStats.avg_calories.toFixed(1) : "0";
+            statValues[2].textContent = rpmStats.avg_distance ? rpmStats.avg_distance.toFixed(1) : "0";
+        } else {
+            statTitles[0].textContent = "Temps total joué";
+            statTitles[1].textContent = "Buts marqués";
+            statTitles[2].textContent = "Passes réussies";
+            statValues[0].textContent = "0";
+            statValues[1].textContent = "0";
+            statValues[2].textContent = "0";
+        }
+    
+        if (statsData.performanceDataRpm) {
+            return [
+                statsData.performanceDataRpm.monday || 0,
+                statsData.performanceDataRpm.tuesday || 0,
+                statsData.performanceDataRpm.wednesday || 0,
+                statsData.performanceDataRpm.thursday || 0,
+                statsData.performanceDataRpm.friday || 0,
+                statsData.performanceDataRpm.saturday || 0,
+                statsData.performanceDataRpm.sunday || 0,
+            ];
+        } else {
+            return [0, 0, 0, 0, 0, 0, 0];
+        }
+    }
+    
     // Function to render the bar chart
     function renderBarChart(chartData) {
         const barCtx = document.getElementById("barChart").getContext("2d");
@@ -235,7 +250,7 @@
             card.addEventListener("click", handleSportSelection);
         });
 
-         document.querySelectorAll(".popup").forEach(popup => {
+        document.querySelectorAll(".popup").forEach(popup => {
             popup.addEventListener('transitionend', function() {
                 if (this.classList.contains('hidden')) {
                     this.style.display = 'none';
@@ -243,7 +258,7 @@
             });
         });
         document.querySelectorAll(".close-popup").forEach(closeBtn => {
-           closeBtn.removeEventListener("click", handleClosePopup);
+            closeBtn.removeEventListener("click", handleClosePopup);
             closeBtn.addEventListener("click", handleClosePopup);
         });
 
@@ -273,6 +288,9 @@
                 if (!document.getElementById("popup-stats").classList.contains("hidden")) {
                     handleNext();
                 }
+                 if (!document.getElementById("popup-rpm").classList.contains("hidden")) {
+                  handleRpmSubmit();
+                }
             }
         });
     }
@@ -282,17 +300,17 @@
         const addStatsButton = document.getElementById("add-stats-btn");
         addStatsButton.addEventListener("click", () => {
             resetPopups();
-           showPopup("popup-sports");
+            showPopup("popup-sports");
         });
     }
 
     // Function to handle sport selection
-    function handleSportSelection() {
+   function handleSportSelection() {
         resetPopups();
         selectedSport = this.dataset.sport;
-        currentStatIndex = 0;
-        statsValues = new Array(sportsStats[selectedSport].length).fill("");
-       hidePopup("popup-sports");
+	currentStatIndex = 0;
+	statsValues = new Array(sportsStats[selectedSport].length).fill("");
+        hidePopup("popup-sports");
         showPopup("popup-stats");
         updateStatPopup();
         isCongratsPopupActive = false;
@@ -302,7 +320,7 @@
     function handleClosePopup() {
         const currentPopup = this.closest(".popup");
         if (currentPopup) {
-           hidePopup(currentPopup.id);
+            hidePopup(currentPopup.id);
             showPopup("popup-confirmation");
             lastActivePopup = currentPopup;
         }
@@ -310,7 +328,7 @@
 
     // Function to handle confirmation of leaving the popup
     function handleConfirmYes() {
-       hidePopup("popup-confirmation");
+        hidePopup("popup-confirmation");
         initializePopups();
     }
 
@@ -325,7 +343,7 @@
 
     // Function to close the congrats popup
     function closeCongratsPopup() {
-      hidePopup("popup-congrats");
+        hidePopup("popup-congrats");
         isCongratsPopupActive = false;
     }
     const submitButton = document.getElementById("stat-submit-btn");
@@ -344,7 +362,7 @@
     }
 
     // Function to handle going to the next stat input or submitting
-   async function handleNext() {
+    async function handleNext() {
         const value = document.getElementById("stat-input").value;
         clearError();
         if (value === "") {
@@ -360,10 +378,10 @@
             currentStatIndex++;
             updateStatPopup();
         } else {
-          try {
+            try {
                 await saveStatsData(); // Save to API
                 hidePopup("popup-stats");
-               showPopup("popup-congrats");
+                showPopup("popup-congrats");
                 isCongratsPopupActive = true;
             } catch (err) {
                 console.error("Error saving stats", err)
@@ -371,17 +389,56 @@
             }
         }
     }
-   async function saveStatsData() {
+    
+    async function handleRpmSubmit() {
+        const rpmTime = document.getElementById("rpm-time-input").value;
+        const rpmCalories = document.getElementById("rpm-calories-input").value;
+        const rpmDistance = document.getElementById("rpm-distance-input").value;
+      clearError();
+        if (rpmTime === "") {
+            showError("Oups ! Tu dois entrer une valeur avant de continuer. 😅");
+            return;
+        }
+         if (rpmTime < 0) {
+            showError("Hé, on veut des stats positives ici, pas des valeurs de déprime ! 😜");
+            return;
+        }
+      try {
+            await saveStatsData(null, { playTime: rpmTime, calories: rpmCalories, distance: rpmDistance }); // Save to API
+              hidePopup("popup-rpm");
+              showPopup("popup-congrats");
+                isCongratsPopupActive = true;
+        } catch (err) {
+            console.error("Error saving RPM stats", err)
+          showToast("Error saving RPM stats!", 'error')
+        }
+    }
+
+
+    async function saveStatsData(stats = null, rpmData = null) {
         return new Promise((resolve, reject) => {
+            let data = {};
+          if (rpmData) {
+                data = {
+                    rpm: true,
+                    playTime: rpmData.playTime,
+                    calories: rpmData.calories,
+                    distance: rpmData.distance,
+                    member_id: window.currentUserId
+                }
+            } else {
+             data = {
+                    sport: selectedSport,
+                    stats: statsValues,
+                    member_id: window.currentUserId,
+                }
+            }
+
             $.ajax({
                 url: '/api/stats',
                 method: 'POST',
                 dataType: 'json',
-                data: {
-                    sport: selectedSport,
-                    stats: statsValues,
-                    member_id: window.currentUserId,
-                },
+                data: data,
                 success: function(data) {
                     console.log("Stats saved successfully:", data);
                     showToast("Stats saved successfully!", 'success')
@@ -409,23 +466,34 @@
 
     function resetPopups() {
         document.querySelectorAll(".popup").forEach(popup => {
-             hidePopup(popup.id);
+            hidePopup(popup.id);
         });
         clearError();
-        document.getElementById("stat-input").value = "";
+       document.querySelectorAll('.form-input').forEach(input => {
+           input.value = '';
+       });
+       document.getElementById("stat-input").value = "";
     }
 
 
     // Function to display error messages
-    function showError(message) {
+   function showError(message) {
         const errorDiv = document.getElementById("error-message");
         errorDiv.textContent = message;
         errorDiv.style.color = "red";
-        document.getElementById("stat-input").classList.add("input-error");
+        if(document.getElementById("stat-input")) {
+             document.getElementById("stat-input").classList.add("input-error");
+             setTimeout(() => {
+                  document.getElementById("stat-input").classList.remove("input-error");
+             }, 500);
+        }
+        if(document.getElementById("rpm-time-input")) {
+              document.getElementById("rpm-time-input").classList.add("input-error");
+              setTimeout(() => {
+                   document.getElementById("rpm-time-input").classList.remove("input-error");
+             }, 500);
+        }
 
-        setTimeout(() => {
-            document.getElementById("stat-input").classList.remove("input-error");
-        }, 500);
     }
 
     function clearError() {
@@ -448,8 +516,8 @@
     function showPopup(popupId) {
         const popup = document.getElementById(popupId);
         if(popup) {
-          popup.style.display = 'block';
-           popup.classList.remove('hidden');
+            popup.style.display = 'block';
+            popup.classList.remove('hidden');
         }
     }
 
@@ -459,9 +527,9 @@
             popup.classList.add('hidden');
         }
     }
-     window.initialize = () => {
+    window.initialize = () => {
 
-           // Create previous button here
+        // Create previous button here
         prevButton = document.createElement("button");
         prevButton.id = "stat-prev-btn";
         prevButton.textContent = "Précédent";
@@ -470,11 +538,13 @@
         buttonsContainer.insertBefore(prevButton, submitButton);
 
         prevButton.addEventListener("click", handlePrev);
-          // Add click event listener to submit button
+        // Add click event listener to submit button
         submitButton.addEventListener("click", handleNext);
-
-        loadStatsData();
+         loadStatsData();
         initializePopups();
         setupAddStatsButton();
-   };
+    };
+     window.addEventListener('DOMContentLoaded', () => {
+            window.initialize();
+        })
 })();

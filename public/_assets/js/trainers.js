@@ -74,7 +74,7 @@
                     <div id="calendar-section">
                         <h3>Calendrier de réservation du coach <span class="math-inline">${trainer.first_name} ${trainer.last_name}</span> (${trainer.specialty})</h3>
                         <div id="demo-mobile-day-view" style="height: 500px;"></div>
-                        <div id="event-form" style="display: none; position: fixed; background: rgba(255, 255, 255, 0.9); padding: 20px; border: 1px solid #ddd;
+                        <div id="event-form" style="display: none; position: fixed; padding: 20px; border: 1px solid #ddd;
                             top: 50%; left: 50%; transform: translate(-50%, -50%);
                             width: 300px; z-index: 999;">
                             <span id="close-form" style="position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 20px;">×</span>

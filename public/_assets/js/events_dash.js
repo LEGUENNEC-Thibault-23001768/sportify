@@ -262,7 +262,7 @@
     }
 
     // Fonction pour supprimer un événement
-    async function deleteEvent(eventId) {
+   window.deleteEvent = async(eventId) => {
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: '/api/events/' + eventId,

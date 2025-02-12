@@ -95,7 +95,7 @@ body, html {
 
 .card-grid .performance-card {
     background-color: #C1FF72;
-    color: black;
+    color: white;
     box-shadow: 0 0 20px rgba(103, 255, 103, 0.5);
 }
 
@@ -107,7 +107,7 @@ body, html {
 
 .performance-card {
     background-color: #C1FF72;
-    color: black;
+    color: white;
     border-radius: 15px;
     padding: 0;
     display: flex;
