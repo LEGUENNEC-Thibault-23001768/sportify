@@ -22,7 +22,7 @@
     <footer>
         <div class="footer-container">
             <div class="logofoot">
-                <img src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify" class="logofoot">
+                <img src="https://cdn.discordapp.com/attachments/1291132446837837896/1327212672277807174/Sport_400_x_250_px_300_x_100_px.png?ex=6788d61f&is=6787849f&hm=90ac4cc2cc452781e914ad31cfe32b3007486b08e59fe9ba1ddb87ec31e8a321&" alt="Logo Sportify" class="logofoot">
             </div>
             <div class="footer-links">
                 <ul>

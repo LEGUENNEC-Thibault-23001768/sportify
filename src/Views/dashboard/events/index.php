@@ -1,11 +1,13 @@
 <?php use Models\Booking; ?>
 
-<div data-view="events_dash">
+<div class="events-view" data-view="events_dash">
     <div class="container">
         <div id="myCalendar"></div>
 
-<div>
-        <button id="createEventButton" class="btn btn-primary" onclick="openCreateEventPopup()">Create Event</button>
+    <div>
+        <?php if ($user["status"] === "admin" || $user["status"] == "coach"): ?>
+            <button id="createEventButton" class="btn btn-primary" onclick="openCreateEventPopup()">Créer un événement</button>
+        <?php endif; ?>
     </div>
 
     <!-- Event Details Modal -->
@@ -34,7 +36,7 @@
             <div class="modal-body">
                 <form id="eventForm">
                     <div class="form-group">
-                        <label for="event_name">Event Name</label>
+                        <label for="event_name">Nom de l'évènement</label>
                         <input type="text" id="event_name" name="event_name" class="form-control" required>
                     </div>
                      <div class="form-group">
@@ -45,11 +47,11 @@
                         <textarea id="description" name="description" class="form-control"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="max_participants">Max Participants</label>
+                        <label for="max_participants">Participants au max</label>
                         <input type="number" id="max_participants" name="max_participants" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="location">Location</label>
+                        <label for="location">Reservation</label>
                         <select id="location" name="location">
                             <option value="" disabled selected>Select a location</option>
                             <?php
@@ -78,8 +80,8 @@
                           <div id="location-times"></div>
                     </div>
                     <div class="form-group">
-                        <label for="invitations">Invite by Email (comma-separated)</label>
-                        <textarea id="invitations" name="invitations" class="form-control" placeholder="Enter email addresses separated by commas"></textarea>
+                        <label for="invitations">Inviter par mail (séparé par virgule)</label>
+                        <textarea id="invitations" name="invitations" class="form-control" placeholder="Entrez les emails"></textarea>
                     </div>
                      <div class="form-group" style="display: none;">
                         <label for="start_time">Start Time</label>

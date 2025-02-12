@@ -15,7 +15,7 @@ class AuthController implements RouteProvider
     {
         Router::get('/login', self::class . '@showLoginForm');
         Router::get('/register', self::class . '@showLoginForm');
-        Router::get('/verify-email', self::class . '@verifyEmail');
+        Router::get('/verify-mail', self::class . '@verifyEmail');
         Router::get('/logout', self::class . '@logout', Auth::requireLogin());
         
         Router::get('/forgot-password', self::class . '@showForgotPasswordForm');
@@ -130,12 +130,13 @@ class AuthController implements RouteProvider
     public function verifyEmail()
     {
         $token = $_GET['token'] ?? '';
+        $message = '';
         if (User::verifyEmail($token)) {
             $message = "Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.";
         } else {
             $message = "Le lien de vérification est invalide ou a expiré.";
         }
-        View::render('auth/login', ['message' => $message]);
+        echo View::render('auth/login', ['message' => $message]);
     }
 
     public function sendResetLink()
@@ -143,7 +144,7 @@ class AuthController implements RouteProvider
         $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
         
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo View::render('auth/forgot-password', ['error' => "Format d'email invalide."]);
+            echo View::render('auth/forgot-password', ['css'=>'auth','error' => "Format d'email invalide."]);
             return;
         }
 
@@ -152,12 +153,12 @@ class AuthController implements RouteProvider
             $token = bin2hex(random_bytes(32));
             if (User::storeResetToken($email, $token)) {
                 User::sendPasswordResetEmail($email, $token);
-                echo View::render('auth/forgot-password', ['message' => "Un lien de réinitialisation a été envoyé à votre adresse email."]);
+                echo View::render('auth/forgot-password', ['css' => 'auth','message' => "Un lien de réinitialisation a été envoyé à votre adresse email."]);
             } else {
-                echo View::render('auth/forgot-password', ['error' => "Une erreur est survenue. Veuillez réessayer."]);
+                echo View::render('auth/forgot-password', ['css'=> 'auth','error' => "Une erreur est survenue. Veuillez réessayer."]);
             }
         } else {
-            echo View::render('auth/forgot-password', ['error' => "Aucun compte trouvé avec cet email."]);
+            echo View::render('auth/forgot-password', ['css'=>'auth','error' => "Aucun compte trouvé avec cet email."]);
         }
     }
 
@@ -189,14 +190,16 @@ class AuthController implements RouteProvider
         $confirmPassword = $_POST['confirm_password'] ?? '';
 
         if ($password !== $confirmPassword) {
-            echo View::render('auth/reset-password', ['error' => "Les mots de passe ne correspondent pas.", 'token' => $token]);
+            echo View::render('auth/reset-password', ['css'=>'auth','error' => "Les mots de passe ne correspondent pas.", 'token' => $token]);
             return;
         }
 
         if (User::resetPassword($token, $password)) {
+		header("/login");
+		exit();
             echo View::render('auth/login', ['message' => "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter."]);
         } else {
-            echo View::render('auth/reset-password', ['error' => "Le lien de réinitialisation est invalide ou a expiré.", 'token' => $token]);
+            echo View::render('auth/reset-password', ['css'=>'auth','error' => "Le lien de réinitialisation est invalide ou a expiré.", 'token' => $token]);
         }
     }
 }

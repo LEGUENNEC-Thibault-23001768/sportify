@@ -1,12 +1,11 @@
 <?php
 
 
-define('IS_LOCAL', true);
+define('IS_LOCAL', false);
 
 ini_set('SMTP', 'smtp-sportify.alwaysdata.net');
 ini_set('smtp_port', 587);
 ini_set('sendmail_from', 'sportify@alwaysdata.net');
-
 
 define("SERVER_URL",  IS_LOCAL ? 'http://localhost:8080' : 'https://sportify.alwaysdata.net',);
 
@@ -21,7 +20,7 @@ return [
     'server_url' => SERVER_URL,
     'db_host' => 'mysql-sportify.alwaysdata.net',
     'db_user' => 'sportify',
-    'db_pass' => 'lechatrouge',
+    'db_pass' => 'lechienvert',
     'db_name' => 'sportify_db',
     'mail_parts' => [
         'mail_head' => "<html>\r\n<head>\r\n\r\n<meta charset='utf-8'>\r\n\r\n<title>",

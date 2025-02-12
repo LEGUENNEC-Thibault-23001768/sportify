@@ -1,5 +1,4 @@
 <?php
-
 namespace Tests\Core;
 
 use PHPUnit\Framework\TestCase;
@@ -7,44 +6,45 @@ use Core\Config;
 
 class ConfigTest extends TestCase
 {
-    private $testConfigPath;
+    private $configFilePath;
 
     protected function setUp(): void
     {
-        $this->testConfigPath = __DIR__ . '/test_config.php';
-        file_put_contents($this->testConfigPath, "<?php return ['test_key' => 'test_value', 'nested' => ['key' => 'nested_value']];");
-         Config::load($this->testConfigPath);
+        $this->configFilePath = __DIR__ . '/../config_test.php';
     }
 
     protected function tearDown(): void
     {
-      if(file_exists($this->testConfigPath)){
-           unlink($this->testConfigPath);
-         }
+        if (file_exists($this->configFilePath)) {
+            unlink($this->configFilePath);
+        }
     }
 
     public function testLoadConfig()
-     {
-         $this->assertFileExists($this->testConfigPath);
-        $this->assertNotNull(Config::get('test_key'));
-       $this->assertNotNull(Config::get('nested'));
+    {
+        file_put_contents($this->configFilePath, '<?php return ["test_key" => "test_value"];');
+        Config::load($this->configFilePath);
+        $this->assertEquals("test_value", Config::get("test_key"));
+    }
 
-     }
+    public function testGetExistingConfig()
+    {
+        file_put_contents($this->configFilePath, '<?php return ["setting1" => "value1"];');
+        Config::load($this->configFilePath);
+        $this->assertEquals('value1', Config::get('setting1'));
+    }
+
+    public function testGetNonExistingConfigWithDefault()
+    {
+        file_put_contents($this->configFilePath, '<?php return [];');
+        Config::load($this->configFilePath);
+        $this->assertEquals('default', Config::get('non_existing_key', 'default'));
+    }
     
-
-    public function testGetConfigValue()
+    public function testGetNonExistingConfigWithoutDefault()
     {
-        $this->assertEquals('test_value', Config::get('test_key'));
-        $this->assertEquals(['key' => 'nested_value'], Config::get('nested'));
-        $this->assertEquals('nested_value', Config::get('nested')['key']);
-
+        file_put_contents($this->configFilePath, '<?php return [];');
+        Config::load($this->configFilePath);
+       $this->assertNull(Config::get('non_existing_key'));
     }
-
-    public function testGetConfigValueWithDefault()
-    {
-      
-       $this->assertEquals('default_value', Config::get('nonexistent_key', 'default_value'));
-       $this->assertNull(Config::get('nonexistent_key'));
-    }
-
 }

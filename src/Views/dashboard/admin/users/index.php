@@ -1,4 +1,4 @@
-<div class="main-content" id="manage-users-content" data-view="manage_users"> <div class="container mt-5">
+<div class="main-content manage-users-view" id="manage-users-content" data-view="manage_users"> <div class="container mt-5">
         <?php if (isset($_SESSION['success_message'])): ?>
             <div class="alert alert-success">
                 <?= $_SESSION['success_message'] ?>

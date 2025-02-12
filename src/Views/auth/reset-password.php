@@ -5,10 +5,10 @@
     <section class="reset-password-section">
         <h1>Réinitialiser votre mot de passe</h1>
         <p>Veuillez entrer votre nouveau mot de passe.</p>
-        <form action="reset-password" method="POST" class="reset-password-form">
+        <form action="/reset-password" method="POST" class="reset-password-form">
             <div class="password-container">
                 <input type="password" id="new-password" name="password" placeholder="Nouveau mot de passe" required>
-                <span class="toggle-password" onclick="togglePassword('new-password')">&#128065;</span>
+                <span class="toggle-password" onclick="togglePassword('new-password', this)">&#128065;</span>
             </div>
 
             <ul id="password-constraints-list" class="hidden">
@@ -21,7 +21,7 @@
 
             <div class="password-container">
                 <input type="password" id="confirm-password" name="confirm_password" placeholder="Confirmer le mot de passe" required>
-                <span class="toggle-password" onclick="togglePassword('confirm-password')">&#128065;</span>
+                <span class="toggle-password" onclick="togglePassword('confirm-password', this)">&#128065;</span>
             </div>
 
             <button type="submit" class="btn-submit" id="submit-btn" disabled>Réinitialiser</button>

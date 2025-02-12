@@ -20,7 +20,7 @@
                 <div class="right-section">
                     <div class="profile-picture-container">
                         <label for="profile_picture">
-                            <img src="/uploads/profile_pictures/<?= !empty($user['profile_picture']) ? htmlspecialchars(basename($user['profile_picture'])) : 'https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg'; ?>" alt="Photo de profil" class="profile-picture">
+                            <img src="<?= !empty($user['profile_picture']) ? "/uploads/profile_pictures/" . htmlspecialchars(basename($user['profile_picture'])) : 'https://i.pinimg.com/564x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg'; ?>" alt="Photo de profil" class="profile-picture">
                             <div class="overlay">
                                 <i class="fas fa-camera"></i>
                                 <span>Changer la photo</span>

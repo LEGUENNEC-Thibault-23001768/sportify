@@ -1,1009 +1,1610 @@
 
---- Content of ./src/Controllers/GoogleAuthController.php: ---
+--- Content of ./phpunit.xml: ---
+
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="Autoloader.php"
+        colors="true"
+        testdox="true"
+        displayDetailsOnTestsThatTriggerWarnings="true"
+        >
+    <testsuites>
+        <testsuite name="tests">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <server name="DOCUMENT_ROOT" value="./public"/>
+    </php>
+</phpunit>
+
+
+--- End of ./phpunit.xml ---
+
+
+--- Content of ./tests/AutoloaderTest.php: ---
 
 <?php
 
-namespace Controllers;
+use PHPUnit\Framework\TestCase;
 
-use Google\Auth\OAuth2;
-use GuzzleHttp\Client;
-use Core\View;
-use Core\Config;
-use Models\User;
-
-class GoogleAuthController
+class AutoloaderTest extends TestCase
 {
-    private $oauth;
-
-    public function __construct()
+    protected function setUp(): void
     {
-        $this->oauth = new OAuth2([
-            'clientId' => Config::get("google")["clientId"],
-            'clientSecret' => Config::get("google")["clientSecret"],
-            'authorizationUri' => Config::get("google")["authorizationUri"],
-            'tokenCredentialUri' => Config::get("google")["tokenCredentialUri"],
-            'redirectUri' => Config::get("google")["redirectUri"],
-            'scope' => ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
-        ]);
+        // Ensure the autoloader is registered
+        require_once __DIR__ . '/../Autoloader.php';
     }
 
-    public function login()
+    public function testAutoloaderLoadsClasses()
     {
-        $authUrl = $this->oauth->buildFullAuthorizationUri([
-            'access_type' => 'offline',
-            'prompt' => 'consent',
-            'response_type' => 'code'
-        ]);
+        $this->assertTrue(class_exists('Controllers\HomeController'));
 
-        header('Location: ' . filter_var($authUrl, FILTER_SANITIZE_URL));
-        exit();
+        $this->assertTrue(class_exists('Models\User'));
+
+        $this->assertTrue(class_exists('Core\Router'));
     }
 
-    public function callback()
-    {        
-        if (!isset($_GET['code'])) {
-            header('Location: /login');
-            exit();
-        }
-
-        try {
-            $this->oauth->setCode($_GET['code']);
-            
-            $token = $this->oauth->fetchAuthToken();
-            $_SESSION['google_access_token'] = $token['access_token'];
-
-            if (isset($token['refresh_token'])) {
-                $_SESSION['google_refresh_token'] = $token['refresh_token'];
-            }
-
-            $userInfo = $this->getUserInfo($token['access_token']);
-
-            $firstName = $userInfo['given_name'];
-            $lastName = $userInfo['family_name'];
-            $email = $userInfo['email'];
-
-            $user = User::findByEmail($email);
-
-            if (!$user) {
-                $userData = [
-                    'email' => $email,
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'password' => null, 
-                ];
-
-                User::create($userData);
-            }
-
-            $_SESSION['user'] = [
-                'first_name' => $firstName,
-                'last_name' => $lastName,
-                'email' => $email
-            ];
-            
-            $_SESSION['user_id'] = isset($user['member_id']) ? $user['member_id'] : null;
-            $_SESSION['user_email'] = $email;
-
-            header('Location: /dashboard');
-            exit();
-        } catch (\Exception $e) {
-            header('Location: /error?message=' . urlencode($e->getMessage()));
-            exit();
-        }
+    public function testAutoloaderHandlesNonexistentClasses()
+    {
+        $this->assertFalse(class_exists('NonexistentNamespace\NonexistentClass'));
     }
 
-    private function getUserInfo($accessToken)
+    public function testAutoloaderRespectsNamespaces()
     {
-        $client = new Client();
-        $response = $client->get('https://www.googleapis.com/oauth2/v2/userinfo', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken
-            ]
-        ]);
+        $homeController = new Controllers\HomeController();
+        $this->assertInstanceOf('Controllers\HomeController', $homeController);
 
-        return json_decode($response->getBody(), true);
+        $user = new Models\User();
+        $this->assertInstanceOf('Models\User', $user);
     }
 }
 
---- End of ./src/Controllers/GoogleAuthController.php ---
+--- End of ./tests/AutoloaderTest.php ---
 
 
---- Content of ./src/Controllers/PaymentController.php: ---
+--- Content of ./tests/Core/RouterTest.php: ---
 
 <?php
 
-namespace Controllers;
+namespace Tests\Core;
 
-use Stripe\Stripe;
-use Stripe\Checkout\Session;
-use Stripe\Invoice;
-use Stripe\StripeClient;
-use Models\Subscription;
-use Core\Config;
-use Core\View;
+use PHPUnit\Framework\TestCase;
+use Core\Router;
 
-class PaymentController
+class RouterTest extends TestCase
 {
-    private $stripe;
-    
-    public function __construct()
+    private $router;
+
+    public function setUp(): void
     {
-        Stripe::setApiKey(Config::get("stripe_key"));
-        $this->stripe = new StripeClient((Config::get("stripe_key")));
-    }
+        // Reset routes before each test
+        $this->router = new Router();
+        $reflection = new \ReflectionClass($this->router);
+        $routes = $reflection->getProperty('routes');
+        $routes->setAccessible(true);
+        $routes->setValue($this->router, []);
 
-    public function createCheckoutSession()
-    {
-        $userEmail = $_SESSION['user_email'];
+        $initialized = $reflection->getProperty('initialized');
+        $initialized->setAccessible(true);
+        $initialized->setValue($this->router, false);
 
-        $existingCustomers = $this->stripe->customers->search([
-            'query' => "email:'$userEmail'",
-        ]);
-
-        if (!empty($existingCustomers->data)) {
-            $customerId = $existingCustomers->data[0]->id;
-        } else {
-            $newCustomer = $this->stripe->customers->create([
-                'email' => $userEmail,
-            ]);
-            $customerId = $newCustomer->id;
-        }
-
-        $session = Session::create([
-            'customer' => $customerId, 
-            'payment_method_types' => ['card'],
-            'line_items' => [[
-                'price' => 'price_1QBAtU01Olm6yDgOPUmJnGEf',
-                'quantity' => 1,
-            ]],
-            'mode' => 'subscription',
-            'success_url' => Config::get("server_url") . '/success?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => Config::get("server_url") . '/dashboard',
-            'client_reference_id' => $_SESSION['user_id'],
-        ]);
-
-        header("Location: " . $session->url);
-        exit();
-    }
-
-    public function success()
-    {
-        $sessionId = $_GET['session_id'] ?? null; 
-        if (!$sessionId) {
-            $_SESSION['error'] = "Erreur : Session ID manquant.";
-            header('Location: /dashboard');
-            exit;
-        }
-
-        try {
-            $session = Session::retrieve($sessionId);
-            $subscription = $this->stripe->subscriptions->retrieve($session->subscription);
-            $customer = $this->stripe->customers->retrieve($subscription->customer);
-
-            $memberId = $session->client_reference_id;
-            $startDate = date('Y-m-d', $subscription->current_period_start);
-            $endDate = date('Y-m-d', $subscription->current_period_end);
-            $amount = $subscription->plan->amount / 100;
-
-            $existingSubscription = Subscription::getActiveSubscription($memberId);
-
-            if ($existingSubscription) {
-                Subscription::updateSubscription(
-                    $memberId,
-                    $subscription->id,
-                    $subscription->plan->nickname,
-                    $startDate,
-                    $endDate,
-                    $amount
-                );
-                $_SESSION['message'] = "Votre abonnement a été mis à jour avec succès.";
-            } else {
-                Subscription::createSubscription(
-                    $memberId,
-                    $subscription->id,
-                    $subscription->plan->nickname,
-                    $startDate,
-                    $endDate,
-                    $amount
-                );
-                $_SESSION['message'] = "Merci pour votre abonnement ! Vous avez été abonné avec succès.";
-            }
-        } catch (\Exception $e) {
-            $_SESSION['error'] = "Une erreur est survenue lors de la gestion de l'abonnement : " . $e->getMessage();
-        }
-        
-        header('Location: /dashboard');
-        exit();
-    }
-
-    public function listInvoices() 
-    {
-        try {
-            $activeSubscription = Subscription::getStripeSubscriptionId($_SESSION['user_id']);
-            
-            if (!$activeSubscription) {
-                $_SESSION['error'] = "Aucun abonnement actif trouvé.";
-                echo "pas d'abonnement the fuck?";
-                exit;
-            }
-
-            $stripeSubscription = $this->stripe->subscriptions->retrieve($activeSubscription['stripe_subscription_id']);
-            $invoices = $this->stripe->invoices->all([
-                'customer' => $stripeSubscription->customer,
-                'limit' => 10,
-                'expand' => ['data.payment_intent']
-            ]);
-
-            $formattedInvoices = [];
-            foreach ($invoices->data as $invoice) {
-                $paymentMethod = null;
-                if ($invoice->payment_intent && $invoice->payment_intent->payment_method) {
-                    $paymentMethod = $this->stripe->paymentMethods->retrieve($invoice->payment_intent->payment_method);
+        $controllers = $reflection->getProperty('controllers');
+        $controllers->setAccessible(true);
+        $controllers->setValue($this->router, []);
+         
+        // Mock the RouteProvider implementation
+        $mockControllerClass = 'Tests\\MockController';
+        eval('namespace Tests;
+            use Core\RouteProvider;
+            class MockController implements RouteProvider
+            {
+                public static function routes()
+                {
+                   \Core\Router::get("/mock-route", "' . $mockControllerClass . '@index");
+                   \Core\Router::apiResource("/mock-api-resource", "' . $mockControllerClass . '");
                 }
-
-                $lastFourDigits = $paymentMethod ? $paymentMethod->card->last4 : 'N/A';
-                $cardBrand = $paymentMethod ? $paymentMethod->card->brand : 'N/A';
-
-                $formattedInvoices[] = [
-                    'id' => $invoice->id,
-                    'number' => $invoice->number,
-                    'amount_due' => $invoice->amount_due / 100,
-                    'currency' => strtoupper($invoice->currency),
-                    'status' => $invoice->status,
-                    'created' => date('d M Y', $invoice->created),
-                    'due_date' => date('d M Y', $invoice->due_date),
-                    'pdf_url' => $invoice->invoice_pdf,
-                    'last_four_digits' => $lastFourDigits,
-                    'card_brand' => $cardBrand
-                ];
-            }
-
-            echo View::render('dashboard/invoices', ['invoices' => $formattedInvoices]);
-        } catch (\Exception $e) {
-            echo "erreur lors de récupération: " . $e->getMessage();
-            exit;
-        }
-    }
-
-    public function cancelSubscription()
-    {
-        try {
-            $activeSubscription = Subscription::getActiveSubscription($_SESSION['user_id']);
-
-            if (!$activeSubscription) {
-                exit;
-            }
-
-            $stripeSubscription = $this->stripe->subscriptions->update(
-                $activeSubscription['stripe_subscription_id'],
-                ['cancel_at_period_end' => true]
-            );
-
-            Subscription::updateSubscriptionStatus($activeSubscription['stripe_subscription_id'], 'Cancelling');
-
-            $_SESSION['message'] = "Votre abonnement sera annulé à la fin de la période de facturation en cours.";
-        } catch (\Exception $e) {
-            $_SESSION['error'] = "Une erreur est survenue lors de l'annulation de l'abonnement : " . $e->getMessage();
-        }
-
-        header('Location: /dashboard');
-        exit;
-    }
-}
-
---- End of ./src/Controllers/PaymentController.php ---
-
-
---- Content of ./src/Controllers/TeamController.php: ---
-
-<?php
-
-namespace Controllers;
-
-use Core\View;
-use Models\User;
-use Models\Team;
-use Models\TeamParticipant;
-
-class TeamController
-{
-    public function create($event_id)
-    {
-        $members = User::getAll();
-        echo View::render('teams/create', ['event_id' => $event_id, 'members' => $members]);
-    }
-
-   
-    public function store($event_id)
-    {
-        $teamName = $_POST['team_name'];
-        $selectedMembers = $_POST['members'];
-
-        $team_id = Team::create($event_id, $teamName);
-
-        foreach ($selectedMembers as $member_id) {
-            TeamParticipant::addParticipant($team_id, $member_id);
-        }
-
-        header('Location: /events/' . $event_id); 
-        exit();
-    }
-
-    public function edit($team_id)
-    {
-        $team = Team::findById($team_id);
-        $membersInTeam = TeamParticipant::getMembersByTeam($team_id);
-        $allMembers = User::getAll(); 
-
-        echo View::render('teams/edit', [
-            'team' => $team,
-            'membersInTeam' => $membersInTeam,
-            'allMembers' => $allMembers
-        ]);
-    }
-
-    public function update($team_id)
-    {
-        $teamName = $_POST['team_name'];
-        $selectedMembers = $_POST['members'];
-
-        Team::update($team_id, $teamName);
-
-        TeamParticipant::deleteParticipantsByTeam($team_id);
-
-        foreach ($selectedMembers as $member_id) {
-            $teamParticipant = new TeamParticipant();
-            $teamParticipant->addParticipant($team_id, $member_id);
-        }
-
-        header('Location: /teams/' . $team_id);
-        exit();
-    }
-
-    public function delete($team_id)
-    {
-        TeamParticipant::deleteParticipantsByTeam($team_id);
-
-        Team::delete($team_id);
-
-        header('Location: /teams');
-        exit();
-    }
-}
-
-
---- End of ./src/Controllers/TeamController.php ---
-
-
---- Content of ./src/Controllers/AuthController.php: ---
-
-<?php
-
-namespace Controllers;
-
-use Models\User;
-use Core\Auth;
-use Core\View;
-use Google\Auth\OAuth2;
-use GuzzleHttp\Client;
-
-
-class AuthController
-{
-
-
-    public function showLoginForm()
-    {
-        echo View::render('auth/login');
-    }
-
-    public function showRegisterForm()
-    {
-        echo View::render('auth/register');
-    }
-
-    public function login()
-    {
-        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['error_message'] = "Format d'email invalide.";
-            header('Location: /login');
-            exit;
-        }
-
-        
-        $password = $_POST['password'] ?? '';
-        $user = User::login($email, $password);
-
-        if ($user) {
-            $_SESSION['user_id'] = $user['member_id'];
-            $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-            $_SESSION['user_email'] = $user['email'];
-            header('Location: /dashboard');
-            exit;
-        } else {
-            echo View::render('auth/login', ['error' => 'Email ou mot de passe incorrect.']);
-        }
-    }
-
-    public function logout()
-    {
-        $_SESSION = array();
-        if (ini_get("session.use_cookies")) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', 1,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
-            );
-        }
-        
-        session_destroy();
-        header('Location: /login');
-        exit;
-    }
-
-    public function register()
-    {
-        $email = trim($_POST['email']);
-        $password = trim($_POST['password']);
-        $confirmPassword = trim($_POST['confirm_password']);
-
-        if (empty($email) || empty($password) || empty($confirmPassword)) {
-            $error = 'Tous les champs sont obligatoires.';
-            echo View::render('auth/login', ['error' => $error]);
-            return;
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = 'Veuillez entrer un email valide.';
-            echo View::render('auth/login', ['error' => $error]);
-            return;
-        }
-
-        if ($password !== $confirmPassword) {
-            $error = 'Les mots de passe ne correspondent pas.';
-            echo View::render('auth/login', ['error' => $error]);
-            return;
-        }
-
-        if (User::findByEmail($email)) {
-            $error = 'Cet email est déjà utilisé.';
-            echo View::render('auth/login', ['error' => $error]);
-            return;
-        }
-
-        $newUser = [
-            'email' => $email,
-            'password' => $password,
-            'first_name' => 'DefaultFirst', 
-            'last_name' => 'DefaultLast',   
-            'birth_date' => null,           
-            'address' => null,              
-            'phone' => null                 
-        ];
-
-        if (User::create($newUser)) {
-            $message = "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception.";
-            echo View::render('auth/login', ['message' => $message]);
-        } else {
-            $error = "Erreur lors de l'inscription. Veuillez réessayer.";
-            echo View::render('auth/login', ['error' => $error]);
-        }
-    }
-
-    public function verifyEmail()
-    {
-        $token = $_GET['token'] ?? '';
-        if (User::verifyEmail($token)) {
-            $message = "Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter.";
-        } else {
-            $message = "Le lien de vérification est invalide ou a expiré.";
-        }
-        View::render('auth/login', ['message' => $message]);
-    }
-
-    public function sendResetLink()
-    {
-        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-        
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo View::render('auth/forgot-password', ['error' => "Format d'email invalide."]);
-            return;
-        }
-
-        $user = User::findByEmail($email);
-        if ($user) {
-            $token = bin2hex(random_bytes(32));
-            if (User::storeResetToken($email, $token)) {
-                User::sendPasswordResetEmail($email, $token);
-                echo View::render('auth/forgot-password', ['message' => "Un lien de réinitialisation a été envoyé à votre adresse email."]);
-            } else {
-                echo View::render('auth/forgot-password', ['error' => "Une erreur est survenue. Veuillez réessayer."]);
-            }
-        } else {
-            echo View::render('auth/forgot-password', ['error' => "Aucun compte trouvé avec cet email."]);
-        }
-    }
-
-    public function showForgotPasswordForm()
-    {
-        echo View::render('auth/forgot-password');
-    }
-
-    public function showResetPasswordForm()
-    {
-        $token = $_GET['token'] ?? '';
-        if (empty($token)) {
-            header('Location: /login');
-            exit;
-        }
-        echo View::render('auth/reset-password', ['token' => $token]);
-    }
-
-    public function resetPassword()
-    {
-        $token = $_POST['token'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
-
-        if ($password !== $confirmPassword) {
-            echo View::render('auth/reset-password', ['error' => "Les mots de passe ne correspondent pas.", 'token' => $token]);
-            return;
-        }
-
-        if (User::resetPassword($token, $password)) {
-            echo View::render('auth/login', ['message' => "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter."]);
-        } else {
-            echo View::render('auth/reset-password', ['error' => "Le lien de réinitialisation est invalide ou a expiré.", 'token' => $token]);
-        }
-    }
-}
-
---- End of ./src/Controllers/AuthController.php ---
-
-
---- Content of ./src/Controllers/CoachBookingController.php: ---
-
-<?php
-
-namespace Controllers;
-
-use Core\View;
-use Models\CoachBooking;
-use Models\User;
-use Models\Team;
-
-class CoachBookingController
-{
-    public function index()
-    {
-        $coachBookings = CoachBooking::getAllBookings();
-        echo View::render('/dashboard/coaches/index', ['coachBookings' => $coachBookings]);
-    }
-
-    public function create()
-    {
-        $coaches = CoachBooking::getAllCoaches();
-        $teams = Team::getAll();
-        echo View::render('/dashboard/coaches/create', ['coaches' => $coaches, 'teams' => $teams]);
-    }
-
-    public function store()
-    {
-        $coach_id = $_POST['coach_id'];
-        $date = $_POST['reservation_date'];
-        $time = $_POST['reservation_time'];
-        $user_id = $_POST['user_id'] ?? null;
-        $team_id = $_POST['team_id'] ?? null; 
-
-        CoachBooking::createBooking($coach_id, $date, $time, $user_id, $team_id);
-        header('Location: /dashboard/coaches'); 
-        exit();
-    }
-
-    public function delete($booking_id)
-    {
-        CoachBooking::deleteBooking($booking_id);
-        header('Location: /dashboard/coaches');
-        exit();
-    }
-}
-
-
---- End of ./src/Controllers/CoachBookingController.php ---
-
-
---- Content of ./src/Controllers/TrainingController.php: ---
-
-<?php
-
-namespace Controllers;
-
-use Core\View;
-use Core\Config;
-use Core\APIResponse;
-use Models\User;
-use Gemini;
-use Models\Training;
-
-
-class TrainingController {
-
-    private $apiKey;
-
-    public function __construct() {
-        $this->apiKey = Config::get("gemini_key");
-    }
-
-    public function start() {
-        $memberId = $_SESSION['user_id'];
-        $existingPlan = Training::getExistingTrainingPlan($memberId);
-    
-        if ($existingPlan) {
-            header('Location: /dashboard/training');
-            exit;
-        }
-    
-        $_SESSION['training_data'] = [];
-        echo View::render('dashboard/training/start', [
-            'member' => User::getUserById($memberId)
-        ]);
-    }
-
-    public function apiGenerate() {
-        $response = new APIResponse();
-        $currentUserId = $_SESSION['user_id'];
-        $member = User::getUserById($currentUserId);
-    
-        $userInput = $_SESSION['training_data'] ?? [];
-        if (empty($userInput)) {
-            return $response->setStatusCode(400)->setData(['error' => 'No training data found'])->send();
-        }
-    
-        $data = [
-            'gender' => $userInput[1] ?? null,
-            'level' => $userInput[2] ?? null,
-            'goals' => $userInput[3] ?? null,
-            'weight' => $userInput[4] ?? null,
-            'height' => $userInput[5] ?? null,
-            'constraints' => $userInput[6] ?? null,
-            'preferences' => $userInput[7] ?? null,
-            'equipment' => $userInput[8] ?? null,
-        ];
-    
-        $client = Gemini::client($this->apiKey);
-        $prompt = Training::buildPrompt($data, $member);
-    
-        try {
-            $result = $client->geminiPro()->generateContent($prompt);
-            $generatedText = $result->text();
-    
-            $jsonStart = strpos($generatedText, '{');
-            $jsonEnd = strrpos($generatedText, '}');
-    
-            if ($jsonStart === false || $jsonEnd === false) {
-                throw new \Exception("Valid JSON not found in AI response.");
-            }
-    
-            $jsonString = substr($generatedText, $jsonStart, $jsonEnd - $jsonStart + 1);
-            $decodedPlan = json_decode($jsonString, true);
-    
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception("Failed to decode AI response: " . json_last_error_msg());
-            }
-    
-            if (isset($decodedPlan['days']) && is_array($decodedPlan['days'])) {
-                $data['planContent'] = json_encode($decodedPlan);
-                Training::saveTrainingPlan($member['member_id'], $data);
-                unset($_SESSION['training_data']);
-    
-                return $response->setStatusCode(200)->setData(['plan' => $data['planContent']])->send();
-            } else {
-                throw new \Exception("Unexpected AI response format.");
-            }
-        } catch (\Exception $e) {
-            error_log("Error in training plan generation: " . $e->getMessage());
-            return $response->setStatusCode(500)->setData(['error' => 'Failed to generate training plan. Please try again later.'])->send();
-        }
-    }
-    
-
-    public function apiProcessStep() {
-        $response = new APIResponse();
-    
-        $step = $_POST['step'] ?? null;
-        $data = $_POST['data'] ?? null;
-    
-        if ($step === null || $data === null) {
-            return $response->setStatusCode(400)->setData(['error' => 'Invalid data provided'])->send();
-        }
-    
-        $_SESSION['training_data'][$step] = $data;
-    
-        if ($step < 8) {
-            return $response->setStatusCode(200)->setData(['next_step' => $step + 1])->send();
-        } else {
-            return $response->setStatusCode(200)->setData(['next_step' => 'generate'])->send();
-        }
-    }
-    
-
-    public function dashboard() {
-        $memberId = $_SESSION['user_id'];
-        $existingPlan = Training::getExistingTrainingPlan($memberId);
-    
-        if ($existingPlan) {
-            echo View::render('dashboard/training/result', [
-                'plan' => $existingPlan['plan_content'],
-            ]);
-        } else {
-            header('Location: /dashboard/training/start');
-            exit;
-        }
-    }
-
-    public function train() {
-    
-        $memberId = $_SESSION['user_id'];
-        $existingPlan = Training::getExistingTrainingPlan($memberId);
-    
-        if ($existingPlan) {
-            $planData = json_decode($existingPlan['plan_content'], true);
-            $day = $_GET['day'] ?? 'Monday'; // Get the day from the query parameter
-    
-            // Find the data for the selected day
-            $dayContent = null;
-            foreach ($planData['days'] as $d) {
-                if ($d['day'] === $day) {
-                    $dayContent = $d;
-                    break;
+                public function index()
+                {
+                     return "Mock Controller Index";
                 }
-            }
+                public function get($id = null) {
+                     if($id){
+                        return json_encode(["statusCode"=> 200, "data" => ["message"=> "Mock API Controller Get with ID " . $id]]);
+                     }
+                     return json_encode(["statusCode"=> 200, "data" => ["message"=> "Mock API Controller Get"]]);
+                 }
+                 public function post() {
+                     return json_encode(["statusCode"=> 200, "data" => ["message"=> "Mock API Controller Post"]]);
+                 }
+                 public function put($id = null) {
+                      if($id){
+                        return json_encode(["statusCode"=> 200, "data" => ["message"=> "Mock API Controller Put with ID " . $id]]);
+                      }
+                     return json_encode(["statusCode"=> 200, "data" => ["message"=> "Mock API Controller Put"]]);
+                 }
+                 public function delete($id = null) {
+                      return json_encode(["statusCode"=> 200, "data" => ["message"=> "Mock API Controller Delete with ID " . $id]]);
+                 }
+            }');
+
+          // Mock the RouteProvider implementation
+          $mockControllerClass = 'Tests\\MockApiController';
+        eval('namespace Tests;
+            use Core\RouteProvider;
+            use Core\APIController;
+
+            class MockApiController extends APIController implements RouteProvider
+            {
+                 public static function routes()
+                {
+                  \Core\Router::get("/mock-api-route", "' . $mockControllerClass . '@get");
+                 }
+                 public function get() {
+                     return json_encode(["statusCode"=> 200, "data" => ["message"=> "Mock API Controller Get"]]);
+                 }
+            }');
+          // Mock the RouteProvider implementation
+        $mockControllerClass = 'Tests\\MockApiControllerMethod';
+        eval('namespace Tests;
+            use Core\RouteProvider;
+            use Core\APIController;
+
+           class MockApiControllerMethod extends APIController implements RouteProvider
+            {
+                 public static function routes()
+                {
+                  \Core\Router::get("/mock-api-method", "' . $mockControllerClass . '");
+                 }
+                 public function get() {
+                     return json_encode(["statusCode"=> 200, "data" => ["message"=> "Mock API Controller Get"]]);
+                 }
+            }');
+    }
     
-            if ($dayContent) {
-                echo View::render('dashboard/training/train', [
-                    'dayContent' => $dayContent,
-                ]);
-            } else {
-                echo "Day not found in the training plan.";
-            }
-        } else {
-            header('Location: /dashboard/training/start');
-            exit;
-        }
+     private function getRoutes() {
+         $reflection = new \ReflectionClass($this->router);
+        $property = $reflection->getProperty('routes');
+        $property->setAccessible(true);
+        return $property->getValue($this->router);
     }
 
-    public function edit() {
-        session_start();
-        $memberId = $_SESSION['user_id'] ?? null;
+    public function testAddRoute()
+    {
+        $this->router->get('/test', function() { return 'test'; });
+       $routes =  $this->getRoutes();
+        $this->assertArrayHasKey('GET', $routes);
+       $this->assertArrayHasKey('/test', $routes['GET']);
+       $this->assertIsCallable($routes['GET']['/test']['handler']);
+       $this->assertNull($routes['GET']['/test']['middleware']);
+    }
+
+    public function testAddRouteWithMiddleware()
+    {
+        $middleware = function () { return true; };
+        $this->router->get('/test', function() { return 'test'; }, $middleware);
+         $routes =  $this->getRoutes();
+       $this->assertArrayHasKey('GET', $routes);
+       $this->assertArrayHasKey('/test', $routes['GET']);
+       $this->assertIsCallable($routes['GET']['/test']['handler']);
+       $this->assertIsCallable($routes['GET']['/test']['middleware']);
+    }
+
+    public function testExactRouteMatch()
+    {
+         $this->router->get('/test', function () { return 'test'; });
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->expectOutputString('test');
+        $this->router->dispatch('/test');
+    }
+
+    public function testParameterizedRouteMatch()
+    {
+        $this->router->get('/users/{id}', function ($id) {
+            return "User ID: " . $id;
+        });
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->expectOutputString("User ID: 123");
+       $this->router->dispatch('/users/123');
+    }
+
+    public function testParameterizedRouteMatchWithWildcard()
+    {
+       $this->router->get('/files/{path}/*', function ($path, $wildcard) {
+            return "Path: " . $path . " Wildcard: " . $wildcard;
+        });
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+       $this->expectOutputString("Path: folder1 Wildcard: /subfolder/file.txt");
+         $this->router->dispatch('/files/folder1/subfolder/file.txt');
+    }
     
-        if (!$memberId) {
-            header('Location: /login');
-            exit();
-        }
-    
-        $existingPlan = Training::getExistingTrainingPlan($memberId);
-    
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $inputs = $_POST;
-    
-            // Utiliser les nouvelles valeurs ou conserver les anciennes
-            $updatedData = [
-                'gender' => $inputs['gender'] ?: ($existingPlan['gender'] ?? null),
-                'level' => $inputs['level'] ?: ($existingPlan['level'] ?? null),
-                'goals' => $inputs['goals'] ?: ($existingPlan['goals'] ?? null),
-                'weight' => $inputs['weight'] ?: ($existingPlan['weight'] ?? null),
-                'height' => $inputs['height'] ?: ($existingPlan['height'] ?? null),
-                'constraints' => $inputs['constraints'] ?: ($existingPlan['constraints'] ?? null),
-                'preferences' => $inputs['preferences'] ?: ($existingPlan['preferences'] ?? null),
-                'equipment' => $inputs['equipment'] ?: ($existingPlan['equipment'] ?? null),
-            ];
-    
-            $prompt = Training::buildPrompt($updatedData);
-            $client = Gemini::client($this->apiKey);
-            $result = $client->geminiPro()->generateContent($prompt);
-            $generatedText = $result->text();
-    
-            $updatedData['planContent'] = $generatedText;
-            Training::updateTrainingPlan($memberId, $updatedData);
-    
-            header('Location: /dashboard/training');
-            exit();
-        }
-    
-        echo View::render('dashboard/training/edit', [
-            'existingPlan' => $existingPlan,
-        ]);
+      public function testDispatchToControllerAction()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+         $this->expectOutputString("Mock Controller Index");
+         $this->router->dispatch('/mock-route');
+    }
+
+    public function testDispatchToApiControllerAction()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $response =  $this->router->dispatch('/mock-api-route');
+        $this->assertEquals(200, json_decode($response, true)['statusCode']);
+       $this->assertStringContainsString("Mock API Controller Get", json_decode($response, true)['data']['message']);
+    }
+
+    public function testDispatchToApiControllerMethod()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $response =  $this->router->dispatch('/mock-api-method');
+       $this->assertEquals(200, json_decode($response, true)['statusCode']);
+        $this->assertStringContainsString("Mock API Controller Get", json_decode($response, true)['data']['message']);
+    }
+
+    public function testDispatchWithMiddleware()
+    {
+        $middleware = function() {
+            echo 'middleware';
+            return true;
+        };
+         $this->router->get('/test-middleware', function () {
+            echo 'test';
+        }, $middleware);
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->expectOutputString('middlewaretest');
+        $this->router->dispatch('/test-middleware');
+    }
+
+    public function testRouteNotFound()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->expectException(\Exception::class);
+       $this->expectExceptionMessage("No route found for URL: /non-existent with method: GET");
+        $this->router->dispatch('/non-existent');
+    }
+
+    public function testApiResource()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+         $response =  $this->router->dispatch('/mock-api-resource');
+         $this->assertEquals(200, json_decode($response, true)['statusCode']);
+        $this->assertStringContainsString("Mock API Controller Get", json_decode($response, true)['data']['message']);
+
+         $_SERVER['REQUEST_METHOD'] = 'GET';
+        $response =  $this->router->dispatch('/mock-api-resource/123');
+       $this->assertEquals(200, json_decode($response, true)['statusCode']);
+       $this->assertStringContainsString("Mock API Controller Get with ID 123", json_decode($response, true)['data']['message']);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $response = $this->router->dispatch('/mock-api-resource');
+       $this->assertEquals(200, json_decode($response, true)['statusCode']);
+       $this->assertStringContainsString("Mock API Controller Post", json_decode($response, true)['data']['message']);
+
+       $_SERVER['REQUEST_METHOD'] = 'PUT';
+         $response =  $this->router->dispatch('/mock-api-resource');
+       $this->assertEquals(200, json_decode($response, true)['statusCode']);
+        $this->assertStringContainsString("Mock API Controller Put", json_decode($response, true)['data']['message']);
+
+        $_SERVER['REQUEST_METHOD'] = 'PUT';
+       $response =  $this->router->dispatch('/mock-api-resource/123');
+        $this->assertEquals(200, json_decode($response, true)['statusCode']);
+        $this->assertStringContainsString("Mock API Controller Put with ID 123", json_decode($response, true)['data']['message']);
+
+        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+         $response =  $this->router->dispatch('/mock-api-resource/123');
+       $this->assertEquals(200, json_decode($response, true)['statusCode']);
+        $this->assertStringContainsString("Mock API Controller Delete with ID 123", json_decode($response, true)['data']['message']);
     }
 }
 
+--- End of ./tests/Core/RouterTest.php ---
 
---- End of ./src/Controllers/TrainingController.php ---
 
-
---- Content of ./src/Controllers/BookingController.php: ---
+--- Content of ./tests/Core/ConfigTest.php: ---
 
 <?php
+namespace Tests\Core;
 
-namespace Controllers;
+use PHPUnit\Framework\TestCase;
+use Core\Config;
 
+class ConfigTest extends TestCase
+{
+    public function testLoadConfig()
+    {
+        $configFilePath = __DIR__ . '/../config_test.php';
+        file_put_contents($configFilePath, '<?php return ["test_key" => "test_value"];');
+       
+        Config::load($configFilePath);
+         unlink($configFilePath); // Clean up the temporary file
+
+        $this->assertEquals("test_value", Config::get("test_key"));
+    }
+
+    public function testGetExistingConfig()
+    {
+        $configFilePath = __DIR__ . '/../config_test.php';
+        file_put_contents($configFilePath, '<?php return ["setting1" => "value1"];');
+        Config::load($configFilePath);
+        unlink($configFilePath);
+        $this->assertEquals('value1', Config::get('setting1'));
+    }
+
+    public function testGetNonExistingConfigWithDefault()
+    {
+        $configFilePath = __DIR__ . '/../config_test.php';
+        file_put_contents($configFilePath, '<?php return [];');
+        Config::load($configFilePath);
+          unlink($configFilePath);
+        $this->assertEquals('default', Config::get('non_existing_key', 'default'));
+    }
+    
+      public function testGetNonExistingConfigWithoutDefault()
+    {
+        $configFilePath = __DIR__ . '/../config_test.php';
+          file_put_contents($configFilePath, '<?php return [];');
+        Config::load($configFilePath);
+        unlink($configFilePath);
+       $this->assertNull(Config::get('non_existing_key'));
+    }
+}
+
+--- End of ./tests/Core/ConfigTest.php ---
+
+
+--- Content of ./tests/Core/APIControllerTest.php: ---
+
+<?php
+namespace Tests\Core;
+
+use PHPUnit\Framework\TestCase;
 use Core\APIController;
-use Core\APIResponse;
-use Models\Booking;
-use Models\User;
 
-class BookingController extends APIController
+class APIControllerTest extends TestCase
 {
+    public function testDefaultMethodsReturn405()
+    {
+        $controller = new class extends APIController {}; // Anonymous class for testing
+        
+        $responseGet = $controller->handleRequest('GET');
+        $responsePost = $controller->handleRequest('POST');
+        $responsePut = $controller->handleRequest('PUT');
+        $responseDelete = $controller->handleRequest('DELETE');
 
-    public function get($reservationId = null) {
-        $response = new APIResponse();
-        $currentUserId = $_SESSION['user_id'];
-    
-        if (!$currentUserId) {
-            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
-        }
-    
-        if ($reservationId === null) {
-            // Logic for getting all reservations
-            $user = User::getUserById($currentUserId);
-            $bookings = Booking::getAllReservations();
-    
-            return $response->setStatusCode(200)->setData([
-                'bookings' => $bookings,
-                'user' => $user
-            ])->send();
-        } else {
-            // Logic for getting a specific reservation
-            $reservation = Booking::getReservationById($reservationId);
-            $user = User::getUserById($currentUserId);
-    
-            if (!$reservation) {
-                return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
+        $this->assertEquals(405, json_decode($responseGet, true)['statusCode']);
+        $this->assertEquals(405, json_decode($responsePost, true)['statusCode']);
+        $this->assertEquals(405, json_decode($responsePut, true)['statusCode']);
+        $this->assertEquals(405, json_decode($responseDelete, true)['statusCode']);
+
+        $this->assertStringContainsString('GET method not allowed.', json_decode($responseGet, true)['data']['error']);
+        $this->assertStringContainsString('POST method not allowed.', json_decode($responsePost, true)['data']['error']);
+        $this->assertStringContainsString('PUT method not allowed.', json_decode($responsePut, true)['data']['error']);
+        $this->assertStringContainsString('DELETE method not allowed.', json_decode($responseDelete, true)['data']['error']);
+    }
+
+     public function testHandleRequestCallsCorrectMethod()
+    {
+      $controller = new class extends APIController {
+            public function get($id = null) {
+               return json_encode(['statusCode'=>200, 'data'=>['message' => 'get method called']]);
             }
-    
-            if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
-                return $response->setStatusCode(403)->setData(['error' => 'User not authorized to access this reservation'])->send();
+            public function post($id = null) {
+               return json_encode(['statusCode'=>200, 'data'=>['message' => 'post method called']]);
             }
-    
-            return $response->setStatusCode(200)->setData(['reservation' => $reservation])->send();
-        }
-    }
+            public function put($id = null) {
+                return json_encode(['statusCode'=>200, 'data'=>['message' => 'put method called']]);
+            }
+            public function delete($id = null) {
+                return json_encode(['statusCode'=>200, 'data'=>['message' => 'delete method called']]);
+            }
+        };
 
-    public function index()
-    {
-        return $this->handleRequest($_SERVER['REQUEST_METHOD']);
-    }
+        $responseGet = $controller->handleRequest('GET', 1);
+        $responsePost = $controller->handleRequest('POST', 2);
+        $responsePut = $controller->handleRequest('PUT', 3);
+        $responseDelete = $controller->handleRequest('DELETE', 4);
+        
+       $this->assertEquals(200, json_decode($responseGet, true)['statusCode']);
+       $this->assertEquals(200, json_decode($responsePost, true)['statusCode']);
+       $this->assertEquals(200, json_decode($responsePut, true)['statusCode']);
+       $this->assertEquals(200, json_decode($responseDelete, true)['statusCode']);
 
-    public function edit($reservationId)
-    {
-        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $reservationId);
-    }
-
-    public function update($reservationId)
-    {
-        return $this->handleRequest($_SERVER['REQUEST_METHOD'], $reservationId);
-    }
-
-    public function store()
-    {
-        return $this->handleRequest($_SERVER['REQUEST_METHOD']);
-    }
-
-    public function delete($reservation_id = null)
-    {
-        return $this->handleRequest($_SERVER['REQUEST_METHOD'],$reservation_id);
+        $this->assertStringContainsString('get method called', json_decode($responseGet, true)['data']['message']);
+        $this->assertStringContainsString('post method called', json_decode($responsePost, true)['data']['message']);
+        $this->assertStringContainsString('put method called', json_decode($responsePut, true)['data']['message']);
+        $this->assertStringContainsString('delete method called', json_decode($responseDelete, true)['data']['message']);
     }
     
-    public function post() {
-        $response = new APIResponse();
-        $currentUserId = $_SESSION['user_id'];
-        $data = $_POST;
-
-        if (!$currentUserId) {
-            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
-        }
-
-        $member_id = $currentUserId; 
-        $court_id = $data['court_id'];
-        $reservation_date = $data['reservation_date'];
-        $start_time = $data['start_time'];
-        $end_time = $data['end_time'];
-
-        if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_time) || empty($end_time)) {
-            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
-        }
-
-        Booking::addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
-
-        return $response->setStatusCode(201)->setData(['message' => 'Reservation created successfully'])->send();
-    }
-    
-    public function put($reservationId = null) {
-        $response = new APIResponse();
-        $currentUserId = $_SESSION['user_id'];
-        $data = $_POST;
-
-        if (!$currentUserId) {
-            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
-        }
-
-        $reservation = Booking::getReservationById($reservationId);
-
-        if (!$reservation) {
-            return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
-        }
-
-        $user = User::getUserById($currentUserId);
-        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
-            return $response->setStatusCode(403)->setData(['error' => 'User not authorized to modify this reservation'])->send();
-        }
-
-        $reservation_date = $data['reservation_date'];
-        $start_time = $data['start_time'];
-        $end_time = $data['end_time'];
-
-        if (empty($reservation_date) || empty($start_time) || empty($end_time)) {
-            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
-        }
-
-        Booking::updateReservation($reservationId, $reservation_date, $start_time, $end_time);
-
-        return $response->setStatusCode(200)->setData(['message' => 'Reservation updated successfully'])->send();
-    }
-
-    public function postDelete($reservationId = null)
+     public function testHandleRequestReturns405ForInvalidMethod()
     {
-        $response = new APIResponse();
-        $currentUserId = $_SESSION['user_id'];
+        $controller = new class extends APIController {};
 
-        if (!$currentUserId) {
-            return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
-        }
+        $response = $controller->handleRequest('PATCH'); // Invalid method
 
-        $user = User::getUserById($currentUserId);
-        $reservation = Booking::getReservationById($reservationId);
-
-        if (!$reservation) {
-            return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
-        }
-
-        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
-            return $response->setStatusCode(403)->setData(['error' => 'User not authorized to delete this reservation'])->send();
-        }
-
-        Booking::deleteReservation($reservationId);
-
-        return $response->setStatusCode(200)->setData(['message' => 'Reservation deleted successfully'])->send();
+        $this->assertEquals(405, json_decode($response, true)['statusCode']);
+        $this->assertStringContainsString('Method not allowed.', json_decode($response, true)['data']['error']);
     }
 }
 
---- End of ./src/Controllers/BookingController.php ---
+--- End of ./tests/Core/APIControllerTest.php ---
 
 
---- Content of ./src/Controllers/HomeController.php: ---
+--- Content of ./tests/Core/AuthTest.php: ---
 
 <?php
-// src/Controllers/HomeController.php
+namespace Tests\Core;
 
-namespace Controllers;
+use PHPUnit\Framework\TestCase;
+use Core\Auth;
+use Models\User;
+use Models\Subscription;
 
-use Core\View;
-
-class HomeController
+class AuthTest extends TestCase
 {
-    public function index()
+    public function setUp(): void
     {
-        echo View::renderWithLayout('home/index', 'layouts/main', [
-            'title' => 'Accueil',
-            'content' => 'Bienvenue sur notre site'
-        ]);
+       $_SESSION = [];
+    }
+     public function testIsLoggedInWhenLoggedIn()
+    {
+        $_SESSION['user_id'] = 1;
+        $this->assertTrue(Auth::isLoggedIn());
     }
 
-    public function notfound() 
+    public function testIsLoggedInWhenNotLoggedIn()
     {
-        echo View::render('404/404', ['title' => 'Erreur page non trouvée']);
+        $this->assertFalse(Auth::isLoggedIn());
+    }
+    
+      public function testRequireLoginRedirectsWhenNotLoggedIn()
+    {
+        $middleware = Auth::requireLogin();
+        $this->expectOutputRegex('/Location: \/login/');
+        $this->assertFalse($middleware());
+    }
+    
+    public function testRequireLoginAllowsAccessWhenLoggedIn()
+    {
+        $_SESSION['user_id'] = 1;
+        $middleware = Auth::requireLogin();
+         $this->assertTrue($middleware());
+    }
+    
+      public function testIsAdminRedirectsWhenNotLoggedIn()
+     {
+         $middleware = Auth::isAdmin();
+        $this->expectOutputRegex('/Location: \/login/');
+        $this->assertFalse($middleware());
+    }
+    
+    public function testIsAdminRedirectsWhenNotAdmin()
+    {
+         $_SESSION['user_id'] = 1;
+        
+        $mockUser = $this->createMock(User::class);
+          $mockUser->method('getUserById')->willReturn(['status' => 'user']);
+        $reflection = new \ReflectionClass(User::class);
+        $reflectionProperty = $reflection->getProperty('instance');
+        $reflectionProperty->setAccessible(true);
+        $reflectionProperty->setValue(null, $mockUser);
+
+        $middleware = Auth::isAdmin();
+        $this->expectOutputRegex('/Location: \/dashboard/');
+       $this->assertFalse($middleware());
+    }
+    
+      public function testIsAdminAllowsAccessWhenAdmin()
+    {
+        $_SESSION['user_id'] = 1;
+          $mockUser = $this->createMock(User::class);
+          $mockUser->method('getUserById')->willReturn(['status' => 'admin']);
+        $reflection = new \ReflectionClass(User::class);
+        $reflectionProperty = $reflection->getProperty('instance');
+        $reflectionProperty->setAccessible(true);
+         $reflectionProperty->setValue(null, $mockUser);
+
+        $middleware = Auth::isAdmin();
+       $this->assertTrue($middleware());
+    }
+    
+     public function testIsSubscribedRedirectsWhenNotLoggedIn()
+    {
+        $middleware = Auth::isSubscribed();
+        $this->expectOutputRegex('/Location: \/login/');
+        $this->assertFalse($middleware());
+    }
+
+    public function testIsSubscribedRedirectsWhenNotSubscribed()
+    {
+       $_SESSION['user_id'] = 1;
+        $mockSubscription = $this->createMock(Subscription::class);
+          $mockSubscription->method('hasActiveSubscription')->willReturn(false);
+         $reflection = new \ReflectionClass(Subscription::class);
+        $reflectionProperty = $reflection->getProperty('instance');
+        $reflectionProperty->setAccessible(true);
+        $reflectionProperty->setValue(null, $mockSubscription);
+
+        $middleware = Auth::isSubscribed();
+        $this->expectOutputRegex('/Location: \/subscription-required/');
+        $this->assertFalse($middleware());
+    }
+
+    public function testIsSubscribedAllowsAccessWhenSubscribed()
+    {
+         $_SESSION['user_id'] = 1;
+        $mockSubscription = $this->createMock(Subscription::class);
+          $mockSubscription->method('hasActiveSubscription')->willReturn(true);
+        $reflection = new \ReflectionClass(Subscription::class);
+        $reflectionProperty = $reflection->getProperty('instance');
+        $reflectionProperty->setAccessible(true);
+        $reflectionProperty->setValue(null, $mockSubscription);
+
+        $middleware = Auth::isSubscribed();
+        $this->assertTrue($middleware());
+    }
+    
+        public function testIsCoachRedirectsWhenNotLoggedIn()
+    {
+        $middleware = Auth::isCoach();
+        $this->expectOutputRegex('/Location: \/login/');
+       $this->assertFalse($middleware());
+    }
+
+    public function testIsCoachRedirectsWhenNotCoach()
+    {
+        $_SESSION['user_id'] = 1;
+        $mockUser = $this->createMock(User::class);
+        $mockUser->method('getUserById')->willReturn(['status' => 'user']);
+        $reflection = new \ReflectionClass(User::class);
+        $reflectionProperty = $reflection->getProperty('instance');
+        $reflectionProperty->setAccessible(true);
+        $reflectionProperty->setValue(null, $mockUser);
+        
+        $middleware = Auth::isCoach();
+        $this->expectOutputRegex('/Location: \/not-a-coach/');
+        $this->assertFalse($middleware());
+    }
+
+    public function testIsCoachAllowsAccessWhenCoach()
+    {
+          $_SESSION['user_id'] = 1;
+           $mockUser = $this->createMock(User::class);
+          $mockUser->method('getUserById')->willReturn(['status' => 'coach']);
+           $reflection = new \ReflectionClass(User::class);
+        $reflectionProperty = $reflection->getProperty('instance');
+        $reflectionProperty->setAccessible(true);
+        $reflectionProperty->setValue(null, $mockUser);
+
+        $middleware = Auth::isCoach();
+       $this->assertTrue($middleware());
     }
 }
 
---- End of ./src/Controllers/HomeController.php ---
+--- End of ./tests/Core/AuthTest.php ---
+
+
+--- Content of ./tests/Core/APIResponseTest.php: ---
+
+<?php
+
+namespace Tests\Core;
+
+use PHPUnit\Framework\TestCase;
+use Core\APIResponse;
+
+class APIResponseTest extends TestCase
+{
+    public function testSetStatusCode()
+    {
+        $response = new APIResponse();
+        $response->setStatusCode(201);
+        $this->assertEquals(201, $this->getStatusCode($response));
+    }
+
+    public function testSetData()
+    {
+         $response = new APIResponse();
+        $data = ['message' => 'Test Data'];
+        $response->setData($data);
+        $this->assertEquals($data, $this->getData($response));
+    }
+
+    public function testAddHeader()
+    {
+         $response = new APIResponse();
+        $response->addHeader('Content-Type', 'application/json');
+        $this->assertArrayHasKey('Content-Type', $this->getHeaders($response));
+        $this->assertEquals('application/json', $this->getHeaders($response)['Content-Type']);
+    }
+
+    public function testSendResponse()
+    {
+         $response = new APIResponse(['test' => 'data'], 201, ['Content-Type' => 'application/json', 'X-Test' => 'value']);
+        ob_start();
+         $response->send();
+        $output = ob_get_clean();
+
+       $this->assertEquals(201, http_response_code());
+       $headers = xdebug_get_headers();
+       $this->assertStringContainsString("Content-Type: application/json", $headers[0]);
+       $this->assertStringContainsString("X-Test: value", $headers[1]);
+        $this->assertJson($output);
+        $this->assertJsonStringEqualsJsonString('{"test":"data"}', $output);
+    }
+    
+    public function testSendResponseWithoutData()
+    {
+         $response = new APIResponse(null, 201, ['Content-Type' => 'application/json', 'X-Test' => 'value']);
+        ob_start();
+         $response->send();
+        $output = ob_get_clean();
+
+         $this->assertEquals(201, http_response_code());
+         $headers = xdebug_get_headers();
+         $this->assertStringContainsString("Content-Type: application/json", $headers[0]);
+         $this->assertStringContainsString("X-Test: value", $headers[1]);
+        $this->assertEmpty($output);
+    }
+
+    public function testDefaultConstructorValues()
+    {
+        $response = new APIResponse();
+        $this->assertNull($this->getData($response));
+        $this->assertEquals(200, $this->getStatusCode($response));
+        $this->assertEmpty($this->getHeaders($response));
+    }
+
+    private function getStatusCode(APIResponse $response) {
+         $reflection = new \ReflectionClass($response);
+        $property = $reflection->getProperty('statusCode');
+        $property->setAccessible(true);
+        return $property->getValue($response);
+    }
+    
+    private function getData(APIResponse $response) {
+         $reflection = new \ReflectionClass($response);
+        $property = $reflection->getProperty('data');
+         $property->setAccessible(true);
+        return $property->getValue($response);
+    }
+    
+    private function getHeaders(APIResponse $response) {
+         $reflection = new \ReflectionClass($response);
+        $property = $reflection->getProperty('headers');
+         $property->setAccessible(true);
+        return $property->getValue($response);
+    }
+}
+
+--- End of ./tests/Core/APIResponseTest.php ---
+
+
+--- Content of ./tests/Models/UserTest.php: ---
+
+<?php
+
+
+namespace Tests\Models;
+
+use PHPUnit\Framework\TestCase;
+use Models\User;
+
+class UserTest extends TestCase {
+    public function testFindByEmailIsInDb() {
+        $user = new User();
+        $result = $user->findByEmail('jack@example.com');
+        $result_false = $user->findByEmail('CACACACACACACACA@CACACA.COM');
+        
+        $this->assertIsArray($result);
+        $this->assertFalse($result_false);
+    }
+
+    public function testFindByEmailIsNotInDb() {
+        $user = new User();
+        $result_false = $user->findByEmail('CACACACACACACACA@CACACA.COM');
+        
+        $this->assertFalse($result_false);
+    }
+}
+
+--- End of ./tests/Models/UserTest.php ---
+
+
+--- Content of ./src/Core/APIController.php: ---
+
+<?php
+
+namespace Core;
+
+use Core\APIResponse;
+
+abstract class APIController
+{
+    protected function get($id = null)
+    {
+        $response = new APIResponse();
+        return $response->setStatusCode(405)->setData(['error' => 'GET method not allowed.'])->send();
+    }
+
+    protected function post()
+    {
+        $response = new APIResponse();
+        return $response->setStatusCode(405)->setData(['error' => 'POST method not allowed.'])->send();
+    }
+
+    protected function put($id = null)
+    {
+        $response = new APIResponse();
+        return $response->setStatusCode(405)->setData(['error' => 'PUT method not allowed.'])->send();
+    }
+
+    protected function delete($id = null)
+    {
+        $response = new APIResponse();
+        return $response->setStatusCode(405)->setData(['error' => 'DELETE method not allowed.'])->send();
+    }
+
+    public function handleRequest($method, ...$params)
+    {
+         if (method_exists($this, strtolower($method))) {
+           return call_user_func_array([$this, strtolower($method)], $params);
+        }
+        $response = new APIResponse();
+        return $response->setStatusCode(405)->setData(['error' => 'Method not allowed.'])->send();
+    }
+}
+
+--- End of ./src/Core/APIController.php ---
+
+
+--- Content of ./src/Core/Router.php: ---
+
+<?php
+
+namespace Core;
+
+class Router
+{
+    private static $routes = [];
+    private static $controllers = [];
+    private static $initialized = false;
+    private static $baseNamespace = "Controllers\\";
+
+    public static function setup()
+    {
+        if (self::$initialized) return;
+        self::loadControllers();
+        self::$initialized = true;
+    }
+
+    public static function get($url, $handler, $middleware = null)
+    {
+        self::addRoute('GET', $url, $handler, $middleware);
+    }
+
+    public static function post($url, $handler, $middleware = null)
+    {
+        self::addRoute('POST', $url, $handler, $middleware);
+    }
+
+    public static function put($url, $handler, $middleware = null)
+    {
+        self::addRoute('PUT', $url, $handler, $middleware);
+    }
+
+    public static function delete($url, $handler, $middleware = null)
+    {
+        self::addRoute('DELETE', $url, $handler, $middleware);
+    }
+
+    public static function apiResource($url, $controller, $middleware = null)
+    {
+         self::get($url, "$controller@get", $middleware);
+         self::get($url . '/{id}', "$controller@get", $middleware);
+        self::post($url, "$controller@post", $middleware);
+        self::put($url, "$controller@put", $middleware);
+        self::put($url . '/{id}', "$controller@put", $middleware);
+        self::delete($url . '/{id}', "$controller@delete", $middleware);
+    }
+
+    private static function addRoute($method, $url, $handler, $middleware = null)
+    {
+        self::$routes[$method][$url] = ['handler' => $handler, 'middleware' => $middleware];
+    }
+
+    public static function dispatch($url)
+    {
+        if (!self::$initialized) {
+            self::setup();
+        }
+
+        $method = $_SERVER['REQUEST_METHOD'];
+        $urlPath = parse_url($url, PHP_URL_PATH);
+
+         if (!isset(self::$routes[$method])) {
+            throw new \Exception("No routes defined for method: $method");
+        }
+
+        // 1. Check for exact match first
+         if (isset(self::$routes[$method][$urlPath])) {
+             $routeData = self::$routes[$method][$urlPath];
+             if (isset($routeData['middleware'])) {
+                $middlewares = is_array($routeData['middleware'])
+                    ? $routeData['middleware']
+                    : [$routeData['middleware']];
+
+                foreach ($middlewares as $middleware) {
+                    if (!self::executeMiddleware($middleware)) {
+                        return;
+                    }
+                }
+             }
+             error_log("Matched Route: " . $urlPath);
+            error_log("Captured Parameters: " . print_r([], true));
+            $handler = $routeData['handler'];
+            if (is_string($handler)) {
+                return self::invokeHandler($handler, [], $method);
+            } elseif (is_callable($handler)) {
+                return call_user_func_array($handler, []);
+            } else {
+                throw new \Exception("Invalid route handler for route: $urlPath");
+            }
+        }
+
+
+        // 2. Check for parameterized match
+         foreach (self::$routes[$method] as $route => $routeData) {
+           $params = [];
+           if(self::matchRoute($route, $urlPath, $params)) {
+                 if (isset($routeData['middleware'])) {
+                        $middlewares = is_array($routeData['middleware'])
+                            ? $routeData['middleware']
+                            : [$routeData['middleware']];
+
+                        foreach ($middlewares as $middleware) {
+                            if (!self::executeMiddleware($middleware)) {
+                                return;
+                            }
+                        }
+                    }
+                     error_log("Matched Route: " . $route);
+                     error_log("Captured Parameters: " . print_r(array_values($params), true));
+                    $handler = $routeData['handler'];
+                    if (is_string($handler)) {
+                         return self::invokeHandler($handler, array_values($params), $method);
+                    } elseif (is_callable($handler)) {
+                         return call_user_func_array($handler, array_values($params));
+                    } else {
+                        throw new \Exception("Invalid route handler for route: $route");
+                    }
+                }
+            }
+        throw new \Exception("No route found for URL: $urlPath with method: $method");
+    }
+
+  private static function matchRoute($route, $url, &$params)
+    {
+        $route = rtrim($route, '/');
+        $url = rtrim($url, '/');
+
+        if (strpos($route, '/*') !== false) {
+            $pattern = preg_replace('/\/{(.*?)}/', '/(?<$1>[^/]+)', $route);
+            $pattern = str_replace('/*', '(?<wildcard>.*)', $pattern);
+            $pattern = '#^' . str_replace('/', '\/', $pattern) . '$#';
+        } else {
+             $pattern = preg_replace('/\/{(.*?)}/', '/(?<$1>[^/]+)', $route);
+           $pattern = '#^' . str_replace('/', '\/', $pattern) . '$#';
+        }
+
+        if (preg_match($pattern, $url, $matches)) {
+           $params = array_filter($matches, function ($key) {
+                return is_string($key);
+            }, ARRAY_FILTER_USE_KEY);
+            if(strpos($route, '/*') !== false){
+                 $wildcard_value = $matches['wildcard'] ?? null;
+                 if($wildcard_value){
+                      $params['wildcard'] = $wildcard_value;
+                 }
+              }
+           return true;
+        }
+
+        return false;
+    }
+
+    private static function invokeHandler($handler, $params, $method)
+    {
+        list($controllerName, $action) = explode('@', $handler);
+        $controller = $controllerName;
+
+        if (!class_exists($controller)) {
+            throw new \Exception("Controller not found: $controller");
+        }
+
+        $controllerInstance = new $controller();
+        if ($controllerInstance instanceof \Core\APIController) {
+            if (method_exists($controllerInstance, $action)) {
+                return call_user_func_array([$controllerInstance, $action], $params);
+            }
+            if (method_exists($controllerInstance, strtolower($method))) {
+                return call_user_func_array([$controllerInstance, strtolower($method)], $params);
+            }
+            
+            $response = new APIResponse();
+            return $response->setStatusCode(405)->setData(['error' => 'Method not allowed.'])->send();
+         } else {
+            if (!method_exists($controllerInstance, $action)) {
+                throw new \Exception("Action: $action not found in controller: $controller");
+            }
+            return call_user_func_array([$controllerInstance, $action], $params);
+        }
+    }
+
+    private static function executeMiddleware($middleware)
+    {
+        if (is_callable($middleware)) {
+            return $middleware();
+        } else {
+            throw new \Exception("Invalid middleware: " . $middleware);
+        }
+    }
+     private static function loadControllers()
+   {
+       $files = glob(__DIR__ . '/../Controllers/*.php');
+
+        if ($files) {
+            foreach ($files as $file) {
+             $class = self::$baseNamespace . pathinfo($file, PATHINFO_FILENAME);
+                if (class_exists($class) && in_array( \Core\RouteProvider::class, class_implements($class))) {
+                    $class::routes();
+                 self::$controllers[] = $class;
+            }
+        }
+       }
+    }
+}
+
+--- End of ./src/Core/Router.php ---
+
+
+--- Content of ./src/Core/Config.php: ---
+
+<?php
+
+namespace Core;
+
+class Config
+{
+    private static $config;
+
+    public static function load($file)
+    {
+        self::$config = require $file;
+    }
+
+    public static function get($key, $default = null)
+    {
+        return self::$config[$key] ?? $default;
+    }
+}
+
+--- End of ./src/Core/Config.php ---
+
+
+--- Content of ./src/Core/Database.php: ---
+
+<?php
+
+namespace Core;
+
+use PDO;
+use PDOException;
+use Core\Config;
+
+
+class Database
+{
+    private static $instance = null;
+    private static $conn;
+
+    private function __construct()
+    {
+    }
+
+    private static function connect()
+    {
+        if (self::$conn === null) {
+            $charset = 'utf8mb4';
+            $dsn = "mysql:host=" . Config::get("db_host") . ";dbname=" . Config::get("db_name") . ";charset=" . $charset;
+
+            $options = [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES   => false,
+            ];
+
+            try {
+                self::$conn = new PDO($dsn, Config::get("db_user"), Config::get("db_pass"), $options);
+            } catch (PDOException $e) {
+                throw new PDOException($e->getMessage(), (int)$e->getCode());
+            }
+        }
+    }
+
+    public static function getConnection()
+    {
+        self::connect();
+        return self::$conn;
+    }
+
+    public static function query($sql, $params = [])
+    {
+        self::connect();
+        try {
+            $stmt = self::$conn->prepare($sql);
+            $stmt->execute($params);
+
+            return $stmt;
+        } catch (PDOException $e) {
+            throw new PDOException("Query error: " . $e->getMessage(), (int)$e->getCode());
+        }
+    }
+}
+
+--- End of ./src/Core/Database.php ---
+
+
+--- Content of ./src/Core/Auth.php: ---
+
+<?php
+
+
+namespace Core;
+
+
+use Models\User;
+use Models\Subscription;
+
+final class Auth
+{
+    public static function isLoggedIn()
+    {
+        return isset($_SESSION['user_id']);
+    }
+
+    public static function requireLogin()
+    {
+        return function() {
+            if (!Auth::isLoggedIn()) {
+                header('Location: /login');
+                return false;
+            }
+            return true;
+        };
+    }
+
+    public static function isAdmin()
+    {
+        return function() {
+            if (!Auth::isLoggedIn()) {
+                header('Location: /login');
+                return false;
+            }
+
+            $user = User::getUserById($_SESSION['user_id']);
+            if (!$user || $user['status'] !== 'admin') {
+                header('Location: /dashboard');
+                return false;
+            }
+            return true;
+        };
+    }
+
+    public static function isSubscribed()
+    {
+        return function() {
+            if (!self::isLoggedIn()) {
+                header('Location: /login');
+                return false;
+            }
+
+            $userId = $_SESSION['user_id'];
+            if (!Subscription::hasActiveSubscription($userId)) {
+                // Redirect to a page explaining subscription requirement
+                header('Location: /subscription-required');
+                return false;
+            }
+
+            return true;
+        };
+    }
+
+    public static function isCoach()
+    {
+        return function() {
+            if (!self::isLoggedIn()) {
+                header('Location: /login');
+                return false;
+            }
+
+            $user = User::getUserById($_SESSION['user_id']);
+            if (!$user || $user['status'] !== 'coach') {
+                header('Location: /not-a-coach');
+                return false;
+            }
+
+            return true;
+        };
+    }
+
+
+}
+
+--- End of ./src/Core/Auth.php ---
+
+
+--- Content of ./src/Core/APIResponse.php: ---
+
+<?php
+
+namespace Core;
+
+class APIResponse
+{
+    private $data;
+    private $statusCode;
+    private $headers;
+
+    public function __construct($data = null, $statusCode = 200, $headers = [])
+    {
+        $this->data = $data;
+        $this->statusCode = $statusCode;
+        $this->headers = $headers;
+    }
+
+    public function setData($data)
+    {
+        $this->data = $data;
+        return $this;
+    }
+
+    public function setStatusCode($statusCode)
+    {
+        $this->statusCode = $statusCode;
+        return $this;
+    }
+
+    public function addHeader($key, $value)
+    {
+        $this->headers[$key] = $value;
+        return $this;
+    }
+
+    public function send()
+    {
+        http_response_code($this->statusCode);
+
+        foreach ($this->headers as $key => $value) {
+            header("$key: $value");
+        }
+
+        if ($this->data !== null) {
+            header('Content-Type: application/json');
+            echo json_encode($this->data);
+        }
+
+        exit;
+    }
+}
+
+--- End of ./src/Core/APIResponse.php ---
+
+
+--- Content of ./src/Models/User.php: ---
+
+<?php
+// src/Models/User.php
+
+namespace Models;
+
+use Core\Database;
+use PDO;
+use Core\Config;
+
+class User
+{
+    public static function getAllUsers() {
+        $sql = "SELECT member_id, first_name, last_name, email, status FROM MEMBER";
+        return Database::query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function getAll()
+    {
+        $sql = "SELECT * FROM MEMBER";
+        return Database::query($sql);
+    }
+
+    public static function find($memberId) {
+        $sql = "SELECT * FROM MEMBER WHERE member_id = :memberId";
+        $params = [':memberId' => $memberId];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function login($email, $password)
+    {
+        $sql = "SELECT * FROM MEMBER WHERE email = :email";
+        $params = [':email' => $email];
+        $user = Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+
+        if (is_array($user) && password_verify($password, $user['password'])) {
+            error_log(print_r($user,true));
+            return $user;
+        }
+        return false;
+    }
+
+    public static function getUserByEmail($email)
+    {
+        $sql = "SELECT * FROM MEMBER WHERE email = :email";
+        $params = [':email' => $email];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function getUserById($memberId)
+    {
+        $sql = "SELECT * FROM MEMBER WHERE member_id = :memberId";
+        $params = [':memberId' => $memberId];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function updateUser($userId, $data)
+    {
+        $sql = "UPDATE MEMBER 
+                SET first_name = :first_name, 
+                    last_name = :last_name, 
+                    email = :email, 
+                    birth_date = :birth_date, 
+                    address = :address, 
+                    phone = :phone, 
+                    status = :status
+                WHERE member_id = :member_id";
+
+        $params = [
+            ':first_name' => $data['first_name'],
+            ':last_name' => $data['last_name'],
+            ':email' => $data['email'],
+            ':birth_date' => $data['birth_date'],
+            ':address' => $data['address'],
+            ':phone' => $data['phone'],
+            ':status' => $data['status'],
+            ':member_id' => $userId
+        ];
+
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
+
+    public static function deleteUser($memberId)
+    {
+        $sql = "DELETE FROM MEMBER WHERE member_id = :memberId";
+        $params = [':memberId' => $memberId];
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
+    public static function getSubscription($memberId)
+    {
+        $sql = "SELECT * FROM SUBSCRIPTION WHERE member_id = :memberId AND status = 'Active'";
+        $params = [':memberId' => $memberId];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function addSubscription($memberId, $subscriptionType, $startDate, $endDate, $amount)
+    {
+        $sql = "INSERT INTO SUBSCRIPTION (member_id, subscription_type, start_date, end_date, amount) 
+                VALUES (:memberId, :subscriptionType, :startDate, :endDate, :amount)";
+        $params = [
+            ':memberId' => $memberId,
+            ':subscriptionType' => $subscriptionType,
+            ':startDate' => $startDate,
+            ':endDate' => $endDate,
+            ':amount' => $amount
+        ];
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
+    public static function searchUsers($searchTerm)
+    {
+        $sql = "SELECT first_name, last_name, email, status FROM MEMBER
+                WHERE first_name LIKE :searchTerm1
+                OR last_name LIKE :searchTerm2
+                OR email LIKE :searchTerm3";
+        $params = [
+            ':searchTerm1' => '%' . $searchTerm . '%',
+            ':searchTerm2' => '%' . $searchTerm . '%',
+            ':searchTerm3' => '%' . $searchTerm . '%'
+        ];
+        return Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function findByEmail($email)
+    {
+        $sql = "SELECT * FROM MEMBER WHERE email = :email";
+        $params = [':email' => $email];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function create($userData)
+    {
+        $verificationToken = bin2hex(random_bytes(32));
+        $password = $userData['password'] ?? 'GOOGLE_USER';
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        
+        $sql = "INSERT INTO MEMBER (email, password, first_name, last_name, birth_date, address, phone, verification_token, is_verified)
+                VALUES (:email, :password, :first_name, :last_name, :birth_date, :address, :phone, :verification_token, FALSE)";
+        $params = [
+            ':email' => $userData['email'],
+            ':password' => $hashedPassword,
+            ':first_name' => $userData['first_name'],
+            ':last_name' => $userData['last_name'],
+            ':birth_date' => $userData['birth_date'],
+            ':address' => $userData['address'],
+            ':phone' => $userData['phone'],
+            ':verification_token' => $verificationToken
+        ];
+        
+        $result = Database::query($sql, $params);
+        
+        error_log(print_r($params,true));
+        error_log(print_r($userData,true));
+
+        if ($result->rowCount() > 0) {
+            self::sendVerificationEmail($userData['email'], $verificationToken);
+            return Database::getConnection()->lastInsertId();
+        }
+        return false;
+    }
+
+    public static function updatePassword($userId, $newPassword)
+    {
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $sql = "UPDATE MEMBER SET password = :password WHERE member_id = :userId";
+        $params = [
+            ':password' => $hashedPassword,
+            ':userId' => $userId
+        ];
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
+    public static function updateUserProfile($userId, $data)
+    {
+        $currentUser = self::getUserById($userId);
+
+        if (!$currentUser) {
+            throw new \Exception("Utilisateur non trouvé.");
+        }
+
+        $allowedFields = ['first_name', 'last_name', 'email', 'birth_date', 'address', 'phone', 'status', 'profile_picture'];
+        $setFields = [];
+        $params = [':userId' => $userId];
+
+        if (!empty($data['email']) && $data['email'] !== $currentUser['email']) {
+            $checkEmailSql = "SELECT * FROM MEMBER WHERE email = :email AND member_id != :userId";
+            $checkEmailParams = [':email' => $data['email'], ':userId' => $userId];
+            $existingUser = Database::query($checkEmailSql, $checkEmailParams)->fetch(PDO::FETCH_ASSOC);
+
+            if ($existingUser) {
+                error_log("L'adresse e-mail est déjà utilisée par un autre utilisateur.");
+            } else {
+                $setFields[] = "email = :email";
+                $params[':email'] = $data['email'];
+            }
+        }
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, $allowedFields) && $key !== 'email' && $value !== $currentUser[$key]) {
+                $setFields[] = "$key = :$key";
+                $params[":$key"] = $value;
+            }
+        }
+
+        if (!empty($data['new_password'])) {
+            $setFields[] = "password = :password";
+            $params[':password'] = password_hash($data['new_password'], PASSWORD_BCRYPT);
+        }
+
+        if (empty($setFields)) {
+            return false;
+        }
+
+        $setClause = implode(', ', $setFields);
+        $sql = "UPDATE MEMBER SET $setClause WHERE member_id = :userId";
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
+
+    public static function verifyCurrentPassword($userId, $currentPassword)
+    {
+        $sql = "SELECT password FROM MEMBER WHERE member_id = :userId";
+        $params = [':userId' => $userId];
+        $user = Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+
+        return $user && password_verify($currentPassword, $user['password']);
+    }
+
+    public static function verifyEmail($token)
+    {
+        $sql = "UPDATE MEMBER SET is_verified = TRUE, verification_token = NULL WHERE verification_token = :token";
+        $params = [':token' => $token];
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
+    public static function getGoogleUserByEmail($email)
+    {
+        $sql = "SELECT * FROM MEMBRE WHERE email = :email";
+        $params = [':email' => $email];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function registerGoogleUser($userData)
+    {
+        $sql = "INSERT INTO MEMBRE (email, first_name, last_name, google_id) VALUES (:email, :first_name, :last_name, :google_id)";
+        $params = [
+            ':email' => $userData['email'],
+            ':first_name' => $userData['first_name'],
+            ':last_name' => $userData['last_name'],
+            ':google_id' => $userData['google_id']
+        ];
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
+    public static function storeResetToken($email, $token)
+    {
+        $sql = "UPDATE MEMBER SET reset_token = :token, reset_token_expiry = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE email = :email";
+        $params = [':token' => $token, ':email' => $email];
+        return Database::query($sql, $params)->rowCount() > 0;
+    }
+
+    public static function findByResetToken($token)
+    {
+        $sql = "SELECT * FROM MEMBER WHERE reset_token = :token AND reset_token_expiry > NOW()";
+        $params = [':token' => $token];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function resetPassword($token, $newPassword)
+    {
+        $user = self::findByResetToken($token);
+
+        if ($user) {
+            $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+            $sql = "UPDATE MEMBER SET password = :password, reset_token = NULL, reset_token_expiry = NULL WHERE member_id = :userId";
+            $params = [':password' => $hashedPassword, ':userId' => $user['member_id']];
+            return Database::query($sql, $params)->rowCount() > 0;
+        }
+
+        return false;
+    }
+
+    public static function sendPasswordResetEmail($email, $token)
+    {
+        $mail_parts = Config::get("mail_parts");
+
+        $verify_url = Config::get("server_url") . "/reset-password?token=" . $token;
+        $title = "Réinitialisation de votre mot de passe " . Config::get("brand", "Sportify");
+
+        $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "Merci de cliquer sur ce lien pour réinitialiser votre mot de passe : ", $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", Config::get("server_url") . $verify_url, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Changer mon mot de passe",$mail_parts['mail_body']);
+
+        $subject = $title;
+
+        $message =  $mail_parts['mail_head'] . 
+                    $mail_parts['mail_title'] . 
+                    $mail_parts['mail_head_end'] .
+                    $mail_parts['mail_body'] .
+                    $mail_parts['mail_footer'];
+
+        $headers = "From: sportify@alwaysdata.net\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
+        if(mail($email, $subject, $message, $headers)) {
+            return true;
+        } else {
+            error_log("Erreur d'envoi d'email de réinitialisation à $email: " . error_get_last());
+            return false;
+        }
+    }
+
+
+    private static function sendVerificationEmail($to, $token)
+    {
+        $mail_parts = Config::get("mail_parts");
+
+        $verify_url = Config::get("server_url") . "/verify-mail?token=" . $token;
+        $title = "Vérifiez votre adresse mail - " . Config::get("brand", "Sportify");
+
+        $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "Merci de cliquer sur le lien ci-dessous pour vérifier votre adresse email :", $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", Config::get("server_url") . $verify_url, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Vérifier mon mail",$mail_parts['mail_body']);
+
+        $subject = $title;
+
+        $message =  $mail_parts['mail_head'] . 
+                    $mail_parts['mail_title'] . 
+                    $mail_parts['mail_head_end'] .
+                    $mail_parts['mail_body'] .
+                    $mail_parts['mail_footer'];
+
+        $headers =  "From: sportify@alwaysdata.net\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
+        if(mail($to, $subject, $message, $headers)) {
+            return true;
+        } else {
+            error_log("Erreur d'envoi d'email à $to: " . error_get_last());
+            return false;
+        }
+    }
+
+}
+
+--- End of ./src/Models/User.php ---
+
+
+--- Content of ./vendor/google-gemini-php/client/phpunit.xml: ---
+
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd"
+         colors="true"
+>
+    <source>
+        <include>
+            <directory suffix=".php">./src</directory>
+        </include>
+    </source>
+    <testsuites>
+        <testsuite name="default">
+            <directory suffix=".php">./tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
+
+
+--- End of ./vendor/google-gemini-php/client/phpunit.xml ---
+
+
+--- Content of ./vendor/sebastian/object-enumerator/phpunit.xml: ---
+
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         requireCoverageMetadata="true"
+         beStrictAboutCoverageMetadata="true"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         colors="true">
+    <testsuites>
+        <testsuite name="default">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </coverage>
+</phpunit>
+
+
+--- End of ./vendor/sebastian/object-enumerator/phpunit.xml ---
 

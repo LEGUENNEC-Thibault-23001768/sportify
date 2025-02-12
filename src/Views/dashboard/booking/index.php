@@ -10,8 +10,9 @@
         <div class="room boxe" data-room="Boxe" data-court-id="5" onclick="openReservationForm(this)">Boxe</div>
     </div>
 
-    <div id="reservation-container" style="display: none;">
-        <h3 id="reservation-title">Réserver une salle</h3>
+     <div id="reservation-container" style="display: none;">
+         <h3 id="reservation-title">Réserver une salle</h3>
+        <button type="button" class="close-button" onclick="closeReservationForm()">×</button>
          <div class="form-container">
                 <button class="tab-button active" data-tab="reservation-form">Formulaire</button>
                 <button class="tab-button" data-tab="reservations">Historique</button>
@@ -45,6 +46,7 @@
 
     <div id="edit-reservation-container" style="display: none;">
         <h2>Modifier la Réservation</h2>
+        <button type="button" class="close-button" onclick="closeEditReservation()">×</button>
         <form id="edit-reservation-form">
             <input type="hidden" id="edit_reservation_id" name="reservation_id" value="">
             <label for="edit_member_name">Votre Nom:</label>
@@ -52,24 +54,19 @@
 
             <label for="edit_date">Date:</label>
             <input type="date" id="edit_date" name="reservation_date" required>
+                <label>Veuillez sélectionner vos horaires :</label> 
+                <div id="edit-available-hours">
+                </div>
+                <input type="hidden" id="edit_start-time" name="start_time">
+                <input type="hidden" id="edit_end-time" name="end_time">
 
-            <label for="edit_start-time">Heure de Début:</label>
-            <input type="time" id="edit_start-time" name="start_time" required>
-
-              <label for="edit_end-time">Heure de Fin:</label>
-            <input type="time" id="edit_end-time" name="end_time" required>
-              <label>Veuillez sélectionner vos horaires :</label> 
-             <div id="edit-available-hours">
-              </div>
             <button type="button" id="update-button">Mettre à jour</button>
             <button type="button" onclick="cancelEditReservation()">Annuler</button>
         </form>
-    </div>
-
-     <div id="toast-container"></div>
+   </div>
+  <div id="toast-container"></div>
 </div>
-
-<script>
+ <script>
     window.currentUserId = <?php echo isset($user['member_id']) ? $user['member_id'] : 'null'; ?>;
     window.memberStatus = "<?php echo isset($user['status']) ? $user['status'] : ''; ?>";
     window.userName = "<?php echo isset($user["first_name"]) ? $user['first_name'] : "" ?>";

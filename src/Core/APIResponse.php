@@ -7,6 +7,7 @@ class APIResponse
     private $data;
     private $statusCode;
     private $headers;
+    private $sent = false;
 
     public function __construct($data = null, $statusCode = 200, $headers = [])
     {
@@ -35,6 +36,10 @@ class APIResponse
 
     public function send()
     {
+      if ($this->sent) {
+           return; // Prevent multiple sends
+        }
+      
         http_response_code($this->statusCode);
 
         foreach ($this->headers as $key => $value) {
@@ -45,7 +50,13 @@ class APIResponse
             header('Content-Type: application/json');
             echo json_encode($this->data);
         }
-
-        exit;
+        $this->sent = true;
+    }
+    
+    public function getOutput() {
+        if($this->data !== null){
+          return json_encode($this->data);
+        }
+        return '';
     }
 }

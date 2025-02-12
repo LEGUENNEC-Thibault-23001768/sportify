@@ -285,12 +285,12 @@ class User
     {
         $mail_parts = Config::get("mail_parts");
 
-        $verify_url = Config::get("server_url" . "/reset-password?token=" . $token);
+        $verify_url = Config::get("server_url") . "/reset-password?token=" . $token;
         $title = "Réinitialisation de votre mot de passe " . Config::get("brand", "Sportify");
 
         $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
         $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "Merci de cliquer sur ce lien pour réinitialiser votre mot de passe : ", $mail_parts['mail_body']);
-        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", Config::get("server_url") . $verify_url, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", $verify_url, $mail_parts['mail_body']);
         $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Changer mon mot de passe",$mail_parts['mail_body']);
 
         $subject = $title;
@@ -318,12 +318,12 @@ class User
     {
         $mail_parts = Config::get("mail_parts");
 
-        $verify_url = Config::get("server_url" . "/verify-mail?token=" . $token);
+        $verify_url = Config::get("server_url") . "/verify-mail?token=" . $token;
         $title = "Vérifiez votre adresse mail - " . Config::get("brand", "Sportify");
 
         $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
         $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "Merci de cliquer sur le lien ci-dessous pour vérifier votre adresse email :", $mail_parts['mail_body']);
-        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", Config::get("server_url") . $verify_url, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", $verify_url, $mail_parts['mail_body']);
         $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Vérifier mon mail",$mail_parts['mail_body']);
 
         $subject = $title;
@@ -334,7 +334,7 @@ class User
                     $mail_parts['mail_body'] .
                     $mail_parts['mail_footer'];
 
-        $headers = "From: sportify@alwaysdata.net\r\n";
+        $headers =  "From: sportify@alwaysdata.net\r\n";
         $headers .= "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 

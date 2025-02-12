@@ -1,7 +1,5 @@
 <?php
-
 namespace Models;
-
 use Core\Database;
 use PDO;
 
@@ -11,13 +9,52 @@ class Stats
      * @param $userId
      * @return array
      */
-    public static function getUserPerformances($userId): array
+     public static function getUserPerformances($userId): array
     {
         $sql = "SELECT * FROM PERFORMANCE WHERE member_id = :member_id ORDER BY performance_date DESC";
         $params = [':member_id' => $userId];
         return Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public static function getUserAggregatedPerformances(int $userId): array
+    {
+        $sql = "SELECT 
+            activity,
+            SUM(CASE WHEN activity = 'RPM' THEN play_time ELSE TIME_TO_SEC(play_time) END) AS total_time,
+            SUM(CASE WHEN activity = 'RPM' THEN calories ELSE 0 END) as total_calories,
+            SUM(CASE WHEN activity = 'RPM' THEN distance ELSE 0 END) as total_distance,
+            SUM(CASE WHEN activity != 'RPM' THEN score ELSE 0 END) as total_score
+             
+        FROM PERFORMANCE
+        WHERE member_id = :member_id
+        GROUP BY activity";
+
+    $params = [
+        ':member_id' => $userId,
+    ];
+
+        $result = Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
+        return self::formatTimeDataForAggregated($result);
+    }
+     
+    public static function getAllUsersAggregatedPerformances(): array
+    {
+        $sql = "SELECT 
+            AVG(play_time) AS avg_time,
+            AVG(calories) AS avg_calories,
+            AVG(distance) AS avg_distance
+            FROM PERFORMANCE
+            WHERE activity = 'RPM'";
+        
+        $result = Database::query($sql)->fetch(PDO::FETCH_ASSOC);
+    
+        return [
+            'avg_time' => isset($result['avg_time']) ? round($result['avg_time'], 2) : 0,
+            'avg_calories' => isset($result['avg_calories']) ? round($result['avg_calories'], 2) : 0,
+            'avg_distance' => isset($result['avg_distance']) ? round($result['avg_distance'], 2) : 0,
+        ];
+    }
+    
     /**
      * @return mixed
      */
@@ -32,9 +69,9 @@ class Stats
      */
     public static function getRecentRegistrations(): array
     {
-        $sql = "SELECT COUNT(*) AS registrations, WEEK(creation_date) AS week_number 
-                FROM MEMBER 
-                WHERE creation_date >= DATE(NOW()) - INTERVAL 4 WEEK 
+        $sql = "SELECT COUNT(*) AS registrations, WEEK(creation_date) AS week_number
+                FROM MEMBER
+                WHERE creation_date >= DATE(NOW()) - INTERVAL 4 WEEK
                 GROUP BY WEEK(creation_date)";
         return Database::query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -58,40 +95,81 @@ class Stats
 
     /**
      * @param $userId
-     * @param $activity
      * @return array
      */
-    public static function getPerformanceData($userId, $activity): array
+    public static function getPerformanceDataRPM($userId): array
     {
-        $sql = "SELECT performance_date, score, play_time 
-                FROM PERFORMANCE 
-                WHERE member_id = :member_id AND activity = :activity 
-                ORDER BY performance_date ASC";
-        $params = [
-            ':member_id' => $userId,
-            ':activity' => $activity
-        ];
-        return Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
+         $sql = "SELECT 
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 2 THEN TIME_TO_SEC(play_time) END) AS monday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 3 THEN TIME_TO_SEC(play_time) END) AS tuesday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 4 THEN TIME_TO_SEC(play_time) END) AS wednesday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 5 THEN TIME_TO_SEC(play_time) END) AS thursday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 6 THEN TIME_TO_SEC(play_time) END) AS friday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 7 THEN TIME_TO_SEC(play_time) END) AS saturday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 1 THEN TIME_TO_SEC(play_time) END) AS sunday
+            FROM PERFORMANCE 
+            WHERE member_id = :member_id AND activity = 'RPM'";
+        
+           
+         $params = [
+            ':member_id' => $userId
+         ];
+       $result = Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+         return self::formatTimeData($result);
     }
+
 
     /**
      * @param $userId
      * @param $activity
      * @return array
      */
+    public static function getPerformanceData($userId, $activity): array
+    {
+         $sql = "SELECT 
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 2 THEN TIME_TO_SEC(play_time) END) AS monday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 3 THEN TIME_TO_SEC(play_time) END) AS tuesday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 4 THEN TIME_TO_SEC(play_time) END) AS wednesday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 5 THEN TIME_TO_SEC(play_time) END) AS thursday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 6 THEN TIME_TO_SEC(play_time) END) AS friday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 7 THEN TIME_TO_SEC(play_time) END) AS saturday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 1 THEN TIME_TO_SEC(play_time) END) AS sunday
+            FROM PERFORMANCE 
+            WHERE member_id = :member_id AND activity = :activity";
+
+          $params = [
+              ':member_id' => $userId,
+              ':activity' => $activity
+          ];
+        $result = Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+       return self::formatTimeData($result);
+    }
+
+     /**
+     * @param $userId
+     * @param $activity
+     * @return array
+     */
     public static function getPerformanceDataCouche($userId, $activity): array
     {
-        $sql = "SELECT performance_date, score, play_time 
-                FROM PERFORMANCE 
-                WHERE member_id = :member_id AND activity = :activity 
-                ORDER BY performance_date ASC";
+         $sql = "SELECT 
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 2 THEN TIME_TO_SEC(play_time) END) AS monday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 3 THEN TIME_TO_SEC(play_time) END) AS tuesday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 4 THEN TIME_TO_SEC(play_time) END) AS wednesday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 5 THEN TIME_TO_SEC(play_time) END) AS thursday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 6 THEN TIME_TO_SEC(play_time) END) AS friday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 7 THEN TIME_TO_SEC(play_time) END) AS saturday,
+            SUM(CASE WHEN DAYOFWEEK(performance_date) = 1 THEN TIME_TO_SEC(play_time) END) AS sunday
+            FROM PERFORMANCE 
+            WHERE member_id = :member_id AND activity = :activity";
+           
         $params = [
             ':member_id' => $userId,
             ':activity' => $activity
-        ];
-        return Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
+         ];
+         $result = Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+        return self::formatTimeData($result);
     }
-
     /**
      * @return mixed
      */
@@ -187,5 +265,72 @@ class Stats
         } else {
             return 0;
         }
+    }
+
+    public static function saveRpmPerformance(int $userId, ?string $playTime, ?int $calories = null, ?float $distance = null): bool
+    {
+        $sql = "INSERT INTO PERFORMANCE (member_id, activity, rpm, calories, distance, play_time, performance_date) 
+                VALUES (:member_id, 'RPM', 1, :calories, :distance, :play_time, NOW())";
+        $params = [
+            ':member_id' => $userId,
+            ':play_time' => $playTime,
+            ':calories' => $calories,
+            ':distance' => $distance,
+        ];
+
+        try {
+            Database::query($sql, $params);
+            return true;
+        } catch (\PDOException $e) {
+            error_log("Erreur lors de l'enregistrement des performances RPM : " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public static function saveOtherPerformance(int $userId, string $sport, array $stats): bool
+    {
+         $sql = "INSERT INTO PERFORMANCE (member_id, activity, score, play_time, calories, distance, performance_date) 
+                VALUES (:member_id, :activity, :score, :play_time, :calories, :distance, NOW())";
+           $params = [
+                ':member_id' => $userId,
+                ':activity' => $sport,
+                ':score' => $stats[1] ?? null,
+                ':play_time' => $stats[0] ?? null,
+                ':calories' => $stats[2] ?? null,
+                ':distance' => $stats[1] ?? null,
+            ];
+        try {
+            Database::query($sql, $params);
+             return true;
+        } catch (\PDOException $e) {
+             error_log("Erreur lors de l'enregistrement des performances: " . $e->getMessage());
+            return false;
+        }
+    }
+
+
+    private static function formatTimeData(array $data): array
+    {
+        $formattedData = [];
+        foreach ($data as $key => $seconds) {
+            $hours = floor($seconds / 3600);
+            $minutes = floor(($seconds % 3600) / 60);
+            $formattedData[$key] = $hours + ($minutes / 60);
+        }
+        return $formattedData;
+    }
+       private static function formatTimeDataForAggregated(array $data): array
+    {
+        $formattedData = [];
+        foreach ($data as $item) {
+          if (isset($item['avg_time'])) {
+                $seconds = $item['avg_time'];
+                $hours = floor($seconds / 3600);
+                $minutes = floor(($seconds % 3600) / 60);
+              $item['avg_time'] =  $hours + ($minutes / 60);
+         }
+            $formattedData[] = $item;
+        }
+        return $formattedData;
     }
 }

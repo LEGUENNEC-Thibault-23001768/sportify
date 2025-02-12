@@ -24,8 +24,8 @@ class EventAPIController extends APIController implements RouteProvider
         Router::post('/api/events', self::class . '@storeApi', [Auth::isAdmin()]); // Auth::isCoach()
         Router::post('/api/events/join/{id}', self::class . '@postJoin', Auth::requireLogin());
         Router::post('/api/events/leave/{id}', self::class . '@postLeave', Auth::requireLogin());
-        Router::delete('/api/events/{id}', self::class . '@deleteApi', [Auth::isAdmin(), Auth::isCoach()]);
-        Router::post('/api/events/{id}/invite', self::class . '@postSendInviteApi', [Auth::isAdmin(), Auth::isCoach()]);
+        Router::delete('/api/events/{id}', self::class . '@deleteApi', Auth::isAdmin()); // iscoach
+        Router::post('/api/events/{id}/invite', self::class . '@postSendInviteApi', Auth::isAdmin()); //iscoach
     }
 
 

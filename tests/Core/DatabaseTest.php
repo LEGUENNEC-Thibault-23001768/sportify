@@ -2,37 +2,51 @@
 
 namespace Tests\Core;
 
-use PHPUnit\Framework\TestCase;
 use Core\Database;
 use PDO;
+use PDOException;
+use PHPUnit\Framework\TestCase;
+use Core\Config;
 
 class DatabaseTest extends TestCase
 {
-    public function testGetInstance()
+    private $configFilePath;
+
+     protected function setUp(): void
     {
-        $instance1 = Database::getInstance();
-        $instance2 = Database::getInstance();
-        
-        $this->assertInstanceOf(Database::class, $instance1);
-        $this->assertSame($instance1, $instance2);
+        $this->configFilePath = __DIR__ . '/../config_test.php';
+         file_put_contents($this->configFilePath, '<?php return ["db_host" => "localhost", "db_name" => "testdb", "db_user" => "testuser", "db_pass" => "testpass"];');
+        Config::load($this->configFilePath);
+    }
+
+     protected function tearDown(): void
+    {
+        if (file_exists($this->configFilePath)) {
+            unlink($this->configFilePath);
+        }
     }
 
     public function testGetConnection()
     {
-        $database = Database::getInstance();
-        $connection = $database->getConnection();
-        
-        $this->assertInstanceOf(PDO::class, $connection);
+         $conn = Database::getConnection();
+        $this->assertInstanceOf(PDO::class, $conn);
     }
 
     public function testConnectionIsWorking()
     {
-        $database = Database::getInstance();
-        $connection = $database->getConnection();
-        
-        $stmt = $connection->query('SELECT 1');
-        $result = $stmt->fetch(PDO::FETCH_COLUMN);
-        
-        $this->assertEquals(1, $result);
+        $sql = "SELECT 1";
+        try {
+            $stmt = Database::query($sql);
+            $result = $stmt->fetchColumn();
+            $this->assertEquals(1, $result);
+         } catch (PDOException $e) {
+           $this->fail("Database query failed: " . $e->getMessage());
+        }
+    }
+    
+    public function testQueryThrowsExceptionOnInvalidSQL()
+    {
+         $this->expectException(PDOException::class);
+        Database::query("INVALID SQL");
     }
 }

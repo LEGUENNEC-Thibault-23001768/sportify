@@ -2,7 +2,7 @@
 <header>
     <img id="header-logo" src="https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png" alt="Logo Sportify" class="logo">
 </header>
-
+<link rel="stylesheet" href="/_assets/css/auth.css">
 <main class="content">
     <section class="forgot-password-section">
         <h1>Mot de passe oublié</h1>

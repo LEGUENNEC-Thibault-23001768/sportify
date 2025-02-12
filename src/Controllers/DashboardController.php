@@ -53,7 +53,17 @@ class DashboardController implements RouteProvider
         $user = User::getUserById($userId);
         $viewData = $this->getCommonViewData($user);
 
-        try {
+	$hasActiveSubscription = Subscription::hasActiveSubscription($userId);
+        $subscriptionInfo = $hasActiveSubscription ? Subscription::getStripeSubscriptionId($userId) : null;
+        
+
+        $is_subscribed = $subscriptionInfo["status"] ?? false;
+
+        if (!$is_subscribed) {
+            echo "<p> VOUS N'ÊTES PAS ABONNE</p>";
+        }
+
+	try {
             $viewData = $this->handleCategoryLogic($category, $wildcard, $viewData);
             $viewPath = $this->getViewPath($category, $wildcard);
 
