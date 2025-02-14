@@ -4,7 +4,7 @@
 
         <div id="profile-message"></div>
 
-        <form id="profileForm">
+        <form id="profileForm" enctype="multipart/form-data"> 
             <div class="top-section">
                 <div class="left-section">
                     <label for="first_name">Prénom :</label>
@@ -14,7 +14,7 @@
                     <input type="text" name="last_name" id="last_name" value="<?= htmlspecialchars($user['last_name'] ?? "") ?>" required>
 
                     <label for="email">Email :</label>
-                    <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? "") ?>" required>
+                    <input type="email" name="email" id="email" value="<?= htmlspecialchars($user['email'] ?? "") ?>" required readonly> 
                 </div>
 
                 <div class="right-section">
@@ -59,56 +59,3 @@
         </form>
     </div>
 </div>
-
-<script>
-    const profileForm = document.getElementById('profileForm');
-    const profileMessageDiv = document.getElementById('profile-message');
-
-    profileForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-    
-        const formData = new FormData(profileForm);
-    
-        if (formData.get('current_password') === '') {
-            formData.delete('current_password');
-         }
-        if (formData.get('new_password') === '') {
-            formData.delete('new_password');
-        }
-        if (formData.get('confirm_password') === '') {
-           formData.delete('confirm_password');
-        }
-    
-         const jsonData = Object.fromEntries(formData.entries());
-
-        fetch('/api/profile', {
-            method: 'PUT',
-             headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(jsonData)
-        })
-        .then(response => {
-            return response.json()
-        })
-        .then(data => {
-            console.log(data);
-            if (data.message) {
-                profileMessageDiv.textContent = data.message;
-                profileMessageDiv.className = 'success';
-            } else if (data.error) {
-                profileMessageDiv.textContent = data.error;
-                profileMessageDiv.className = 'error';
-            }
-            setTimeout(() => {
-                profileMessageDiv.textContent = '';
-                profileMessageDiv.className = '';
-            }, 5000);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            profileMessageDiv.textContent = 'Une erreur est survenue.';
-            profileMessageDiv.className = 'error';
-        });
-    });
-</script>

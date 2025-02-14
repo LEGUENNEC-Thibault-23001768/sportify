@@ -94,83 +94,83 @@
     </div>
  <script>
      $(document).ready(function() {
-            window.currentUserId = <?php echo isset($user['member_id']) ? $user['member_id'] : 'null'; ?>;
-            window.memberStatus = "<?php echo isset($user['status']) ? $user['status'] : ''; ?>";
-            window.userName = "<?php echo isset($user["first_name"]) ? $user['first_name'] : "" ?>";
-            const loadedScripts = {};
-            const loadedCSS = {};
-            const contentCache = {};
-            let currentView = null;
-            const dashboardCSS = "/_assets/css/dashboard.css";
-            const mobiscrollCSS = "/_assets/css/mobiscroll.min.css";
-            const mobiscrollJS = "/_assets/js/mobiscroll.min.js"
+        window.currentUserId = <?php echo isset($user['member_id']) ? $user['member_id'] : 'null'; ?>;
+        window.memberStatus = "<?php echo isset($user['status']) ? $user['status'] : ''; ?>";
+        window.userName = "<?php echo isset($user["first_name"]) ? $user['first_name'] : "" ?>";
+        const loadedScripts = {};
+        const loadedCSS = {};
+        const contentCache = {};
+        let currentView = null;
+        const dashboardCSS = "/_assets/css/dashboard.css";
+        const mobiscrollCSS = "/_assets/css/mobiscroll.min.css";
+        const mobiscrollJS = "/_assets/js/mobiscroll.min.js"
 
-            function loadContent(target, href = null) {
-                if (href) {
-                    window.history.pushState({ target: target }, '', href);
-                }
-                const dynamicContent = $('#dynamic-content');
-                dynamicContent.addClass('fade-out');
+        function loadContent(target, href = null) {
+            if (href) {
+                window.history.pushState({ target: target }, '', href);
+            }
+            const dynamicContent = $('#dynamic-content');
+            dynamicContent.addClass('fade-out');
 
-                if (contentCache[target]) {
-                   console.log("Content already cached for:", target);
-                   unloadPreviousAssets();
-                   showCachedContent(target);
-                   highlightSidebar(target);
-                   return;
-                }
+            if (contentCache[target]) {
+                console.log("Content already cached for:", target);
+                unloadPreviousAssets();
+                showCachedContent(target);
+                highlightSidebar(target);
+                return;
+            }
 
-                 $.ajax({
-                      url: '/ajax/dashboard/' + target,
-                        method: 'GET',
-                        success: function(response) {
-                            contentCache[target] = response;
-                           const viewContainer = $(response).filter('[data-view]');
-                            if (viewContainer.length > 0) {
-                                const view = viewContainer.attr('data-view');
-                                console.log("View:", view);
-                                unloadPreviousAssets();
-                                loadAssetsForView(view, function(){
-                                    showContent(target, response);
-                                    if (typeof initialize === 'function') {
-                                        initialize();
-                                    }
-                                });
-                           } else {
-                               console.warn("No data-view attribute found for this content.");
-                               showContent(target, response);
-                            }
-                             highlightSidebar(target);
-                        },
-                        error: function(xhr, status, error) {
-                             console.error("Error: " + status + " - " + error);
-                           dynamicContent.html("<p>Error loading content.</p>");
-                            dynamicContent.addClass('fade-in');
+                $.ajax({
+                    url: '/ajax/dashboard/' + target,
+                    method: 'GET',
+                    success: function(response) {
+                        contentCache[target] = response;
+                        const viewContainer = $(response).filter('[data-view]');
+                        if (viewContainer.length > 0) {
+                            const view = viewContainer.attr('data-view');
+                            console.log("View:", view);
+                            unloadPreviousAssets();
+                            loadAssetsForView(view, function(){
+                                showContent(target, response);
+                                if (typeof initialize === 'function') {
+                                    initialize();
+                                }
+                            });
+                        } else {
+                            console.warn("No data-view attribute found for this content.");
+                            showContent(target, response);
                         }
-                });
+                            highlightSidebar(target);
+                    },
+                    error: function(xhr, status, error) {
+                            console.error("Error: " + status + " - " + error);
+                        dynamicContent.html("<p>Error loading content.</p>");
+                        dynamicContent.addClass('fade-in');
+                    }
+            });
+        }
+
+        function loadAssetsForView(view, callback) {
+            const cssPath = '/_assets/css/' + view + '.css?v=' + new Date().getTime();
+            const jsPath = '/_assets/js/' + view + '.js?v=' + new Date().getTime();
+
+            let cssLoaded = false;
+            let jsLoaded = false;
+
+            function checkComplete() {
+                if (cssLoaded && jsLoaded) {
+                    callback();
+                }
             }
-
-           function loadAssetsForView(view, callback) {
-                const cssPath = '/_assets/css/' + view + '.css?v=' + new Date().getTime();
-               const jsPath = '/_assets/js/' + view + '.js?v=' + new Date().getTime();
-
-                let cssLoaded = false;
-                let jsLoaded = false;
-
-                function checkComplete() {
-                    if (cssLoaded && jsLoaded) {
-                       callback();
-                   }
-              }
-               loadCSS(cssPath, function() {
-                    cssLoaded = true;
-                    checkComplete();
-               });
-               loadScript(jsPath, function() {
-                  jsLoaded = true;
-                  checkComplete();
-               });
-            }
+            loadCSS(cssPath, function() {
+                cssLoaded = true;
+                checkComplete();
+            });
+            loadScript(jsPath, function() {
+                jsLoaded = true;
+                checkComplete();
+            });
+        }
 
 
         function unloadPreviousAssets() {
