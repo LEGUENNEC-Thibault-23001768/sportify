@@ -386,6 +386,7 @@
     };
 
     function setupEditPlanForm() {
+        let currentStepModal = 0;
         const modalBody = $("#editPlanPopup .modal-body")[0];
         const nextButton = document.createElement("button");
         nextButton.textContent = "Next";
@@ -399,48 +400,53 @@
         displayModalStep();
     
         function displayModalStep() {
+            console.log("displayModalStep() appelée, étape:", currentStepModal); 
             const step = steps[currentStepModal];
             modalBody.innerHTML = "";
             stepTitle.textContent = step.title;
             modalBody.appendChild(stepTitle);
-    
+            console.log(step)
             if (step.type === "options") {
                 const optionsContainer = document.createElement('div');
                 optionsContainer.classList.add('options-container');
-    
+
                 step.options.forEach(option => {
                     const button = document.createElement("button");
                     button.textContent = option;
+                    console.log("coucou", button.textContent)
                     button.classList.add("btn", "square-option");
                     button.dataset.value = option;
-    
+
                     button.addEventListener("click", (event) => {
                         updateSelectState(event.target, step.key, event.target.dataset.value);
+                        console.log('aaaaaaaaaaaaa', nextButton)
                         nextButton.disabled = false;
                     });
                     optionsContainer.appendChild(button);
                 });
                 modalBody.appendChild(optionsContainer);
             } else if (step.type === "input") {
-    
+                nextButton.disabled = false;
                 const input = document.createElement("input");
                 input.type = step.inputType;
                 input.placeholder = step.placeholder || "";
                 input.classList.add("form-control");
                 input.style.marginTop = "10px";
-    
+                console.log('input', input)
                 input.addEventListener("input", (event) => {
+                    console.log('Ecouteur input attaché à input');
+                    console.log('el', event.target.value.trim())
                     if (event.target.value.trim() !== "") {
                         formDataModal[step.key] = event.target.value;
-                        nextButton.disabled = false;
+                        nextButton.disabled = false; 
                     } else {
-                        nextButton.disabled = true;
+                        nextButton.disabled = true;  
                     }
                 });
                 modalBody.appendChild(input);
             }
             modalBody.appendChild(nextButton);
-            nextButton.disabled = true;
+            nextButton.disabled = true; 
         };
     
         nextButton.addEventListener("click", () => {
@@ -510,9 +516,13 @@
         });
         
         $('#nextButton').click(function() {
+            $('#nextButton').prop('disabled', false);
             let input = $(`#question${currentStep} :input`).val();
             console.log("skiii")
-        
+            console.log("Next button clicked!"); 
+            console.log("Current step:", currentStep); 
+            console.log("Input value:", input);
+
             $.ajax({
                 url: '/api/training/process-step',
                 method: 'POST',
@@ -527,20 +537,23 @@
                     } else {
                         $(`#question${currentStep}`).hide();
                         $(`#question${response.next_step}`).show();
+
+                        
                         if ($(`#question${response.next_step}`).find('.options-container').length) {
                             const optionsContainer = $(`#question${response.next_step}`).find('.options-container')[0];
-        
+
                             $(optionsContainer).find('button').each((_, button) => {
                                 $(button).on('click', () => {
                                     $(optionsContainer).find('.square-option').removeClass('selected');
                                     $(button).addClass('selected');
                                     $('#nextButton').prop('disabled', false);
+                                    
                                 });
                             });
                         }
                         currentStep = response.next_step;
                         $('#step').val(currentStep);
-                        $('#nextButton').prop('disabled', $(`#question${currentStep} select, #question${currentStep} input, #question${currentStep} textarea`).val() === "");
+                        $('#nextButton').prop($(`#question${currentStep} select, #question${currentStep} input, #question${currentStep} textarea`).val() === "");
                     }
                 },
                 error: function(error) {
