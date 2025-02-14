@@ -239,22 +239,9 @@ class User
             throw new \Exception("Utilisateur non trouvé.");
         }
 
-        $allowedFields = ['first_name', 'last_name', 'email', 'birth_date', 'address', 'phone', 'status', 'profile_picture'];
+        $allowedFields = ['first_name', 'last_name', 'birth_date', 'address', 'phone', 'status', 'profile_picture'];
         $setFields = [];
         $params = [':userId' => $userId];
-
-        if (!empty($data['email']) && $data['email'] !== $currentUser['email']) {
-            $checkEmailSql = "SELECT * FROM MEMBER WHERE email = :email AND member_id != :userId";
-            $checkEmailParams = [':email' => $data['email'], ':userId' => $userId];
-            $existingUser = Database::query($checkEmailSql, $checkEmailParams)->fetch(PDO::FETCH_ASSOC);
-
-            if ($existingUser) {
-                error_log("L'adresse e-mail est déjà utilisée par un autre utilisateur.");
-            } else {
-                $setFields[] = "email = :email";
-                $params[':email'] = $data['email'];
-            }
-        }
 
         foreach ($data as $key => $value) {
             if (in_array($key, $allowedFields) && $key !== 'email' && $value !== $currentUser[$key]) {
@@ -263,9 +250,9 @@ class User
             }
         }
 
-        if (!empty($data['new_password'])) {
+        if (!empty($data['password'])) {
             $setFields[] = "password = :password";
-            $params[':password'] = password_hash($data['new_password'], PASSWORD_BCRYPT);
+            $params[':password'] = $data['password'];
         }
 
         if (empty($setFields)) {
