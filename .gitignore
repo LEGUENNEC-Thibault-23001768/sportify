@@ -2,5 +2,5 @@
 .phpunit*
 composer.lock
 
-config*
+config.php
 .env

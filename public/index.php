@@ -5,9 +5,10 @@ use Core\Config;
 use Core\Router;
 use Core\View;
 
+ini_set('display_errors','Off');
+
 Config::load(dirname(__DIR__) . '/config.php');
 View::init();
-
 session_start();
 
 Router::setup();
@@ -29,6 +30,11 @@ Router::post('/api/events/{id}/invite', 'EventController@postSendInviteApi', [Au
 
 $url = $_SERVER['REQUEST_URI'];
 try {
+    header_remove("X-Powered-By");
+    header("X-Frame-Options: SAMEORIGIN");
+    header("X-Content-Type-Options: nosniff");
+    header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
+    
     Router::dispatch($url);
 } catch (Exception $e) {
     //http_response_code(404);

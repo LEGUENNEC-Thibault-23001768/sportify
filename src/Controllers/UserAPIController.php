@@ -14,7 +14,7 @@ class UserAPIController extends APIController implements RouteProvider
 {
     public static function routes() : void
     {
-        Router::put('/api/profile', self::class . '@updateProfile', Auth::requireLogin()); 
+        Router::post('/api/profile', self::class . '@updateProfile', Auth::requireLogin()); 
         Router::apiResource('/api/users', self::class, Auth::isAdmin());
         Router::get('/api/users/{user_id}/subscription', self::class . '@getSubscriptionAction', Auth::isAdmin());
         Router::post('/api/users/{user_id}/subscription', self::class . '@updateSubscriptionAction', Auth::isAdmin());
@@ -64,7 +64,6 @@ class UserAPIController extends APIController implements RouteProvider
             'phone' => $phone
         ];
 
-        // Only allow admins to update status
         if(Auth::isAdmin() && isset($data['status'])){
             $updateData['status'] = $status;
         }
@@ -80,33 +79,36 @@ class UserAPIController extends APIController implements RouteProvider
     {
         $response = new APIResponse();
         $userId = $_SESSION['user_id'];
+        $data = $_POST;
         $json = file_get_contents('php://input');
-        $data = json_decode($json, true);
-        
-        error_log("Received Data: " . print_r($data, true));
 
-        if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-            return $response->setStatusCode(400)->setData(['error' => 'Invalid JSON data'])->send();
-        }
-        
+        error_log("Received Data POST: " . print_r($data, true));
+        error_log("Received Files: " . print_r($_FILES, true));
+        error_log("Received JSON: " . print_r($json, true));
+
+
         $firstName = trim($data['first_name'] ?? '');
         $lastName = trim($data['last_name'] ?? '');
-        $email = trim($data['email'] ?? '');
+        // $email = trim($data['email'] ?? ''); 
         $birthDate = trim($data['birth_date'] ?? '');
         $address = trim($data['address'] ?? '');
         $phone = trim($data['phone'] ?? '');
 
-        if (empty($firstName) || empty($lastName) || empty($email)) {
-            return $response->setStatusCode(400)->setData(['error' => 'Les champs prénom, nom et email sont obligatoires'])->send();
+
+        error_log("PTNNNN WSHH");
+        if (empty($firstName) || empty($lastName) ) { 
+            return $response->setStatusCode(400)->setData(['error' => 'Les champs prénom, nom sont obligatoires'])->send(); // Keep the message for front-end consistency, but email is not checked in backend for updateProfile anymore
         }
-          $updateData = [
+        $updateData = [
             'first_name' => $firstName,
             'last_name' => $lastName,
-            'email' => $email,
+            // 'email' => $email, // Do not include email in update data for profile update
             'birth_date' => $birthDate,
             'address' => $address,
             'phone' => $phone
-          ];
+        ];
+        error_log("PTNN ZEBIIII");
+        error_log(print_r($_FILES),true);
 
         if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
             $uploadResult = $this->handleProfilePictureUpload($_FILES['profile_picture']);
@@ -116,12 +118,12 @@ class UserAPIController extends APIController implements RouteProvider
                 return $response->setStatusCode(500)->setData(['error' => $uploadResult['message']])->send();
             }
         }
-        
+
         if (!empty($data['current_password']) && !empty($data['new_password']) && !empty($data['confirm_password'])) {
             if ($data['new_password'] !== $data['confirm_password']) {
                 return $response->setStatusCode(400)->setData(['error' => 'Les nouveaux mots de passe ne correspondent pas.'])->send();
             }
-            
+
             $user = User::getUserById($userId);
             if(password_verify($data['current_password'], $user['password'])){
                 $updateData['password'] = password_hash($data['new_password'], PASSWORD_DEFAULT);
@@ -135,31 +137,32 @@ class UserAPIController extends APIController implements RouteProvider
            return $response->setStatusCode(500)->setData(['error' => 'Échec de la mise à jour du profil.'])->send();
        }
     }
-        private function handleProfilePictureUpload($file)
+    private function handleProfilePictureUpload($file)
     {
-         $uploadDir = dirname(__DIR__, 2) . '/public/uploads/profile_pictures/';
-             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-             $maxFileSize = 5 * 1024 * 1024; // 5MB
-         
-             if (!in_array($file['type'], $allowedTypes)) {
-                 return ['success' => false, 'message' => 'Type de fichier non autorisé.'];
-             }
-         
-             if ($file['size'] > $maxFileSize) {
-                 return ['success' => false, 'message' => 'Le fichier est trop volumineux.'];
-             }
-         
-             $originalFilename = basename($file['name']);
-             $extension = pathinfo($originalFilename, PATHINFO_EXTENSION);
-            $newFilename = uniqid('profile_', true) . '.' . $extension; // Ensure a unique filename
-            $targetFilepath = $uploadDir . $newFilename;
-         
-           if (move_uploaded_file($file['tmp_name'], $targetFilepath)) {
-               return ['success' => true, 'filepath' => '/uploads/profile_pictures/' . $newFilename]; // return public url of the file.
-           } else {
-              return ['success' => false, 'message' => 'Erreur lors du téléchargement du fichier.'];
-           }
+        $uploadDir = dirname(__DIR__, 2) . '/public/uploads/profile_pictures/';
+        error_log(print_r($uploadDir,true));
+        error_log(print_r(dirname(__DIR__,2),true));
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $maxFileSize = 1 * 1024 * 1024; // 1MB
+    
+        if (!in_array($file['type'], $allowedTypes)) {
+            return ['success' => false, 'message' => 'Type de fichier non autorisé.'];
         }
+    
+        if ($file['size'] > $maxFileSize) {
+            return ['success' => false, 'message' => 'Le fichier est trop volumineux.'];
+        }
+    
+        $originalFilename = basename($file['name']);
+        $extension = pathinfo($originalFilename, PATHINFO_EXTENSION);
+        $newFilename = uniqid('profile_', true) . '.' . $extension;
+        $targetFilepath = $uploadDir . $newFilename;
+        if (move_uploaded_file($file['tmp_name'], $targetFilepath)) {
+            return ['success' => true, 'filepath' => '/uploads/profile_pictures/' . $newFilename];
+        } else {
+            return ['success' => false, 'message' => 'Erreur lors du téléchargement du fichier.'];
+        }
+    }
 
 
     public function showProfile()
