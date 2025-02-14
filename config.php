@@ -37,7 +37,7 @@ return [
 
     "google" => [
         'clientId' => "857873046355-3bigof3avgr1rgqq0ng703587g7nh4dn.apps.googleusercontent.com",
-        'clientSecret' => "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",
+        'clientSecret' => "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",
         'authorizationUri' => "https://accounts.google.com/o/oauth2/auth",
         'tokenCredentialUri' => "https://oauth2.googleapis.com/token",
         'redirectUri' => SERVER_URL . "/callback",
