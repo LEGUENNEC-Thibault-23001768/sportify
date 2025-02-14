@@ -7,7 +7,7 @@ ini_set('SMTP', 'smtp-sportify.alwaysdata.net');
 ini_set('smtp_port', 587);
 ini_set('sendmail_from', 'sportify@alwaysdata.net');
 
-define("SERVER_URL",  IS_LOCAL ? 'http://localhost:8080' : 'https://sportify.alwaysdata.net',);
+define("SERVER_URL", IS_LOCAL ? 'http://localhost:8080' : 'https://sportify.alwaysdata.net');
 
 return [
     'brand' => 'Sportify',
@@ -27,10 +27,24 @@ return [
         'mail_title' => '[TITLE]',
         'mail_head_end' => "</title>\r\n</head>\r\n<body>",
         'mail_body' => "
-            <h2>Bienvenue sur Sportify !</h2>
-            <p>[PARAGRAPH]</p>
-            <p><a href='[VERIFY_URL]'>[ANCHOR]</a></p>
-            <img src='https://i.postimg.cc/wTWZmp2r/Sport-400-x-250-px-300-x-100-px-2.png' alt='Logo Sportify'>
+<div style='display: flex; align-items: center; flex-direction: column'>
+      <h2>Bienvenue chez Sportify !</h2>
+      <img
+        src='https://i.postimg.cc/8k0whVFw/Sport-400-x-250-px-300-x-100-px-removebg-preview.png'
+        alt='Logo Sportify'
+            />
+      <div style='display: flex; align-items: start; flex-direction: column'>
+         [PARAGRAPH]
+         <p>À très vite sur Sportify !</p>
+         <span>Sportivement,</span>
+        <span>L'équipe Sportify</span>
+        <span>
+          <a href='https://sportify.alwaysdata.net/'
+            >https://sportify.alwaysdata.net/</a
+          >
+        </span>
+      </div>
+    </div>
             ",
         'mail_footer' => "</body>\r\n</html>"
     ],

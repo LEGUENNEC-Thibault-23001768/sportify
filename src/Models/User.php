@@ -3,13 +3,14 @@
 
 namespace Models;
 
+use Core\Config;
 use Core\Database;
 use PDO;
-use Core\Config;
 
 class User
 {
-    public static function getAllUsers() {
+    public static function getAllUsers()
+    {
         $sql = "SELECT member_id, first_name, last_name, email, status FROM MEMBER";
         return Database::query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -20,7 +21,8 @@ class User
         return Database::query($sql);
     }
 
-    public static function find($memberId) {
+    public static function find($memberId)
+    {
         $sql = "SELECT * FROM MEMBER WHERE member_id = :memberId";
         $params = [':memberId' => $memberId];
         return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
@@ -33,7 +35,7 @@ class User
         $user = Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
 
         if (is_array($user) && password_verify($password, $user['password'])) {
-            error_log(print_r($user,true));
+            error_log(print_r($user, true));
             return $user;
         }
         return false;
@@ -43,13 +45,6 @@ class User
     {
         $sql = "SELECT * FROM MEMBER WHERE email = :email";
         $params = [':email' => $email];
-        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
-    }
-
-    public static function getUserById($memberId)
-    {
-        $sql = "SELECT * FROM MEMBER WHERE member_id = :memberId";
-        $params = [':memberId' => $memberId];
         return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
     }
 
@@ -78,7 +73,6 @@ class User
 
         return Database::query($sql, $params)->rowCount() > 0;
     }
-
 
     public static function deleteUser($memberId)
     {
@@ -134,7 +128,7 @@ class User
         $verificationToken = bin2hex(random_bytes(32));
         $password = $userData['password'] ?? 'GOOGLE_USER';
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        
+
         $sql = "INSERT INTO MEMBER (email, password, first_name, last_name, birth_date, address, phone, verification_token, is_verified)
                 VALUES (:email, :password, :first_name, :last_name, :birth_date, :address, :phone, :verification_token, FALSE)";
         $params = [
@@ -147,17 +141,83 @@ class User
             ':phone' => $userData['phone'],
             ':verification_token' => $verificationToken
         ];
-        
+
         $result = Database::query($sql, $params);
-        
-        error_log(print_r($params,true));
-        error_log(print_r($userData,true));
+
+        error_log(print_r($params, true));
+        error_log(print_r($userData, true));
 
         if ($result->rowCount() > 0) {
             self::sendVerificationEmail($userData['email'], $verificationToken);
             return Database::getConnection()->lastInsertId();
         }
         return false;
+    }
+
+    private static function sendVerificationEmail($to, $token)
+    {
+        $mail_parts = Config::get("mail_parts");
+
+        $verify_url = Config::get("server_url") . "/verify-mail?token=" . $token;
+        $title = "Vérifiez votre adresse mail - " . Config::get("brand", "Sportify");
+
+        $paragraph = "<span>
+          Vous êtes sur le point de rejoindre l'aventure Sportify et de booster
+          vos performances grâce à notre expérience connectée unique.
+        </span>
+        <p>
+          Pour valider votre inscription et profiter pleinement de l'expérience
+          Sportify, veuillez confirmer votre adresse email en cliquant sur le
+          bouton ci-dessous :
+          <a href='[VERIFY_URL]'>[ANCHOR]</a>
+        </p>
+        <span>En validant votre email, vous débloquerez l'accès à :</span>
+        <ul>
+          <li>
+            Le suivi personnalisé de vos entraînements pour mesurer vos progrès
+            et atteindre vos objectifs.
+          </li>
+          <li>
+            Des programmes conçus pour vous par nos coachs experts, adaptés à
+            votre niveau et vos envies.
+          </li>
+          <li>
+            La connexion à notre communauté motivante pour partager vos succès
+            et vous dépasser ensemble.
+          </li>
+          <li>
+            Et bien plus encore ! (Accès à des challenges, des conseils
+            bien-être, etc.)
+          </li>
+        </ul>
+        <p>
+          Si le bouton ci-dessus ne fonctionne pas, vous pouvez également copier
+          et coller le lien suivant dans votre navigateur : [VERIFY_URL] Ce lien de validation est unique.
+        </p>";
+
+        $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", $paragraph, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", $verify_url, $mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Vérifier mon mail", $mail_parts['mail_body']);
+
+        $subject = $title;
+
+        $message = $mail_parts['mail_head'] .
+            $mail_parts['mail_title'] .
+            $mail_parts['mail_head_end'] .
+            $mail_parts['mail_body'] .
+            $mail_parts['mail_footer'];
+
+        $headers = "From: sportify@alwaysdata.net\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+
+        if (mail($to, $subject, $message, $headers)) {
+            return true;
+        } else {
+            error_log("Erreur d'envoi d'email à $to: " . error_get_last());
+            return false;
+        }
     }
 
     public static function updatePassword($userId, $newPassword)
@@ -217,6 +277,12 @@ class User
         return Database::query($sql, $params)->rowCount() > 0;
     }
 
+    public static function getUserById($memberId)
+    {
+        $sql = "SELECT * FROM MEMBER WHERE member_id = :memberId";
+        $params = [':memberId' => $memberId];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
 
     public static function verifyCurrentPassword($userId, $currentPassword)
     {
@@ -260,13 +326,6 @@ class User
         return Database::query($sql, $params)->rowCount() > 0;
     }
 
-    public static function findByResetToken($token)
-    {
-        $sql = "SELECT * FROM MEMBER WHERE reset_token = :token AND reset_token_expiry > NOW()";
-        $params = [':token' => $token];
-        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
-    }
-
     public static function resetPassword($token, $newPassword)
     {
         $user = self::findByResetToken($token);
@@ -281,6 +340,13 @@ class User
         return false;
     }
 
+    public static function findByResetToken($token)
+    {
+        $sql = "SELECT * FROM MEMBER WHERE reset_token = :token AND reset_token_expiry > NOW()";
+        $params = [':token' => $token];
+        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+    }
+
     public static function sendPasswordResetEmail($email, $token)
     {
         $mail_parts = Config::get("mail_parts");
@@ -291,57 +357,24 @@ class User
         $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
         $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "Merci de cliquer sur ce lien pour réinitialiser votre mot de passe : ", $mail_parts['mail_body']);
         $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", $verify_url, $mail_parts['mail_body']);
-        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Changer mon mot de passe",$mail_parts['mail_body']);
+        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Changer mon mot de passe", $mail_parts['mail_body']);
 
         $subject = $title;
 
-        $message =  $mail_parts['mail_head'] . 
-                    $mail_parts['mail_title'] . 
-                    $mail_parts['mail_head_end'] .
-                    $mail_parts['mail_body'] .
-                    $mail_parts['mail_footer'];
+        $message = $mail_parts['mail_head'] .
+            $mail_parts['mail_title'] .
+            $mail_parts['mail_head_end'] .
+            $mail_parts['mail_body'] .
+            $mail_parts['mail_footer'];
 
         $headers = "From: sportify@alwaysdata.net\r\n";
         $headers .= "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
-        if(mail($email, $subject, $message, $headers)) {
+        if (mail($email, $subject, $message, $headers)) {
             return true;
         } else {
             error_log("Erreur d'envoi d'email de réinitialisation à $email: " . error_get_last());
-            return false;
-        }
-    }
-
-
-    private static function sendVerificationEmail($to, $token)
-    {
-        $mail_parts = Config::get("mail_parts");
-
-        $verify_url = Config::get("server_url") . "/verify-mail?token=" . $token;
-        $title = "Vérifiez votre adresse mail - " . Config::get("brand", "Sportify");
-
-        $mail_parts['mail_body'] = str_replace("[TITLE]", $title, $mail_parts['mail_body']);
-        $mail_parts['mail_body'] = str_replace("[PARAGRAPH]", "Merci de cliquer sur le lien ci-dessous pour vérifier votre adresse email :", $mail_parts['mail_body']);
-        $mail_parts['mail_body'] = str_replace("[VERIFY_URL]", $verify_url, $mail_parts['mail_body']);
-        $mail_parts['mail_body'] = str_replace("[ANCHOR]", "Vérifier mon mail",$mail_parts['mail_body']);
-
-        $subject = $title;
-
-        $message =  $mail_parts['mail_head'] . 
-                    $mail_parts['mail_title'] . 
-                    $mail_parts['mail_head_end'] .
-                    $mail_parts['mail_body'] .
-                    $mail_parts['mail_footer'];
-
-        $headers =  "From: sportify@alwaysdata.net\r\n";
-        $headers .= "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-
-        if(mail($to, $subject, $message, $headers)) {
-            return true;
-        } else {
-            error_log("Erreur d'envoi d'email à $to: " . error_get_last());
             return false;
         }
     }
