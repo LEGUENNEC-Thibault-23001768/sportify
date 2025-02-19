@@ -366,4 +366,27 @@ class User
         }
     }
 
+    
+    public static function searchMembers($term)
+    {
+         $sql = "SELECT member_id, first_name, last_name, email, status FROM MEMBER
+               WHERE first_name LIKE :searchTerm1
+               OR last_name LIKE :searchTerm2
+               OR email LIKE :searchTerm3";
+         $params = [
+             ':searchTerm1' => '%' . $term . '%',
+             ':searchTerm2' => '%' . $term . '%',
+             ':searchTerm3' => '%' . $term . '%'
+         ];
+         $results = Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
+   
+        // Vérifiez et corrigez les clés ici si nécessaire
+       foreach ($results as &$row) {
+       // Exemple : Si votre colonne s'appelle 'id_membre' au lieu de 'member_id'
+        // $row['member_id'] = $row['id_membre'];
+         }
+   
+        return $results;
+    }
+
 }

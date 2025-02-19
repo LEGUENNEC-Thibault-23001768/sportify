@@ -10,6 +10,7 @@ use DateTime;
 use Core\Router;
 use Core\RouteProvider;
 use Core\Auth;
+use Core\Database;  // Utilize the CORE in this function
 
 class BookingAPIController extends APIController implements RouteProvider
 {
@@ -17,7 +18,37 @@ class BookingAPIController extends APIController implements RouteProvider
     {
         Router::apiResource('/api/booking', self::class, Auth::requireLogin());
         Router::get('/api/booking/available-hours', self::class . '@getAvailableHours', Auth::requireLogin());
+        Router::get('/api/members/search', self::class . '@search', Auth::requireLogin());
+        Router::get('/api/members/{member_id}', self::class . '@getMember', Auth::requireLogin());
     }
+
+    public function search() {
+        $response = new APIResponse();
+        $searchTerm = $_GET['term'] ?? '';
+        $users = User::searchMembers($searchTerm);
+
+        if ($users === false) {
+            return $response->setStatusCode(500)->setData(['error' => 'Erreur lors de la recherche des membres'])->send();
+        }
+
+        // Ajoutez ceci pour vérifier la structure des données avant de les renvoyer :
+        error_log(print_r($users, true));  // Affiche le contenu de $users dans les logs PHP
+
+        return $response->setStatusCode(200)->setData($users)->send();
+    }
+
+    public function getMember($member_id = null){
+        $response = new APIResponse();
+        $member = User::find($member_id);
+   
+        if (!$member) {
+             return $response->setStatusCode(404)->setData(['error' => 'Member not found'])->send();
+        }
+   
+        return $response->setStatusCode(200)->setData($member)->send();
+   
+    }
+
 
    public function get($reservationId = null) {
         $response = new APIResponse();
@@ -75,7 +106,7 @@ class BookingAPIController extends APIController implements RouteProvider
 
         return $response->setStatusCode(200)->setData(['message' => 'Reservation deleted successfully'])->send();
     }
-    
+
     public function post()
     {
         $response = new APIResponse();
@@ -85,35 +116,103 @@ class BookingAPIController extends APIController implements RouteProvider
         if (!$currentUserId) {
             return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
         }
-    
+
         $member_id = $currentUserId;
         $court_id = $data['court_id'];
         $reservation_date = $data['reservation_date'];
         $start_times = $data['start_time'];
-    
+        $reservation_type = $data['reservation_type'];
+        $team_members = $data['team_members'] ?? [];  // Récupère les membres de l'équipe
+        $team_name = $data['team_name'] ?? null;
+
         if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_times)) {
-             return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
+            return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
         }
-         $start_times_array = explode(',', $start_times); 
-    
-            foreach ($start_times_array as $start_time) { 
-    
-                $end_time = date('H:i', strtotime($start_time . ' +1 hour')); 
-                if ($end_time === false) {
-                     return $response->setStatusCode(400)->setData(['error' => "Erreur lors du calcul de l'heure de fin."])->send();
+
+        $start_times_array = explode(',', $start_times);
+
+        // Utilisation directe de la connexion PDO pour les opérations en base
+        $pdo = Database::getConnection();
+
+        try {
+
+            $team_id = null;
+            if ($reservation_type === 'team') {
+                 if (empty($team_name)) {
+                    throw new \Exception("Team name is required for team reservations.");
+                   }
+
+                   if (empty($team_members)) {
+                     throw new \Exception("At least one team member must be selected for team reservations.");
+                    }
+               // We insert first
+                $sqlTeam = "INSERT INTO TEAM (team_name) VALUES (:team_name)";
+                $stmtTeam = $pdo->prepare($sqlTeam);
+                $stmtTeam->execute(['team_name' => $team_name]);
+               // We check last insert to continue
+                $team_id = $pdo->lastInsertId();
+                if (!$team_id) {
+                  throw new \Exception("Team creation Failed.");
                 }
-                $startTime = new DateTime($reservation_date . ' ' . $start_time);
-                $endTime = new DateTime($reservation_date . ' ' . $end_time);
-                $duration = $endTime->diff($startTime);
-                $totalHours = $duration->h + ($duration->i / 60);
-        
-                if ($totalHours > 2) {
-                      return $response->setStatusCode(400)->setData(['error' => 'Reservation cannot exceed 2 hours'])->send();
+
+          // 2. Ajouter les participants à l'équipe
+               foreach ($team_members as $team_member_id) {
+
+                     $sqlPart = "INSERT INTO TEAM_PARTICIPANT (team_id, member_id) VALUES (:team_id, :member_id)";
+                     $stmtPart = $pdo->prepare($sqlPart);
+
+                     $paramsPart = ['team_id' => $team_id, 'member_id' => $team_member_id];
+
+                      if (! $stmtPart->execute($paramsPart)) {
+                       error_log("Failed Insert ". json_encode($stmtPart->errorInfo()));
+                         throw new \Exception("Error : insert particpant to Team Faile");
+                           
+                         }
+
+
                 }
-        
-                Booking::addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time);
+
+        }
+                 foreach ($start_times_array as $start_time) {
+            $end_time = date('H:i', strtotime($start_time . ' +1 hour'));
+            if ($end_time === false) {
+                throw new \Exception("Erreur lors du calcul de l'heure de fin.");
             }
-        return $response->setStatusCode(201)->setData(['message' => 'Reservation created successfully'])->send();
+            $startTime = new DateTime($reservation_date . ' ' . $start_time);
+            $endTime = new DateTime($reservation_date . ' ' . $end_time);
+            $duration = $endTime->diff($startTime);
+            $totalHours = $duration->h + ($duration->i / 60);
+
+            if ($totalHours > 2) {
+                 throw new \Exception("la reservation depasse deux heures!");
+                   }
+
+          $sqlReservation = "INSERT INTO COURT_RESERVATION (member_id, court_id, reservation_date, start_time, end_time, team_id) VALUES (:member_id, :court_id, :reservation_date, :start_time, :end_time, :team_id)";
+
+        $params = [
+                    ':member_id' => $member_id,
+                    ':court_id' => $court_id,
+                    ':reservation_date' => $reservation_date,
+                    ':start_time' => $start_time,
+                    ':end_time' => $end_time,
+                    ':team_id' => $team_id, 
+                  ];
+
+           $stmtReserve = $pdo->prepare($sqlReservation);
+
+                    if (!$stmtReserve->execute($params)) {
+                        throw new \Exception("ERROR create new reservation.".json_encode($stmtReserve->errorInfo())); 
+                   }
+         
+       }
+
+  return $response->setStatusCode(201)->setData(['message' => 'Reservation created successfully'])->send();
+}         
+             catch (\Exception $e) {
+                  
+              error_log("An exception was trowed ". $e->getMessage());
+              return $response->setStatusCode(500)->setData(['error' => "Erreur lors de l'enregistrement de la réservation : " . $e->getMessage()])->send();
+                        }
     }
 
     

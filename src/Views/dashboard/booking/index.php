@@ -21,6 +21,23 @@
              <form id="reservation-form">
                  <input type="hidden" id="court_id" name="court_id">
                  <input type="hidden" name="member_id" id="member_id" value="">
+
+                 <div class="reservation-type">
+                    <label><input type="radio" name="reservation_type" value="individual" checked> Individuelle</label>
+                    <label><input type="radio" name="reservation_type" value="team"> En équipe</label>
+                </div>
+
+                <div id="team-section" style="display: none;">
+                    <label for="team_name">Nom de l'équipe:</label>
+                    <input type="text" id="team_name" name="team_name">
+                    
+                    <div class="member-selection">
+                        <label>Membres :</label>
+                        <div id="member-list"></div>
+                        <button type="button" onclick="showMemberSearch()">Ajouter un membre</button>
+                    </div>
+                </div>
+
                  <label for="member_name">Votre Nom:</label>
                  <input type="text" id="member_name" name="member_name" value="" readonly>
 
@@ -37,6 +54,13 @@
                  <button type="button" onclick="closeReservationForm()">Annuler</button>
              </form>
          </div>
+
+         <div id="member-search-modal" style="display: none;">
+            <input type="text" id="member-search" placeholder="Rechercher un membre...">
+            <div id="search-results"></div>
+            <button onclick="closeMemberSearch()">Fermer</button>
+        </div>
+        
           <div class="tab-content" id="reservations" style="margin-top:10px; display:none;">
              <h3>Historique des Réservations</h3>
              <ul id="reservation-list">

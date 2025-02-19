@@ -34,6 +34,13 @@ class Booking
         return Database::query($sql, $params)->fetchColumn() == 0;
     }
 
+    public static function getMembersByBookingId($booking_id) {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("SELECT m.* FROM MEMBER m INNER JOIN booking_members bm ON m.member_id = bm.member_id WHERE bm.booking_id = :booking_id"); // Assumes you have a joining table 'booking_members'
+        $stmt->execute(['booking_id' => $booking_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     /**
      * @return array
      */
@@ -64,40 +71,57 @@ class Booking
      * @param $end_time
      * @return bool
      */
-    public static function addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time): bool
+    public static function addReservation($member_id, $court_id, $reservation_date, $start_time, $end_time)
     {
-        $sql = "INSERT INTO COURT_RESERVATION (member_id, court_id, reservation_date, start_time, end_time)
-                VALUES (:member_id, :court_id, :reservation_date, :start_time, :end_time)";
-        $params = [
-            ':member_id' => $member_id,
-            ':court_id' => $court_id,
-            ':reservation_date' => $reservation_date,
-            ':start_time' => $start_time,
-            ':end_time' => $end_time
-        ];
-        return Database::query($sql, $params)->rowCount() > 0;
+        try {
+            $pdo = Database::getConnection();
+            $stmt = $pdo->prepare("INSERT INTO COURT_RESERVATION (member_id, court_id, reservation_date, start_time, end_time) VALUES (:member_id, :court_id, :reservation_date, :start_time, :end_time)");
+            $stmt->execute([
+                'member_id' => $member_id,
+                'court_id' => $court_id,
+                'reservation_date' => $reservation_date,
+                'start_time' => $start_time,
+                'end_time' => $end_time,
+            ]);
+            return true;
+        } catch (\PDOException $e) {
+            error_log("PDOException in addReservation: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
      * @param $reservation_id
      * @return bool
      */
-    public static function deleteReservation($reservation_id): bool
+    public static function deleteReservation($reservation_id)
     {
-        $sql = "DELETE FROM COURT_RESERVATION WHERE reservation_id = :reservation_id";
-        $params = [':reservation_id' => $reservation_id];
-        return Database::query($sql, $params)->rowCount() > 0;
+        try {
+            $pdo = Database::getConnection();
+            $stmt = $pdo->prepare("DELETE FROM COURT_RESERVATION WHERE reservation_id = :reservation_id");
+            $stmt->execute(['reservation_id' => $reservation_id]);
+            return true;
+        } catch (\PDOException $e) {
+            error_log("PDOException in deleteReservation: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
      * @param $reservation_id
      * @return mixed
      */
-    public static function getReservationById($reservation_id): mixed
+    public static function getReservationById($reservation_id)
     {
-        $sql = "SELECT * FROM COURT_RESERVATION WHERE reservation_id = :reservation_id";
-        $params = ['reservation_id' => $reservation_id];
-        return Database::query($sql, $params)->fetch(PDO::FETCH_ASSOC);
+        try {
+            $pdo = Database::getConnection();
+            $stmt = $pdo->prepare("SELECT * FROM COURT_RESERVATION WHERE reservation_id = :reservation_id");
+            $stmt->execute(['reservation_id' => $reservation_id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("PDOException in getReservationById: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -108,11 +132,23 @@ class Booking
      * @param $event_id
      * @return bool
      */
-    public static function updateReservation($reservation_id, $reservation_date, $start_time, $end_time, $event_id): bool
+    public static function updateReservation($reservation_id, $reservation_date, $start_time, $end_time, $event_id = null)
     {
-        $sql = "UPDATE COURT_RESERVATION SET reservation_date = ?, start_time = ?, end_time = ?, event_id = ? WHERE reservation_id = ?";
-        $params = [$reservation_date, $start_time, $end_time, $event_id, $reservation_id];
-        return Database::query($sql, $params)->rowCount() > 0;
+        try {
+            $pdo = Database::getConnection();
+            $stmt = $pdo->prepare("UPDATE COURT_RESERVATION SET reservation_date = :reservation_date, start_time = :start_time, end_time = :end_time, event_id = :event_id WHERE reservation_id = :reservation_id");
+            $stmt->execute([
+                'reservation_id' => $reservation_id,
+                'reservation_date' => $reservation_date,
+                'start_time' => $start_time,
+                'end_time' => $end_time,
+                'event_id' => $event_id,
+            ]);
+            return true;
+        } catch (\PDOException $e) {
+            error_log("PDOException in updateReservation: " . $e->getMessage());
+            return false;
+        }
     }
 
 }
