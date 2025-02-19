@@ -374,79 +374,96 @@
 
   async function loadMembers(searchTerm = '') {
     try {
-      const response = await fetch(`/api/members/search?term=${searchTerm}`);
-      if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-  // VÉRIFICATION IMPORTANTE : data contient-il bien quelque chose ?
+        const response = await fetch(`/api/members/search?term=${searchTerm}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
 
-  // S'il y a une erreur "officielle" renvoyée par le serveur, on l'affiche
-      if (data.error) {
-      console.error("Erreur du serveur :", data.error);
-      document.getElementById('search-results').innerHTML = `<p>Erreur: ${data.error}</p>`; // Affiche l'erreur renvoyée par le serveur
-      return;  // Important de sortir de la fonction
-  }
+        if (data.error) {
+            console.error("Erreur du serveur :", data.error);
+            document.getElementById('search-results').innerHTML = `<p>Erreur: ${data.error}</p>`;
+            return;
+        }
 
-  
-  if (Array.isArray(data)) {  // <--- Check if it's an array.
-    const members = data;
-          const resultsDiv = document.getElementById('search-results');
-          resultsDiv.innerHTML = members.map(member => `
-              <div class="member-result" data-id="${member.member_id}">
-                  ${member.first_name} ${member.last_name}
-                  <button onclick="toggleMember(${member.member_id})">
-                      ${selectedMembers.has(member.member_id) ? 'Retirer' : 'Ajouter'}
-                  </button>
-              </div>
-          `).join('');
-      }
-  } catch (error) {
-  console.error("Error fetching members:", error);
-  document.getElementById('search-results').innerHTML = "<p>Erreur de connexion au serveur.</p>"; //Message d'erreur standard
-}
-}
-
-  window.toggleMember = function(memberId) {
-    if (selectedMembers.has(memberId)) {
-        selectedMembers.delete(memberId);
-    } else {
-        selectedMembers.add(memberId);
+        if (Array.isArray(data)) {
+            const resultsDiv = document.getElementById('search-results');
+            resultsDiv.innerHTML = data.map(member => {
+                const isSelected = selectedMembers.has(member.member_id); //Est-ce que l'item est déjà dans le Set?
+                return `
+                    <div class="member-result" data-id="${member.member_id}">
+                        ${member.first_name} ${member.last_name}
+                        ${isSelected ? 
+                            `<button class="remove-button" onclick="toggleMember(${member.member_id})" data-action="remove">Retirer</button>` : 
+                            `<button class="add-button" onclick="toggleMember(${member.member_id})" data-action="add">Ajouter</button>`}
+                    </div>
+                `;
+            }).join('');
+        }
+    } catch (error) {
+        console.error("Error fetching members:", error);
+        document.getElementById('search-results').innerHTML = "<p>Erreur de connexion au serveur.</p>";
     }
-    updateSelectedMembers();
+}
+
+window.toggleMember = function(memberId) {
+  if (!Number.isInteger(memberId)) {
+      console.warn("ID de membre invalide reçu par toggleMember:", memberId);
+      return;
   }
 
-  function updateSelectedMembers() {
-      const memberList = document.getElementById('member-list');
-      memberList.innerHTML = Array.from(selectedMembers).map(id => `
-      <div class="selected-member" data-id="${id}">
-          ${getMemberName(id)}
-          <input type="hidden" name="team_members[]" value="${id}">
-      </div>
+  const memberDiv = document.querySelector(`.member-result[data-id="${memberId}"]`);
+  if (!memberDiv) return;
+
+  const button = memberDiv.querySelector('button'); // Get the button
+  const action = button.dataset.action;  // Get what the button does.
+  
+  if(action === 'add'){
+    selectedMembers.add(memberId)
+  }
+  else {
+    selectedMembers.delete(memberId)
+  }
+
+   loadMembers(); // refresh members display
+
+};
+
+function updateSelectedMembers() {
+  const memberList = document.getElementById('member-list');
+  memberList.innerHTML = Array.from(selectedMembers).map(memberId => `
+  <div class="selected-member" data-id="${memberId}">
+  ${getMemberName(memberId)}
+  <input type="hidden" name="team_members[]" value="${memberId}">
+  </div>
   `).join('');
-  }
-
+}
   //fonction qui permet d'appeller le nom d'un membre dans la list de recherche de membre
     //fonction qui permet d'appeller le nom d'un membre dans la list de recherche de membre
-  function getMemberName(memberId) {
+    function getMemberName(memberId) {
+      if (!Number.isInteger(memberId)) {
+          console.warn("ID de membre invalide :", memberId);
+          return "Unknown Member"; // Retourne une valeur par défaut immédiatement
+      }
+  
       let memberName = "Unknown Member"; // Valeur par défaut
       $.ajax({
-        url: '/api/members/' + memberId,  // créer une route pour recup le nom du member
-        type: 'GET',
-        async: false, // Synchronous request (not recommended in general)
-        success: function(response) {
-          if (response && response.first_name && response.last_name) {
-            memberName = response.first_name + ' ' + response.last_name;
-          } else {
-            console.warn("Nom du membre introuvable pour l'ID :", memberId, response);
+          url: '/api/members/' + memberId,  // créer une route pour recup le nom du member
+          type: 'GET',
+          async: false, // Synchronous request (not recommended in general)
+          success: function(response) {
+              if (response && response.first_name && response.last_name) {
+                  memberName = response.first_name + ' ' + response.last_name;
+              } else {
+                  console.warn("Nom du membre introuvable pour l'ID :", memberId, response);
+              }
+          },
+          error: function(xhr, status, error) {
+              console.error("Error fetching member name for ID " + memberId + ": " + error);
           }
-        },
-        error: function(xhr, status, error) {
-          console.error("Error fetching member name for ID " + memberId + ": " + error);
-        }
       });
       return memberName;
-    }
+  }
   // fonction pour fermer la searchModal
   window.closeMemberSearch = function() {
       document.getElementById('member-search-modal').style.display = 'none';
