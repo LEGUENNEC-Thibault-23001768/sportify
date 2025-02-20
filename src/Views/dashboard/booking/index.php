@@ -56,14 +56,17 @@
              </form>
          </div>
        
-            <div id="member-search-modal" style="display: none;">
-                <form id="member-search-form">
-                    <input type="text" id="member-search" placeholder="Rechercher un membre...">
-                    <button type="submit">Rechercher</button>
-                </form>
-                <div id="search-results"></div>
-                <button onclick="closeMemberSearch()">Fermer</button>
-            </div>
+         <div id="member-search-modal" style="display: none;">
+            <form class="search-form" id="member-search-form">
+                <div class="form-group">
+                    <label for="member-search">Rechercher par nom, prénom ou email :</label>
+                    <input type="text" name="member-search" id="member-search" class="form-control" placeholder="Rechercher un membre">
+                </div>
+                <button type="submit" class="btn btn-primary">Rechercher</button>
+            </form>
+            <div id="search-results"></div>
+            <button onclick="closeMemberSearch()">Fermer</button>
+         </div>
 
           <div class="tab-content" id="reservations" style="margin-top:10px; display:none;">
              <h3>Historique des Réservations</h3>

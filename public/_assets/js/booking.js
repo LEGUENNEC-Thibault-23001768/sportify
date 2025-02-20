@@ -372,49 +372,94 @@
   }
 
   // Gestion de la recherche de membres
-  window.showMemberSearch = async function() { // Assignation à window
-      document.getElementById('member-search-modal').style.display = 'block';
-      await loadMembers();
-  }
+  window.showMemberSearch = async function() {
+    document.getElementById('member-search-modal').style.display = 'block';
+
+    // Attach submit event listener to the form
+    $('#member-search-form').off('submit').on('submit', function(e) {
+        e.preventDefault(); // Prevent form submission and page reload
+        const searchTerm = $('#member-search').val();
+        searchMembers(searchTerm);
+    });
+
+    await loadMembers(); // Load all members initially
+};
 
   
-  async function loadMembers(searchTerm = '') {
-    try {
-        const response = await fetch(`/api/members/search?term=${searchTerm}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+async function loadMembers(searchTerm = '') {
+  try {
+      let url = '/api/members/search';
+      if (searchTerm) {
+          // Use searchMembers if searchTerm is present
+          return searchMembers(searchTerm);
+      }
 
-        if (data.error) {
-            console.error("Erreur du serveur :", data.error);
-            document.getElementById('search-results').innerHTML = `<p>Erreur: ${data.error}</p>`;
-            return;
-        }
+      const response = await fetch(url);
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
 
-        if (Array.isArray(data)) {
+      if (data.error) {
+          console.error("Erreur du serveur :", data.error);
+          document.getElementById('search-results').innerHTML = `<p>Erreur: ${data.error}</p>`;
+          return;
+      }
 
-            const maxCapacity =  parseInt(document.getElementById('max_capacity').value, 10) || 4 ;//Default, default
-             if (selectedMembers.size > maxCapacity) {
-                 return;
-            }
-            const resultsDiv = document.getElementById('search-results');
-            resultsDiv.innerHTML = data.map(member => {
-                const isSelected = selectedMembers.has(member.member_id); //Est-ce que l'item est déjà dans le Set?
-                return `
-                    <div class="member-result" data-id="${member.member_id}">
-                        ${member.first_name} ${member.last_name}
-                        ${isSelected ? 
-                            `<button class="remove-button" onclick="toggleMember(${member.member_id})" data-action="remove">Retirer</button>` : 
-                            `<button class="add-button" onclick="toggleMember(${member.member_id})" data-action="add">Ajouter</button>`}
-                    </div>
-                `;
-            }).join('');
-        }
-    } catch (error) {
-        console.error("Error fetching members:", error);
-        document.getElementById('search-results').innerHTML = "<p>Erreur de connexion au serveur.</p>";
-    }
+      if (Array.isArray(data)) {
+          const maxCapacity =  parseInt(document.getElementById('max_capacity').value, 10) || 4 ;
+           if (selectedMembers.size > maxCapacity) {
+               return;
+          }
+
+          const resultsDiv = document.getElementById('search-results');
+           updateSearchResults(data);
+      }
+  } catch (error) {
+      console.error("Error fetching members:", error);
+      document.getElementById('search-results').innerHTML = "<p>Erreur de connexion au serveur.</p>";
+  }
+}
+
+function searchMembers(searchTerm) {
+  $.ajax({
+      url: '/api/members/search',
+      method: 'GET',
+      data: { term: searchTerm },
+      dataType: 'json',
+      success: function (data) {
+          if (data.error) {
+              console.error("Erreur du serveur :", data.error);
+              document.getElementById('search-results').innerHTML = `<p>Erreur: ${data.error}</p>`;
+          } else {
+              updateSearchResults(data);
+          }
+      },
+      error: function (xhr, status, error) {
+          console.error("Error fetching members:", error);
+          document.getElementById('search-results').innerHTML = "<p>Erreur de connexion au serveur.</p>";
+      }
+  });
+}
+
+function updateSearchResults(members) {
+  const maxCapacity =  parseInt(document.getElementById('max_capacity').value, 10) || 4 ;
+  if (selectedMembers.size > maxCapacity) {
+      return;
+  }
+
+  const resultsDiv = document.getElementById('search-results');
+  resultsDiv.innerHTML = members.map(member => {
+      const isSelected = selectedMembers.has(member.member_id);
+      return `
+          <div class="member-result" data-id="${member.member_id}">
+              ${member.first_name} ${member.last_name}
+              ${isSelected ?
+                  `<button class="remove-button" onclick="toggleMember(${member.member_id})" data-action="remove">Retirer</button>` :
+                  `<button class="add-button" onclick="toggleMember(${member.member_id})" data-action="add">Ajouter</button>`}
+          </div>
+      `;
+  }).join('');
 }
 
 window.toggleMember = function(memberId) {
