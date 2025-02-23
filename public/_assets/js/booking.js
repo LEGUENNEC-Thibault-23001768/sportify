@@ -1,6 +1,6 @@
 (function() {
   let reservations = [];
-  let selectedMembers = new Set(); // Déplacé ici pour la portée
+  let selectedMembers = new Set();
 
   function loadReservations() {
       $.ajax({
@@ -13,6 +13,7 @@
           },
           error: function(xhr, status, error) {
               console.error("Error: " + status + " - " + error);
+              showErrorToast("Erreur lors du chargement des réservations.");
           }
       });
   }
@@ -146,8 +147,7 @@
   window.openReservationForm = function(roomElement) {
     const courtId = roomElement.getAttribute('data-court-id');
     const roomName = roomElement.getAttribute('data-room');
-     //Get the capacity !
-    const maxCapacity = parseInt(roomElement.getAttribute('data-max-capacity'), 10); // Assuming base 10
+    const maxCapacity = parseInt(roomElement.getAttribute('data-max-capacity'), 10); 
    
    document.getElementById('court_id').value = courtId;
     document.getElementById('member_name').value = userName;
@@ -175,7 +175,7 @@
       if (form && form.tagName === 'FORM') {
           form.reset();
       }
-      selectedMembers.clear(); // Vide la sélection des membres
+      selectedMembers.clear(); 
       updateSelectedMembers();
       $('.gym-map, #reservations, .dashboard-content > h2').removeClass('modal-open');
   };
@@ -323,69 +323,40 @@
       }
   }
 
-
-  $('#update-button').click(function() {
-      const reservationId = $('#edit_reservation_id').val();
-      const startTime = $('#edit_start-time').val();
-      const endTime =  $('#edit_end-time').val();
-
-      if (!startTime || !endTime) {
-          showErrorToast("Veuillez sélectionner une heure de début et de fin.");
-          return;
-      }
-
-      const formData = {
-          reservation_date: $('#edit_date').val(),
-          start_time: startTime,
-          end_time: endTime
-      };
-
-      $.ajax({
-          url: '/api/booking/' + reservationId,
-          type: 'PUT',
-          contentType: 'application/json',
-          data: JSON.stringify(formData),
-          success: function(response) {
-              if (response.data && response.data.message) {
-                  showSuccessToast(response.data.message);
-              } else {
-                  showSuccessToast('Réservation mise à jour avec succès!');
-              }
-              closeEditReservation();
-              loadReservations();
-          },
-          error: function(xhr, status, error) {
-              let errorMessage = "Erreur lors de la mise à jour de la réservation.";
-              if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.error) {
-                  errorMessage = xhr.responseJSON.data.error;
-              }
-              showErrorToast(errorMessage);
-              console.error("Error: " + status + " - " + error);
-          }
-      });
-  });
-
-
-  window.closeEditReservation = function() {
-      $('#edit-reservation-container').hide();
-      $('.gym-map, #reservations, .dashboard-content > h2').removeClass('modal-open');
-  }
-
-  // Gestion de la recherche de membres
   window.showMemberSearch = async function() {
     document.getElementById('member-search-modal').style.display = 'block';
-
-    // Attach submit event listener to the form
     $('#member-search-form').off('submit').on('submit', function(e) {
-        e.preventDefault(); // Prevent form submission and page reload
+        e.preventDefault();
         const searchTerm = $('#member-search').val();
         searchMembers(searchTerm);
     });
 
-    await loadMembers(); // Load all members initially
+    await loadMembers(); 
 };
 
-  
+
+function searchMembers(searchTerm) {
+  $.ajax({
+      url: '/api/members/search',
+      method: 'GET',
+      data: { term: searchTerm },
+      dataType: 'json',
+      success: function (data) {
+          if (data.error) {
+              console.error("Erreur du serveur :", data.error);
+              document.getElementById('search-results').innerHTML = `<p>Erreur: ${data.error}</p>`;
+          } else {
+              updateSearchResults(data);
+          }
+      },
+      error: function (xhr, status, error) {
+          console.error("Error fetching members:", error);
+          document.getElementById('search-results').innerHTML = "<p>Erreur de connexion au serveur.</p>";
+      }
+  });
+}
+
+
 async function loadMembers(searchTerm = '') {
   try {
       let url = '/api/members/search';
@@ -421,34 +392,59 @@ async function loadMembers(searchTerm = '') {
   }
 }
 
-function searchMembers(searchTerm) {
+
+window.searchMembers = function(searchTerm) {
   $.ajax({
-      url: '/api/members/search',
-      method: 'GET',
+      url: '/api/members/search', 
+      type: 'GET',
       data: { term: searchTerm },
-      dataType: 'json',
-      success: function (data) {
-          if (data.error) {
-              console.error("Erreur du serveur :", data.error);
-              document.getElementById('search-results').innerHTML = `<p>Erreur: ${data.error}</p>`;
-          } else {
-              updateSearchResults(data);
-          }
+      success: function(data) {
+          displaySearchResults(data);
       },
-      error: function (xhr, status, error) {
-          console.error("Error fetching members:", error);
-          document.getElementById('search-results').innerHTML = "<p>Erreur de connexion au serveur.</p>";
+      error: function(xhr, status, error) {
+          console.error("Erreur de recherche de membres :", error);
+          document.getElementById('search-results').innerHTML = "<p>Erreur lors de la recherche.</p>";
       }
+  });
+};
+
+function displaySearchResults(members) {
+  const resultsDiv = document.getElementById('search-results');
+  resultsDiv.innerHTML = ''; 
+
+  if (!members || members.length === 0) {
+      resultsDiv.innerHTML = "<p>Aucun membre trouvé.</p>";
+      return;
+  }
+
+  members.forEach(member => {
+      const memberDiv = document.createElement('div');
+      memberDiv.classList.add('member-result');
+      memberDiv.textContent = `${member.first_name} ${member.last_name} (${member.email})`;
+      memberDiv.setAttribute('data-member-id', member.member_id); 
+      memberDiv.addEventListener('click', function() {
+          selectMember(member.member_id, member.first_name, member.last_name);
+          closeMemberSearch();
+      });
+
+      resultsDiv.appendChild(memberDiv);
   });
 }
 
 function updateSearchResults(members) {
   const maxCapacity =  parseInt(document.getElementById('max_capacity').value, 10) || 4 ;
+  const resultsDiv = document.getElementById('search-results');
+  resultsDiv.innerHTML = '';
+
+  if (!members || members.length === 0) {
+      resultsDiv.innerHTML = "<p>Aucun membre trouvé.</p>";
+      return;
+  }
+
   if (selectedMembers.size > maxCapacity) {
       return;
   }
 
-  const resultsDiv = document.getElementById('search-results');
   resultsDiv.innerHTML = members.map(member => {
       const isSelected = selectedMembers.has(member.member_id);
       return `
@@ -471,10 +467,10 @@ window.toggleMember = function(memberId) {
   const memberDiv = document.querySelector(`.member-result[data-id="${memberId}"]`);
   if (!memberDiv) return;
 
-  const button = memberDiv.querySelector('button'); // Get the button
-  const action = button.dataset.action;  // Get what the button does.
+  const button = memberDiv.querySelector('button'); 
+  const action = button.dataset.action; 
 
-  const maxCapacity = parseInt(document.getElementById('max_capacity').value, 10) || 4; // Récupère la capacité maximale
+  const maxCapacity = parseInt(document.getElementById('max_capacity').value, 10) || 4; // Récupère la capacité max
 
   if (action === 'add') {
       if (selectedMembers.size >= maxCapacity) {
@@ -486,49 +482,54 @@ window.toggleMember = function(memberId) {
       selectedMembers.delete(memberId);
   }
 
-  loadMembers(); // refresh members display
-  updateSelectedMembers(); // Mettre à jour la liste des membres sélectionnés
+  loadMembers();
+  updateSelectedMembers(); 
 };
 
-function updateSelectedMembers() {
-  const memberList = document.getElementById('member-list');
-  memberList.innerHTML = Array.from(selectedMembers).map(memberId => `
-      <div class="selected-member" data-id="${memberId}">
-          ${getMemberName(memberId)}
-          <input type="hidden" name="team_members[]" value="${memberId}">
-      </div>
-  `).join('');
-}
-  //fonction qui permet d'appeller le nom d'un membre dans la list de recherche de membre
-    //fonction qui permet d'appeller le nom d'un membre dans la list de recherche de membre
-    function getMemberName(memberId) {
-      if (!Number.isInteger(memberId)) {
-          console.warn("ID de membre invalide :", memberId);
-          return "Unknown Member"; // Retourne une valeur par défaut immédiatement
-      }
-  
-      let memberName = "Unknown Member"; // Valeur par défaut
-      $.ajax({
-          url: '/api/members/' + memberId,  // créer une route pour recup le nom du member
-          type: 'GET',
-          async: false, // Synchronous request (not recommended in general)
-          success: function(response) {
-              if (response && response.first_name && response.last_name) {
-                  memberName = response.first_name + ' ' + response.last_name;
-              } else {
-                  console.warn("Nom du membre introuvable pour l'ID :", memberId, response);
-              }
-          },
-          error: function(xhr, status, error) {
-              console.error("Error fetching member name for ID " + memberId + ": " + error);
-          }
+function updateSelectedMemberList() {
+  const memberListDiv = document.getElementById('selected-member-list');
+  memberListDiv.innerHTML = ''; 
+
+  selectedMembers.forEach(memberId => {
+      getMemberName(memberId).then(memberName => {
+          const memberItem = document.createElement('div');
+          memberItem.textContent = memberName;
+          memberItem.classList.add('selected-member-item');
+          memberListDiv.appendChild(memberItem);
+          const removeButton = document.createElement('button');
+          removeButton.textContent = 'Supprimer';
+          removeButton.addEventListener('click', function() {
+              selectedMembers.delete(memberId);
+              updateSelectedMemberList();
+          });
+          memberItem.appendChild(removeButton);
       });
-      return memberName;
+  });
+}
+
+    async function getMemberName(memberId) {
+      try {
+          const response = await $.ajax({
+              url: `/api/members/${memberId}`,
+              type: 'GET',
+              dataType: 'json'
+          });
+
+          if (response && response.first_name && response.last_name) {
+              return `${response.first_name} ${response.last_name}`;
+          } else {
+              console.warn("Nom du membre introuvable pour l'ID :", memberId, response);
+              return "Unknown Member";
+          }
+      } catch (error) {
+          console.error("Error fetching member name for ID " + memberId + ": " + error);
+          return "Unknown Member";
+      }
   }
-  // fonction pour fermer la searchModal
+
   window.closeMemberSearch = function() {
-      document.getElementById('member-search-modal').style.display = 'none';
-  }
+    document.getElementById('member-search-modal').style.display = 'none';
+};
 
 
   window.initialize = () => {
@@ -557,6 +558,14 @@ function updateSelectedMembers() {
             alert("La capacité maximale pour cette salle est atteinte. Veuillez retirer des membres.");
             return; // Arrête la soumission du formulaire
         }
+
+        const reservationType = $('input[name="reservation_type"]:checked').val();
+        const teamName = $('#team_name').val();
+
+        if (reservationType === 'team' && !teamName) {
+          showErrorToast("Veuillez entrer un nom d'équipe.");
+          return;
+        }
     
         const formData = {
             court_id: $('#court_id').val(),
@@ -564,8 +573,8 @@ function updateSelectedMembers() {
             reservation_date: $('#date').val(),
             start_time: $('#selected-time').val(),
             team_members: teamMembers,
-            reservation_type: $('input[name="reservation_type"]:checked').val(),
-            team_name: $('#team_name').val()
+            reservation_type: reservationType,
+            team_name: teamName
         };
     
         $.ajax({
@@ -576,7 +585,7 @@ function updateSelectedMembers() {
                 showSuccessToast('Réservation ajoutée avec succès!');
                 closeReservationForm();
                 loadReservations();
-                selectedMembers.clear(); // Vide l'ensemble selectedMembers après la réservation
+                selectedMembers.clear(); 
             },
             error: function(xhr, status, error) {
                 let errorMessage = "Erreur lors de l'ajout de la réservation.";

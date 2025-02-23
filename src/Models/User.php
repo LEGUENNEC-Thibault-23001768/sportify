@@ -379,11 +379,7 @@ class User
              ':searchTerm3' => '%' . $term . '%'
          ];
          $results = Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
-   
-        // Vérifiez et corrigez les clés ici si nécessaire
-       foreach ($results as &$row) {
-       // Exemple : Si votre colonne s'appelle 'id_membre' au lieu de 'member_id'
-        // $row['member_id'] = $row['id_membre'];
+         foreach ($results as &$row) {
          }
    
         return $results;

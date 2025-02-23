@@ -31,10 +31,11 @@
                 <div id="team-section" style="display: none;">
                     <label for="team_name">Nom de l'équipe:</label>
                     <input type="text" id="team_name" name="team_name">
-                    
+
                     <div class="member-selection">
                         <label>Membres :</label>
-                        <div id="member-list"></div>
+                        <div id="selected-member-list">
+                        </div>
                         <button type="button" onclick="showMemberSearch()">Ajouter un membre</button>
                     </div>
                 </div>
@@ -56,23 +57,20 @@
              </form>
          </div>
        
-         <div id="member-search-modal" style="display: none;">
-            <form class="search-form" id="member-search-form">
-                <div class="form-group">
-                    <label for="member-search">Rechercher par nom, prénom ou email :</label>
-                    <input type="text" name="member-search" id="member-search" class="form-control" placeholder="Rechercher un membre">
-                </div>
-                <button type="submit" class="btn btn-primary">Rechercher</button>
-            </form>
-            <div id="search-results"></div>
-            <button onclick="closeMemberSearch()">Fermer</button>
-         </div>
+        <div id="member-search-modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeMemberSearch()">×</span>
+                <label for="member-search">Rechercher un membre :</label>
+                <input type="text" id="member-search" placeholder="Nom, prénom, email" oninput="searchMembers(this.value)">
+                <div id="search-results"></div>
+            </div>
+        </div>
 
-          <div class="tab-content" id="reservations" style="margin-top:10px; display:none;">
+        <div class="tab-content" id="reservations" style="margin-top:10px; display:none;">
              <h3>Historique des Réservations</h3>
              <ul id="reservation-list">
             </ul>
-         </div>
+        </div>
     </div>
 
     <div id="edit-reservation-container" style="display: none;">

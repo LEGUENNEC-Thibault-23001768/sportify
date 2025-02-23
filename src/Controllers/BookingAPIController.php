@@ -31,9 +31,8 @@ class BookingAPIController extends APIController implements RouteProvider
         if ($users === false) {
             return $response->setStatusCode(500)->setData(['error' => 'Erreur lors de la recherche des membres'])->send();
         }
-    
-        // Ajoutez ceci pour vérifier la structure des données avant de les renvoyer :
-        error_log(print_r($users, true));  // Affiche le contenu de $users dans les logs PHP
+
+        error_log(print_r($users, true));  
     
         return $response->setStatusCode(200)->setData($users)->send();
     }
@@ -123,25 +122,22 @@ class BookingAPIController extends APIController implements RouteProvider
         $reservation_date = $data['reservation_date'];
         $start_times = explode(',', $data['start_time']); 
         $reservation_type = $data['reservation_type'];
-        $team_members = $data['team_members'] ?? [];  // Récupère les membres de l'équipe
+        $team_members = $data['team_members'] ?? []; 
         $team_name = $data['team_name'] ?? null;
 
         if (empty($member_id) || empty($court_id) || empty($reservation_date) || empty($start_times)) {
             return $response->setStatusCode(400)->setData(['error' => 'Missing required fields'])->send();
         }
 
-        $pdo = Database::getConnection(); // Utilisation directe de la connexion PDO
+        $pdo = Database::getConnection();
 
         try {
 
             $team_id = null;
-
-// Code de vérification de la capacité de la salle
             $sqlCourt = "SELECT max_capacity FROM COURT WHERE court_id = :court_id";
             $stmtCourt = $pdo->prepare($sqlCourt);
             $stmtCourt->execute(['court_id' => $court_id]);
             $court = $stmtCourt->fetch(PDO::FETCH_ASSOC);
-// Throw if missing values on courts
          if (!is_array($court)  || empty($court['max_capacity'])){
               error_log("missing  MaxCapacity ". json_encode($court));
                  throw new \Exception("Erreur lors du capMaxCapacity");
@@ -160,21 +156,19 @@ class BookingAPIController extends APIController implements RouteProvider
                         throw new \Exception("Le nom de l'équipe est requis pour les réservations en équipe.");
                     }
 
-                    // Créez l'équipe
+                    // Crée l'équipe
                     $sqlTeam = "INSERT INTO TEAM (team_name) VALUES (:team_name)";
                     $stmtTeam = $pdo->prepare($sqlTeam);
                     if (!$stmtTeam->execute(['team_name' => $team_name])) {
                         throw new \Exception("Erreur lors de la création de l'équipe : " . json_encode($stmtTeam->errorInfo()));
                     }
 
-                    // Récupérez l'ID de l'équipe créée
                     $team_id = $pdo->lastInsertId();
 
                     if (!$team_id) {
                         throw new \Exception("Erreur lors de la création de l'équipe : ID non généré.");
                     }
 
-                    // Insérez les participants dans TEAM_PARTICIPANT
                     foreach ($team_members as $team_member_id) {
                         $sqlPart = "INSERT INTO TEAM_PARTICIPANT (team_id, member_id) VALUES (:team_id, :member_id)";
                         $stmtPart = $pdo->prepare($sqlPart);
@@ -190,36 +184,33 @@ class BookingAPIController extends APIController implements RouteProvider
                     }
                 }
 
-  foreach ($start_times as $start_time) {
-    $end_time = date('H:i', strtotime($start_time . ' +1 hour'));
-       if ($end_time === false) {
-                  throw new \Exception("Erreur lors du calcul de l'heure de fin.");
-                 }
-       $sqlReservation = "INSERT INTO COURT_RESERVATION (member_id, court_id, reservation_date, start_time, end_time, team_id) VALUES (:member_id, :court_id, :reservation_date, :start_time, :end_time, :team_id)";
+                foreach ($start_times as $start_time) {
+                    $end_time = date('H:i', strtotime($start_time . ' +1 hour'));
+                    if ($end_time === false) {
+                                throw new \Exception("Erreur lors du calcul de l'heure de fin.");
+                                }
+                    $sqlReservation = "INSERT INTO COURT_RESERVATION (member_id, court_id, reservation_date, start_time, end_time, team_id) VALUES (:member_id, :court_id, :reservation_date, :start_time, :end_time, :team_id)";
 
-               $params = [
-                       ':member_id' => $member_id,
-                       ':court_id' => $court_id,
-                       ':reservation_date' => $reservation_date,
-                       ':start_time' => $start_time,
-                       ':end_time' => $end_time,
-                       ':team_id' => $team_id, 
-                     ];
+                            $params = [
+                                    ':member_id' => $member_id,
+                                    ':court_id' => $court_id,
+                                    ':reservation_date' => $reservation_date,
+                                    ':start_time' => $start_time,
+                                    ':end_time' => $end_time,
+                                    ':team_id' => $team_id, 
+                                    ];
 
-     $stmtReserve = $pdo->prepare($sqlReservation);
-                    if (! $stmtReserve->execute($params)){
-                 throw new \Exception("Create Reservation Failed." .json_encode($stmtReserve->errorInfo()));; 
-                       }
-               
-}         return $response->setStatusCode(201)->setData(['message' => 'Reservation created successfully'])->send();
-    }  catch (\Exception $e) {
-            error_log("Error 08: " . $e->getMessage());  // Log the error for debugging
-        // You might want to log detailed exception information for debugging purposes:
-        // error_log("Database exception: " . $e->getMessage() . " in file " . $e->getFile() . " on line " . $e->getLine());
+                    $stmtReserve = $pdo->prepare($sqlReservation);
+                                    if (! $stmtReserve->execute($params)){
+                                throw new \Exception("Create Reservation Failed." .json_encode($stmtReserve->errorInfo()));; 
+                                    }
+                            
+                }         return $response->setStatusCode(201)->setData(['message' => 'Reservation created successfully'])->send();
+            }  catch (\Exception $e) {
+                            error_log("Error 08: " . $e->getMessage());
+                        return $response->setStatusCode(500)->setData(['error' => $e->getMessage()])->send();
+         }
 
-        // Format the error info to human read for API return
-        return $response->setStatusCode(500)->setData(['error' => $e->getMessage()])->send();
-    }
 }
 
     
@@ -285,7 +276,7 @@ class BookingAPIController extends APIController implements RouteProvider
 
 
         try {
-            $pdo = \Core\Database::getConnection();
+            $pdo = Database::getConnection();
              $stmt = $pdo->prepare("SELECT cr.start_time, cr.end_time, cr.reservation_date, c.court_name, m.last_name as member_name FROM COURT_RESERVATION cr JOIN COURT c ON cr.court_id = c.court_id JOIN MEMBER m ON cr.member_id = m.member_id WHERE cr.court_id = :court_id AND cr.reservation_date = :date");
             $stmt->execute(['court_id' => $courtId, 'date' => $date]);
             $bookings = $stmt->fetchAll();

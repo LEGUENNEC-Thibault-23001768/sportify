@@ -196,7 +196,7 @@ button:hover {
          left: 50%;
           transform: translate(-50%, -50%);
           background-color: #f5f3f2;
-          padding: 25px 20px 20px;/*ajustemant avec padings haut et bas*/
+          padding: 25px 20px 20px;
            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
            border-radius: 10px;
          border: 2px solid #C1FF72;
@@ -334,7 +334,6 @@ input[type="time"]:focus {
      cursor: not-allowed;
 }
 
-/* Tabs */
 .form-container {
     display: flex;
     justify-content: center;
@@ -371,15 +370,56 @@ input[type="time"]:focus {
     top: -5px;
     right: 10px;
     font-size: 1.2em;
-    background: none;  /* retire background de base */
-    border: none;  /* retire bordures base */
+    background: none;  
+    border: none;  
     cursor: pointer;
     color: #1d1c1c96;
-    transition: color 0.3s ease-in-out;  /*  adoucir le selection user  */
+    transition: color 0.3s ease-in-out;  
     z-index:1002;
    
 }
     .close-button:hover{
-            color: #000; /* Couleur noir pour le X , a la selection */
+            color: #000; 
 
+}
+
+#member-search-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    overflow: auto; 
+}
+
+.modal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+}
+
+.close {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.member-result {
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+}
+
+.member-result:hover {
+    background-color: #a7a0a0;
 }
