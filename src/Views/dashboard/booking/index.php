@@ -57,11 +57,14 @@
              </form>
          </div>
        
-        <div id="member-search-modal" style="display: none;">
+         <div id="member-search-modal" style="display: none;">
             <div class="modal-content">
                 <span class="close" onclick="closeMemberSearch()">×</span>
                 <label for="member-search">Rechercher un membre :</label>
-                <input type="text" id="member-search" placeholder="Nom, prénom, email" oninput="searchMembers(this.value)">
+                <form id="member-search-form">
+                    <input type="text" id="member-search" placeholder="Nom, prénom, email">
+                    <button type="submit">Rechercher</button> 
+                </form>
                 <div id="search-results"></div>
             </div>
         </div>
