@@ -74,7 +74,7 @@
         </li>
         <li><a href="/dashboard/events" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
         <li><a href="/dashboard/training" data-target="training"><i class="fas fa-calendar"></i> Programme</a></li>
-           <li><a href="/dashboard/ranking" data-target="ranking"><i class="fas fa-list-ol"></i> Classement</a></li>
+        <li><a href="/dashboard/ranking" data-target="ranking"><i class="fas fa-list-ol"></i> Classement</a></li>
         <?php if ($user['status'] === 'admin'): ?>
             <li><a href="/dashboard/admin/users" class="management" data-target="admin/users"><i
                             class="fas fa-tasks"></i> Gestion</a></li>

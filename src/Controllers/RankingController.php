@@ -15,7 +15,7 @@ class RankingController implements RouteProvider
 
     public static function routes(): void
     {
-        Router::get('/dashboard/ranking', self::class . '@showRanking', Auth::requireLogin());
+        Router::get('/dashboard', self::class . '@showRanking', Auth::requireLogin());
     }
 
     public function showRanking()
@@ -30,7 +30,5 @@ class RankingController implements RouteProvider
             'title' => 'Classement des utilisateurs par activité',
             'user' => $user
         ];
-        
-        echo View::renderWithLayout('dashboard/ranking/index', 'layouts/dashboard', $viewData);
     }
 }

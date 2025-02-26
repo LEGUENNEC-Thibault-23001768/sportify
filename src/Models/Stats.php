@@ -351,7 +351,7 @@ class Stats
             LEFT JOIN PERFORMANCE p ON m.member_id = p.member_id
             GROUP BY m.member_id, m.first_name, m.last_name
             ORDER BY 
-                total_rpm_time DESC, 
+                total_rpm_time DESC,
                 total_musculation_time DESC,
                 total_boxe_time DESC,
                 total_football_time DESC,
@@ -360,16 +360,16 @@ class Stats
         ";
 
         $params = [
-            ':rpmActivity' => 'RPM',
-            ':musculationActivity' => 'MUSCULATION',
-            ':boxeActivity' => 'BOXE',
-            ':footballActivity' => 'FOOTBALL',
-            ':tennisActivity' => 'TENNIS',
-            ':basketballActivity' => 'BASKETBALL',
+            ':rpmActivity' => 'rpm',
+            ':musculationActivity' => 'musculation',
+            ':boxeActivity' => 'boxe',
+            ':footballActivity' => 'football',
+            ':tennisActivity' => 'tennis',
+            ':basketballActivity' => 'basketball',
         ];
 
         try {
-             return Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
+            return Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             error_log("PDOException in getUsersRankedBySport: " . $e->getMessage());
             return [];
