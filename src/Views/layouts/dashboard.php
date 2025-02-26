@@ -89,11 +89,11 @@
     <div class="profile-info">
         <p class="profile-name"><?= htmlspecialchars($user['first_name']) . ' ' . htmlspecialchars($user['last_name']) ?></p>
         <div class="subscription-status">
-            <?php if (!isset($hasActiveSubscription) || !$hasActiveSubscription): ?>
+            <?php if ((!isset($hasActiveSubscription) || !$hasActiveSubscription) && $user['status'] !== "admin"): ?>
                 <form action="/create-checkout-session" method="POST">
                     <button type="submit" class="subscribe-button">S'abonner</button>
                 </form>
-            <?php else: ?>
+            <?php elseif ($hasActiveSubscription): ?>
                 <p class="active-subscription">Abonnement actif</p>
             <?php endif; ?>
         </div>
@@ -107,7 +107,7 @@
         </div>
     </div>
 </div>
-<?php if (!isset($hasActiveSubscription) || !$hasActiveSubscription): ?>
+<?php if ((!isset($hasActiveSubscription) || !$hasActiveSubscription) && $user['status'] !== 'admin'): ?>
     <div class="subscription-overlay" id="subscriptionOverlay">
         <div class="subscription-message">
             <i class="fas fa-lock" style="font-size: 5em; margin-bottom: 20px;"></i>
