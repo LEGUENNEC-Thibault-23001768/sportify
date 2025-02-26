@@ -100,6 +100,8 @@ class DashboardController implements RouteProvider
             $viewData = array_merge($viewData, ['dataView' => 'trainers']);
         } elseif ($category === 'stats') {
             $viewData = array_merge($viewData, ['dataView' => 'stats']);
+        } elseif ($category === 'ranking') { 
+            $viewData = array_merge($viewData, ['dataView' => 'ranking']);
         }
         return $viewData;
     }
