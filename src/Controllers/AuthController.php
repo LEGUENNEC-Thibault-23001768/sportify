@@ -2,12 +2,12 @@
 
 namespace Controllers;
 
-use Models\User;
-use Core\View;
-use Core\Router;
-use Core\RouteProvider;
-use Core\Config;
 use Core\Auth;
+use Core\Config;
+use Core\RouteProvider;
+use Core\Router;
+use Core\View;
+use Models\User;
 
 class AuthController implements RouteProvider
 {
@@ -38,36 +38,8 @@ class AuthController implements RouteProvider
         echo View::render('auth/register');
     }
 
-    private function verifyRecaptcha($token)
-    {
-        $secretKey = Config::get('recaptcha_secret_key');
-        $url = 'https://www.google.com/recaptcha/api/siteverify';
-
-        $data = [
-            'secret'   => $secretKey,
-            'response' => $token,
-            'remoteip' => $_SERVER['REMOTE_ADDR']
-        ];
-
-        $options = [
-            'http' => [
-                'method'  => 'POST',
-                'header'  => 'Content-type: application/x-www-form-urlencoded',
-                'content' => http_build_query($data)
-            ]
-        ];
-        
-        $context = stream_context_create($options);
-        $response = file_get_contents($url, false, $context);
-        $result = json_decode($response, true);
-
-        return $result['success'] && $result['score'] >= 0.5;
-    }
-
-
     public function login()
     {
-        session_start();
         $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
         $password = $_POST['password'] ?? '';
         $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
@@ -80,14 +52,40 @@ class AuthController implements RouteProvider
 
         $user = User::login($email, $password);
         if ($user) {
-            $_SESSION['user_id']    = $user['member_id'];
-            $_SESSION['user_name']  = $user['first_name'] . ' ' . $user['last_name'];
+            $_SESSION['user_id'] = $user['member_id'];
+            $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
             $_SESSION['user_email'] = $user['email'];
             header('Location: /dashboard');
             exit;
         } else {
             echo View::render('auth/login', ['error' => 'Email ou mot de passe incorrect.']);
         }
+    }
+
+    private function verifyRecaptcha($token)
+    {
+        $secretKey = Config::get('recaptcha_secret_key');
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+
+        $data = [
+            'secret' => $secretKey,
+            'response' => $token,
+            'remoteip' => $_SERVER['REMOTE_ADDR']
+        ];
+
+        $options = [
+            'http' => [
+                'method' => 'POST',
+                'header' => 'Content-type: application/x-www-form-urlencoded',
+                'content' => http_build_query($data)
+            ]
+        ];
+
+        $context = stream_context_create($options);
+        $response = file_get_contents($url, false, $context);
+        $result = json_decode($response, true);
+
+        return $result['success'] && $result['score'] >= 0.5;
     }
 
     public function logout()
@@ -107,8 +105,8 @@ class AuthController implements RouteProvider
 
     public function register()
     {
-        $email           = trim($_POST['email']);
-        $password        = trim($_POST['password']);
+        $email = trim($_POST['email']);
+        $password = trim($_POST['password']);
         $confirmPassword = trim($_POST['confirm_password']);
         $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
 
@@ -143,13 +141,13 @@ class AuthController implements RouteProvider
         }
 
         $newUser = [
-            'email'      => $email,
-            'password'   => $password,
+            'email' => $email,
+            'password' => $password,
             'first_name' => 'DefaultFirst',
-            'last_name'  => 'DefaultLast',
+            'last_name' => 'DefaultLast',
             'birth_date' => null,
-            'address'    => null,
-            'phone'      => null
+            'address' => null,
+            'phone' => null
         ];
 
         if (User::create($newUser)) {
@@ -178,7 +176,7 @@ class AuthController implements RouteProvider
         $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo View::render('auth/forgot-password', ['css'=>'auth','error' => "Format d'email invalide."]);
+            echo View::render('auth/forgot-password', ['css' => 'auth', 'error' => "Format d'email invalide."]);
             return;
         }
 
@@ -187,12 +185,12 @@ class AuthController implements RouteProvider
             $token = bin2hex(random_bytes(32));
             if (User::storeResetToken($email, $token)) {
                 User::sendPasswordResetEmail($email, $token);
-                echo View::render('auth/forgot-password', ['css' => 'auth','message' => "Un lien de réinitialisation a été envoyé à votre adresse email."]);
+                echo View::render('auth/forgot-password', ['css' => 'auth', 'message' => "Un lien de réinitialisation a été envoyé à votre adresse email."]);
             } else {
-                echo View::render('auth/forgot-password', ['css'=> 'auth','error' => "Une erreur est survenue. Veuillez réessayer."]);
+                echo View::render('auth/forgot-password', ['css' => 'auth', 'error' => "Une erreur est survenue. Veuillez réessayer."]);
             }
         } else {
-            echo View::render('auth/forgot-password', ['css'=>'auth','error' => "Aucun compte trouvé avec cet email."]);
+            echo View::render('auth/forgot-password', ['css' => 'auth', 'error' => "Aucun compte trouvé avec cet email."]);
         }
     }
 
@@ -200,7 +198,7 @@ class AuthController implements RouteProvider
     {
         echo View::renderWithLayout('auth/forgot-password', 'layouts/main', [
             'title' => "Mot de passe oublié",
-            'css'   => "auth"
+            'css' => "auth"
         ]);
     }
 
@@ -213,19 +211,19 @@ class AuthController implements RouteProvider
         }
         echo View::renderWithLayout('auth/reset-password', 'layouts/main', [
             'title' => "Réinitialiser le mot de passe",
-            "css"   => "auth",
+            "css" => "auth",
             'token' => $token
         ]);
     }
 
     public function resetPassword()
     {
-        $token           = $_POST['token'] ?? '';
-        $password        = $_POST['password'] ?? '';
+        $token = $_POST['token'] ?? '';
+        $password = $_POST['password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
 
         if ($password !== $confirmPassword) {
-            echo View::render('auth/reset-password', ['css'=>'auth','error' => "Les mots de passe ne correspondent pas.", 'token' => $token]);
+            echo View::render('auth/reset-password', ['css' => 'auth', 'error' => "Les mots de passe ne correspondent pas.", 'token' => $token]);
             return;
         }
 
@@ -235,7 +233,7 @@ class AuthController implements RouteProvider
             // Le render ci-dessous ne sera jamais atteint à cause du header() et exit
             echo View::render('auth/login', ['message' => "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter."]);
         } else {
-            echo View::render('auth/reset-password', ['css'=>'auth','error' => "Le lien de réinitialisation est invalide ou a expiré.", 'token' => $token]);
+            echo View::render('auth/reset-password', ['css' => 'auth', 'error' => "Le lien de réinitialisation est invalide ou a expiré.", 'token' => $token]);
         }
     }
 }

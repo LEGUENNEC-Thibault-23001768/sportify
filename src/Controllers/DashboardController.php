@@ -141,7 +141,7 @@ class DashboardController implements RouteProvider
 
         $is_subscribed = $subscriptionInfo["status"] ?? false;
 
-        if (!$is_subscribed && $user['status'] !== 'admin') {
+        if (!$is_subscribed && $user['status'] == 'membre') {
             echo "<p> VOUS N'ÊTES PAS ABONNE</p>";
         }
 
