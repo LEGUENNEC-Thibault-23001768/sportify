@@ -3,10 +3,10 @@ const login_btn = document.querySelector('.login-btn-acc');
 const redirect = (url) => {
   window.location.href = window.location.origin + url;
 }
-
-login_btn.addEventListener('click', () => {
-  redirect('/login')
-})
+if (login_btn)
+  login_btn.addEventListener('click', () => {
+    redirect('/login')
+  })
 
 function toggleForm() {
     const loginForm = document.getElementById('login-form');
