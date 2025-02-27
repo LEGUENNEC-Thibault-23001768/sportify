@@ -6,24 +6,24 @@ use Models\User;
 use Core\View;
 use Core\Router;
 use Core\RouteProvider;
+use Core\Config;
 use Core\Auth;
 
 class AuthController implements RouteProvider
 {
-
     public static function routes(): void
     {
         Router::get('/login', self::class . '@showLoginForm');
-        Router::get('/register', self::class . '@showLoginForm');
+        Router::get('/register', self::class . '@showRegisterForm');
         Router::get('/verify-mail', self::class . '@verifyEmail');
         Router::get('/logout', self::class . '@logout', Auth::requireLogin());
-        
+
         Router::get('/forgot-password', self::class . '@showForgotPasswordForm');
         Router::get('/reset-password', self::class . '@showResetPasswordForm');
 
         Router::post('/login', self::class . '@login');
         Router::post('/register', self::class . '@register');
-        
+
         Router::post('/forgot-password', self::class . '@sendResetLink');
         Router::post('/reset-password', self::class . '@resetPassword');
     }
@@ -38,22 +38,50 @@ class AuthController implements RouteProvider
         echo View::render('auth/register');
     }
 
+    private function verifyRecaptcha($token)
+    {
+        $secretKey = Config::get('recaptcha_secret_key');
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+
+        $data = [
+            'secret'   => $secretKey,
+            'response' => $token,
+            'remoteip' => $_SERVER['REMOTE_ADDR']
+        ];
+
+        $options = [
+            'http' => [
+                'method'  => 'POST',
+                'header'  => 'Content-type: application/x-www-form-urlencoded',
+                'content' => http_build_query($data)
+            ]
+        ];
+        
+        $context = stream_context_create($options);
+        $response = file_get_contents($url, false, $context);
+        $result = json_decode($response, true);
+
+        return $result['success'] && $result['score'] >= 0.5;
+    }
+
+
     public function login()
     {
+        session_start();
         $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['error_message'] = "Format d'email invalide.";
-            header('Location: /login');
-            exit;
+        $password = $_POST['password'] ?? '';
+        $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
+
+
+        if (!$this->verifyRecaptcha($recaptchaResponse)) {
+            echo View::render('auth/login', ['error' => 'reCAPTCHA échoué. Veuillez réessayer.']);
+            return;
         }
 
-        
-        $password = $_POST['password'] ?? '';
         $user = User::login($email, $password);
-
         if ($user) {
-            $_SESSION['user_id'] = $user['member_id'];
-            $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+            $_SESSION['user_id']    = $user['member_id'];
+            $_SESSION['user_name']  = $user['first_name'] . ' ' . $user['last_name'];
             $_SESSION['user_email'] = $user['email'];
             header('Location: /dashboard');
             exit;
@@ -72,7 +100,6 @@ class AuthController implements RouteProvider
                 $params["secure"], $params["httponly"]
             );
         }
-        
         session_destroy();
         header('Location: /login');
         exit;
@@ -80,9 +107,16 @@ class AuthController implements RouteProvider
 
     public function register()
     {
-        $email = trim($_POST['email']);
-        $password = trim($_POST['password']);
+        $email           = trim($_POST['email']);
+        $password        = trim($_POST['password']);
         $confirmPassword = trim($_POST['confirm_password']);
+        $recaptchaResponse = $_POST['g-recaptcha-response'] ?? '';
+
+        // Vérification reCAPTCHA
+        if (!$this->verifyRecaptcha($recaptchaResponse)) {
+            echo View::render('auth/login', ['error' => 'reCAPTCHA échoué. Veuillez réessayer.']);
+            return;
+        }
 
         if (empty($email) || empty($password) || empty($confirmPassword)) {
             $error = 'Tous les champs sont obligatoires.';
@@ -109,13 +143,13 @@ class AuthController implements RouteProvider
         }
 
         $newUser = [
-            'email' => $email,
-            'password' => $password,
-            'first_name' => 'DefaultFirst', 
-            'last_name' => 'DefaultLast',   
-            'birth_date' => null,           
-            'address' => null,              
-            'phone' => null                 
+            'email'      => $email,
+            'password'   => $password,
+            'first_name' => 'DefaultFirst',
+            'last_name'  => 'DefaultLast',
+            'birth_date' => null,
+            'address'    => null,
+            'phone'      => null
         ];
 
         if (User::create($newUser)) {
@@ -142,7 +176,7 @@ class AuthController implements RouteProvider
     public function sendResetLink()
     {
         $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-        
+
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             echo View::render('auth/forgot-password', ['css'=>'auth','error' => "Format d'email invalide."]);
             return;
@@ -166,7 +200,7 @@ class AuthController implements RouteProvider
     {
         echo View::renderWithLayout('auth/forgot-password', 'layouts/main', [
             'title' => "Mot de passe oublié",
-            'css' => "auth"
+            'css'   => "auth"
         ]);
     }
 
@@ -179,14 +213,15 @@ class AuthController implements RouteProvider
         }
         echo View::renderWithLayout('auth/reset-password', 'layouts/main', [
             'title' => "Réinitialiser le mot de passe",
-            "css" => "auth",
-            'token' => $token]);
+            "css"   => "auth",
+            'token' => $token
+        ]);
     }
 
     public function resetPassword()
     {
-        $token = $_POST['token'] ?? '';
-        $password = $_POST['password'] ?? '';
+        $token           = $_POST['token'] ?? '';
+        $password        = $_POST['password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
 
         if ($password !== $confirmPassword) {
@@ -195,8 +230,9 @@ class AuthController implements RouteProvider
         }
 
         if (User::resetPassword($token, $password)) {
-		header("/login");
-		exit();
+            header("Location: /login");
+            exit;
+            // Le render ci-dessous ne sera jamais atteint à cause du header() et exit
             echo View::render('auth/login', ['message' => "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter."]);
         } else {
             echo View::render('auth/reset-password', ['css'=>'auth','error' => "Le lien de réinitialisation est invalide ou a expiré.", 'token' => $token]);

@@ -1,7 +1,7 @@
 <?php
 
 
-define('IS_LOCAL', false);
+define('IS_LOCAL', true);
 
 ini_set('SMTP', 'smtp-sportify.alwaysdata.net');
 ini_set('smtp_port', 587);
@@ -16,6 +16,8 @@ return [
     'redirect_dashboard' => '/dashboard',
     'redirect_register' => '/register',
     'stripe_key' => 'sk_test_51Q80Nv01Olm6yDgOjM3A9yXbw0WgaWxqmrh4Xfjnfh2kwTmFlAyzplOz5jIfnzUm9y3iGrCZqrsgfBwn81ofPb9X00hLSncyxX',
+    'recaptcha_site_key' => '6Ld7B9cqAAAAAEfuYp8O1k6p0GnYy-k0qrKjVzVq',
+    'recaptcha_secret_key' => '6Ld7B9cqAAAAAI1DyLZ0VtK_-wnuy4DtE8zLMmSl',
     'gemini_key' => 'AIzaSyA1ddcTD8aE14BeSwgd0ceJUQtyH93YCH4',
     'server_url' => SERVER_URL,
     'db_host' => 'mysql-sportify.alwaysdata.net',
@@ -41,6 +43,8 @@ return [
         'authorizationUri' => "https://accounts.google.com/o/oauth2/auth",
         'tokenCredentialUri' => "https://oauth2.googleapis.com/token",
         'redirectUri' => SERVER_URL . "/callback",
-    ]
+    ],
+
+
 ];
 
