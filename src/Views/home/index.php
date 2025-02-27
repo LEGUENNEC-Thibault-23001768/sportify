@@ -12,7 +12,7 @@
             <a href="/contact">Contact</a>
         </nav>
         <div class="cta-buttons">
-            <button class="login-btn">Connexion</button>
+            <button class="login-btn-acc">Connexion</button>
             <button class="try-btn">Essayer gratuitement</button>
         </div>
     </div>
