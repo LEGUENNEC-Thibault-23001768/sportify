@@ -15,7 +15,7 @@ class RankingController implements RouteProvider
 
     public static function routes(): void
     {
-        Router::get('/dashboard', self::class . '@showRanking', Auth::requireLogin());
+        
     }
 
     public function showRanking()
