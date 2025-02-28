@@ -17,20 +17,7 @@ class RankingController implements RouteProvider
     public static function routes(): void
     {
        Router::get('/api/ranking', self::class . '@getRankingData', Auth::requireLogin()); 
-       Router::get('/ranking', self::class . '@showRanking', Auth::requireLogin()); 
-    }
-
-    public function showRanking()
-    {
-        $userId = $_SESSION['user_id'];
-        $user = User::getUserById($userId);
-
-        $viewData = [
-            'title' => 'Classement des utilisateurs par activité',
-            'user' => $user
-        ];
-
-        View::render('ranking/ranking', $viewData); // Assurez-vous que le chemin est correct
+      
     }
 
     public function getRankingData() {

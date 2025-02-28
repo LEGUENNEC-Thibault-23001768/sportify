@@ -1,7 +1,6 @@
 <div data-view="ranking">
     <div class="ranking-container">
-        <h1>Classement des utilisateurs par activité</h1>
-        <p>Classement des utilisateurs en fonction du temps total passé par sport.</p>
+        <h1>Classement des utilisateurs</h1>
 
         <div class="filter-section">
             <label for="sport">Sport :</label>

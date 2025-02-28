@@ -1,6 +1,6 @@
 (function() {
-    let currentSortField = 'total_rpm_time'; // Tri par défaut
-    let currentSortOrder = 'desc'; // Ordre par défaut
+    let currentSortField = 'total_rpm_time'; 
+    let currentSortOrder = 'desc'; 
 
     function loadRanking(sortBy = currentSortField, sortOrder = currentSortOrder, sport = 'all') {
         $.ajax({
@@ -19,8 +19,7 @@
             }
         });
     }
-
-    // Function to format time from seconds to HH:MM:SS
+    
     function formatTime(seconds) {
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
