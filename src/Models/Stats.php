@@ -334,40 +334,46 @@ class Stats
         return $formattedData;
     }
 
-    public static function getUsersRankedBySport()
-    {
+    public static function getUsersRankedBySport($sortBy = 'total_play_time_seconds', $sortOrder = 'desc', $sport = 'all') {
+        $allowedSortFields = [
+            'first_name',
+            'total_score',
+            'total_calories',
+            'total_play_time_seconds',
+            'total_distance'
+        ];
+    
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'total_play_time_seconds';
+        }
+    
+        $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+    
         $sql = "
             SELECT
                 m.member_id,
                 m.first_name,
                 m.last_name,
-                COALESCE(SUM(CASE WHEN p.activity = :rpmActivity THEN TIME_TO_SEC(p.play_time) ELSE 0 END), 0) as total_rpm_time,
-                COALESCE(SUM(CASE WHEN p.activity = :musculationActivity THEN TIME_TO_SEC(p.play_time) ELSE 0 END), 0) as total_musculation_time,
-                COALESCE(SUM(CASE WHEN p.activity = :boxeActivity THEN TIME_TO_SEC(p.play_time) ELSE 0 END), 0) as total_boxe_time,
-                COALESCE(SUM(CASE WHEN p.activity = :footballActivity THEN TIME_TO_SEC(p.play_time) ELSE 0 END), 0) as total_football_time,
-                COALESCE(SUM(CASE WHEN p.activity = :tennisActivity THEN TIME_TO_SEC(p.play_time) ELSE 0 END), 0) as total_tennis_time,
-                COALESCE(SUM(CASE WHEN p.activity = :basketballActivity THEN TIME_TO_SEC(p.play_time) ELSE 0 END), 0) as total_basketball_time
+                COALESCE(SUM(TIME_TO_SEC(p.play_time)), 0) as total_play_time_seconds,
+                COALESCE(SUM(p.score), 0) as total_score,
+                COALESCE(SUM(p.calories), 0) as total_calories,
+                COALESCE(SUM(p.distance), 0) as total_distance
             FROM MEMBER m
             LEFT JOIN PERFORMANCE p ON m.member_id = p.member_id
-            GROUP BY m.member_id, m.first_name, m.last_name
-            ORDER BY 
-                total_rpm_time DESC,
-                total_musculation_time DESC,
-                total_boxe_time DESC,
-                total_football_time DESC,
-                total_tennis_time DESC,
-                total_basketball_time DESC
         ";
-
-        $params = [
-            ':rpmActivity' => 'rpm',
-            ':musculationActivity' => 'musculation',
-            ':boxeActivity' => 'boxe',
-            ':footballActivity' => 'football',
-            ':tennisActivity' => 'tennis',
-            ':basketballActivity' => 'basketball',
-        ];
-
+    
+        $params = [];
+    
+        if ($sport !== 'all') {
+            $sql .= " WHERE p.activity = :activity";
+            $params[':activity'] = $sport;
+        }
+    
+        $sql .= "
+            GROUP BY m.member_id, m.first_name, m.last_name
+            ORDER BY $sortBy $sortOrder
+        ";
+    
         try {
             return Database::query($sql, $params)->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
@@ -375,4 +381,6 @@ class Stats
             return [];
         }
     }
+  
 }
+ 

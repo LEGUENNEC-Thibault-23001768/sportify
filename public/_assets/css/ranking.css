@@ -1,1 +1,179 @@
-;
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap');
+
+body {
+    font-family: 'League Spartan', sans-serif;
+    background-color: #000000;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+.ranking-container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 30px;
+    background-color: rgba(60, 60, 60, 0.7);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 48px;
+    font-weight: bold;
+    background: linear-gradient(to right, #C1FF72, #FFFFFF);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 30px;
+    letter-spacing: 1px;
+    text-transform: none;
+}
+
+p {
+    text-align: center;
+    font-size: 18px;
+    color: #ddd;
+    margin-bottom: 20px;
+}
+
+/* Styles pour le tableau */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th,
+.table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #555;
+    color: #eee;
+}
+
+.table th {
+    background-color: #C1FF72; /* Vert vif */
+    color: #111;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(193, 255, 114, 0.1);
+}
+
+/* Filter Section Styles */
+.filter-section {
+    display: flex;
+    flex-wrap: wrap;  /* Allow items to wrap on smaller screens */
+    align-items: center;
+    justify-content: center; /* Center items horizontally */
+    gap: 15px; /* Space between elements */
+    margin-bottom: 20px;
+}
+
+.filter-section label {
+    color: #ddd;
+    font-size: 16px;
+    margin: 0; /* Remove default label margins */
+}
+
+.filter-section select {
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: none;
+    background-color: #444;
+    color: #fff;
+    font-size: 16px;
+    appearance: none; /* Remove default arrow */
+    -webkit-appearance: none; /* Remove default arrow (Safari) */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    width: 150px; /* ADDED:  Fixed width for select elements */
+
+}
+
+.filter-section select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #C1FF72;
+}
+
+.filter-section input[type="radio"] {
+    margin-right: 5px;
+}
+
+/* Button Styles */
+#apply-filter {
+    padding: 10px 20px;
+    background-color: #C1FF72;
+    color: #111;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+#apply-filter:hover {
+    background-color: #A3E455;
+}
+
+#apply-filter:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(193, 255, 114, 0.5);
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .ranking-container {
+        width: 95%;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 36px;
+    }
+
+    p {
+        font-size: 16px;
+    }
+
+    .table th,
+    .table td {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .filter-section {
+        flex-direction: column; /* Stack items vertically on smaller screens */
+        align-items: stretch;    
+     }
+
+    .filter-section label,
+    .filter-section select,
+    #apply-filter {
+        width: 100%; 
+        margin-bottom: 10px; 
+        text-align: center; 
+    }
+
+    .filter-section label[for^="sort-"] {
+        width: auto;
+        text-align: left;
+    }
+
+    .filter-section input[type="radio"]{
+        margin-left: 20%;
+    }
+}
