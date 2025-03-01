@@ -38,8 +38,8 @@ class Router
 
     public static function apiResource($url, $controller, $middleware = null)
     {
-         self::get($url, "$controller@get", $middleware);
-         self::get($url . '/{id}', "$controller@get", $middleware);
+        self::get($url, "$controller@get", $middleware);
+        self::get($url . '/{id}', "$controller@get", $middleware);
         self::post($url, "$controller@post", $middleware);
         self::put($url, "$controller@put", $middleware);
         self::put($url . '/{id}', "$controller@put", $middleware);

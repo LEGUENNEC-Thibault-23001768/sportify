@@ -9,6 +9,7 @@ use Models\User;
 use Core\Router;
 use Core\RouteProvider;
 use Core\Auth;
+use Core\Database;
 
 class TournamentAPIController extends APIController implements RouteProvider
 {
@@ -19,12 +20,14 @@ class TournamentAPIController extends APIController implements RouteProvider
         Router::get('/api/tournaments/{id}/bracket', self::class . '@getBracket');
         Router::post('/api/tournaments/{id}/generate-bracket', self::class . '@generateBracket', Auth::requireLogin());
         Router::get('/api/tournaments/invite/{token}', self::class . '@handleInvite');
+        Router::put('/api/tournaments/{id}/matches/{matchId}', self::class . '@updateMatchScore', Auth::requireLogin());
+        Router::get('/api/tournaments/{id}/showteams', self::class . '@showTeams', Auth::requireLogin());
+        Router::post('/api/tournaments/{id}/addTeams', self::class . '@addTeams', Auth::requireLogin());
     }
 
     public function get($id = null)
     {
         $response = new APIResponse();
-        $user = User::getUserById($_SESSION['user_id']);
 
         if ($id) {
             $tournament = Tournament::getById($id);
@@ -44,7 +47,12 @@ class TournamentAPIController extends APIController implements RouteProvider
         $data = json_decode(file_get_contents('php://input'), true);
         $userId = $_SESSION['user_id'];
 
-        $required = ['name', 'sportType', 'startDate', 'endDate'];
+        $user = User::getUserById($userId);
+        if ($user['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
+        }
+
+        $required = ['name', 'sportType', 'startDate', 'endDate', 'maxTeams'];
         foreach ($required as $field) {
             if (empty($data[$field])) {
                 return $response->setStatusCode(400)->setData(['error' => "Missing $field"])->send();
@@ -57,11 +65,19 @@ class TournamentAPIController extends APIController implements RouteProvider
             $data['startDate'],
             $data['endDate'],
             $data['description'] ?? '',
-            $data['maxTeams'] ?? null,
+            $data['maxTeams'],
             $userId,
             $data['format'] ?? 'knockout',
             $data['location'] ?? null
         );
+
+        $teamList = $data['teamList'] ?? [];
+        foreach ($teamList as $teamName) {
+            Tournament::addTeam($tournamentId, trim($teamName), $userId); // Add team, using logged in user as team leader
+        }
+
+        $bracketData = Tournament::generateKnockoutBracket($tournamentId);
+        Tournament::saveBracketData($tournamentId, $bracketData);
 
         return $response->setStatusCode(201)->setData([
             'message' => 'Tournament created',
@@ -69,6 +85,86 @@ class TournamentAPIController extends APIController implements RouteProvider
         ])->send();
     }
 
+    public function put($id = null) {
+        $response = new APIResponse();
+        $data = json_decode(file_get_contents('php://input'), true);
+        $userId = $_SESSION['user_id'];
+
+        $user = User::getUserById($userId);
+        if ($user['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
+        }
+
+        Tournament::update($id, $data);
+
+        return $response->setData(['message' => 'Tournament updated'])->send();
+    }
+
+    public function delete($id = null) {
+        $response = new APIResponse();
+        $userId = $_SESSION['user_id'];
+
+        $user = User::getUserById($userId);
+        if ($user['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
+        }
+
+        $sql = "DELETE FROM TOURNAMENT WHERE tournament_id = ?";
+        Database::query($sql, [$id]);
+
+
+        return $response->setData(['message' => 'Tournament deleted'])->send();
+    }
+
+    public function showTeams($tournamentId) {
+        $response = new APIResponse();
+        $userId = $_SESSION['user_id'];
+    
+        $user = User::getUserById($userId);
+        if ($user['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
+        }
+    
+        $tournament = Tournament::getById($tournamentId);
+        if (!$tournament) {
+            return $response->setStatusCode(404)->setData(['error' => 'Tournament not found'])->send();
+        }
+    
+        $teams = Tournament::getTeams($tournamentId);
+        return $response->setData(['teams' => $teams, 'tournament' => $tournament])->send();
+    }
+
+    public function addTeams($tournamentId) {
+        $response = new APIResponse();
+        $data = json_decode(file_get_contents('php://input'), true);
+        $userId = $_SESSION['user_id'];
+    
+        $user = User::getUserById($userId);
+        if ($user['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
+        }
+    
+        $tournament = Tournament::getById($tournamentId);
+        if (!$tournament) {
+            return $response->setStatusCode(404)->setData(['error' => 'Tournament not found'])->send();
+        }
+    
+        $teamList = $data['teamList'] ?? [];
+        $currentTeamCount = count(Tournament::getTeams($tournamentId));
+        $newTeamCount = $currentTeamCount + count($teamList);
+        if ($newTeamCount > $tournament['max_teams']) {
+            return $response->setStatusCode(400)->setData(['error' => 'Exceeds max teams'])->send();
+        }
+    
+        foreach ($teamList as $teamName) {
+            Tournament::addTeam($tournamentId, trim($teamName), $userId);
+        }
+    
+        $bracketData = Tournament::generateKnockoutBracket($tournamentId);
+        Tournament::saveBracketData($tournamentId, $bracketData);
+    
+        return $response->setData(['message' => 'Teams added successfully'])->send();
+    }
 
     public function addTeam($tournamentId)
     {
@@ -99,700 +195,11 @@ class TournamentAPIController extends APIController implements RouteProvider
     public function getBracket($tournamentId)
     {
         $response = new APIResponse();
-        $tournament = Tournament::getById($tournamentId);
-        
-        // Example bracket structure for brackets-viewer.js
-        $bracketData = [
-            "participant" => [
-                  [
-                     "id" => 0, 
-                     "tournament_id" => 0, 
-                     "name" => "Team 1" 
-                  ], 
-                  [
-                        "id" => 1, 
-                        "tournament_id" => 0, 
-                        "name" => "Team 2" 
-                     ], 
-                  [
-                           "id" => 2, 
-                           "tournament_id" => 0, 
-                           "name" => "Team 3" 
-                        ], 
-                  [
-                              "id" => 3, 
-                              "tournament_id" => 0, 
-                              "name" => "Team 4" 
-                           ], 
-                  [
-                                 "id" => 4, 
-                                 "tournament_id" => 0, 
-                                 "name" => "Team 6" 
-                              ], 
-                  [
-                                    "id" => 5, 
-                                    "tournament_id" => 0, 
-                                    "name" => "Team 7" 
-                                 ], 
-                  [
-                                       "id" => 6, 
-                                       "tournament_id" => 0, 
-                                       "name" => "Team 8" 
-                                    ], 
-                  [
-                                          "id" => 7, 
-                                          "tournament_id" => 0, 
-                                          "name" => "Team 9" 
-                                       ], 
-                  [
-                                             "id" => 8, 
-                                             "tournament_id" => 0, 
-                                             "name" => "Team 10" 
-                                          ], 
-                  [
-                                                "id" => 9, 
-                                                "tournament_id" => 0, 
-                                                "name" => "Team 11" 
-                                             ], 
-                  [
-                                                   "id" => 10, 
-                                                   "tournament_id" => 0, 
-                                                   "name" => "Team 12" 
-                                                ], 
-                  [
-                                                      "id" => 11, 
-                                                      "tournament_id" => 0, 
-                                                      "name" => "Team 13" 
-                                                   ], 
-                  [
-                                                         "id" => 12, 
-                                                         "tournament_id" => 0, 
-                                                         "name" => "Team 14" 
-                                                      ], 
-                  [
-                                                            "id" => 13, 
-                                                            "tournament_id" => 0, 
-                                                            "name" => "Team 15" 
-                                                         ], 
-                  [
-                                                               "id" => 14, 
-                                                               "tournament_id" => 0, 
-                                                               "name" => "Team 16" 
-                                                            ] 
-               ], 
-            "stage" => [
-                                                                  [
-                                                                     "id" => 0, 
-                                                                     "tournament_id" => 0, 
-                                                                     "name" => "Example", 
-                                                                     "type" => "double_elimination", 
-                                                                     "number" => 1, 
-                                                                     "settings" => [
-                                                                        "size" => 16, 
-                                                                        "seedOrdering" => [
-                                                                           "natural", 
-                                                                           "natural", 
-                                                                           "reverse_half_shift", 
-                                                                           "reverse" 
-                                                                        ], 
-                                                                        "grandFinal" => "double", 
-                                                                        "matchesChildCount" => 0 
-                                                                     ] 
-                                                                  ] 
-                                                               ], 
-            "group" => [
-                                                                              [
-                                                                                 "id" => 0, 
-                                                                                 "stage_id" => 0, 
-                                                                                 "number" => 1 
-                                                                              ], 
-                                                                              [
-                                                                                    "id" => 1, 
-                                                                                    "stage_id" => 0, 
-                                                                                    "number" => 2 
-                                                                                 ], 
-                                                                              [
-                                                                                       "id" => 2, 
-                                                                                       "stage_id" => 0, 
-                                                                                       "number" => 3 
-                                                                                    ] 
-                                                                           ], 
-            "round" => [
-                                                                                          [
-                                                                                             "id" => 0, 
-                                                                                             "number" => 1, 
-                                                                                             "stage_id" => 0, 
-                                                                                             "group_id" => 0 
-                                                                                          ], 
-                                                                                          [
-                                                                                                "id" => 1, 
-                                                                                                "number" => 2, 
-                                                                                                "stage_id" => 0, 
-                                                                                                "group_id" => 0 
-                                                                                             ], 
-                                                                                          [
-                                                                                                   "id" => 2, 
-                                                                                                   "number" => 3, 
-                                                                                                   "stage_id" => 0, 
-                                                                                                   "group_id" => 0 
-                                                                                                ], 
-                                                                                          [
-                                                                                                      "id" => 3, 
-                                                                                                      "number" => 4, 
-                                                                                                      "stage_id" => 0, 
-                                                                                                      "group_id" => 0 
-                                                                                                   ], 
-                                                                                          [
-                                                                                                         "id" => 4, 
-                                                                                                         "number" => 1, 
-                                                                                                         "stage_id" => 0, 
-                                                                                                         "group_id" => 1 
-                                                                                                      ], 
-                                                                                          [
-                                                                                                            "id" => 5, 
-                                                                                                            "number" => 2, 
-                                                                                                            "stage_id" => 0, 
-                                                                                                            "group_id" => 1 
-                                                                                                         ], 
-                                                                                          [
-                                                                                                               "id" => 6, 
-                                                                                                               "number" => 3, 
-                                                                                                               "stage_id" => 0, 
-                                                                                                               "group_id" => 1 
-                                                                                                            ], 
-                                                                                          [
-                                                                                                                  "id" => 7, 
-                                                                                                                  "number" => 4, 
-                                                                                                                  "stage_id" => 0, 
-                                                                                                                  "group_id" => 1 
-                                                                                                               ], 
-                                                                                          [
-                                                                                                                     "id" => 8, 
-                                                                                                                     "number" => 5, 
-                                                                                                                     "stage_id" => 0, 
-                                                                                                                     "group_id" => 1 
-                                                                                                                  ], 
-                                                                                          [
-                                                                                                                        "id" => 9, 
-                                                                                                                        "number" => 6, 
-                                                                                                                        "stage_id" => 0, 
-                                                                                                                        "group_id" => 1 
-                                                                                                                     ], 
-                                                                                          [
-                                                                                                                           "id" => 10, 
-                                                                                                                           "number" => 1, 
-                                                                                                                           "stage_id" => 0, 
-                                                                                                                           "group_id" => 2 
-                                                                                                                        ], 
-                                                                                          [
-                                                                                                                              "id" => 11, 
-                                                                                                                              "number" => 2, 
-                                                                                                                              "stage_id" => 0, 
-                                                                                                                              "group_id" => 2 
-                                                                                                                           ] 
-                                                                                       ], 
-            "match" => [
-                                                                                                                                 [
-                                                                                                                                    "id" => 0, 
-                                                                                                                                    "number" => 1, 
-                                                                                                                                    "stage_id" => 0, 
-                                                                                                                                    "group_id" => 0, 
-                                                                                                                                    "round_id" => 0, 
-                                                                                                                                    "child_count" => 0, 
-                                                                                                                                    "status" => 2, 
-                                                                                                                                    "opponent1" => [
-                                                                                                                                       "id" => 0, 
-                                                                                                                                       "position" => 1, 
-                                                                                                                                       "score" => 16, 
-                                                                                                                                       "result" => "win" 
-                                                                                                                                    ], 
-                                                                                                                                    "opponent2" => [
-                                                                                                                                          "id" => 1, 
-                                                                                                                                          "position" => 2, 
-                                                                                                                                          "score" => 12, 
-                                                                                                                                          "result" => "loss" 
-                                                                                                                                       ] 
-                                                                                                                                 ], 
-                                                                                                                                 [
-                                                                                                                                             "id" => 1, 
-                                                                                                                                             "number" => 2, 
-                                                                                                                                             "stage_id" => 0, 
-                                                                                                                                             "group_id" => 0, 
-                                                                                                                                             "round_id" => 0, 
-                                                                                                                                             "child_count" => 0, 
-                                                                                                                                             "status" => 2, 
-                                                                                                                                             "opponent1" => [
-                                                                                                                                                "id" => 2, 
-                                                                                                                                                "position" => 3, 
-                                                                                                                                                "score" => 8 
-                                                                                                                                             ], 
-                                                                                                                                             "opponent2" => [
-                                                                                                                                                   "id" => 3, 
-                                                                                                                                                   "position" => 4, 
-                                                                                                                                                   "score" => 4 
-                                                                                                                                                ] 
-                                                                                                                                          ], 
-                                                                                                                                 [
-                                                                                                                                                      "id" => 2, 
-                                                                                                                                                      "number" => 3, 
-                                                                                                                                                      "stage_id" => 0, 
-                                                                                                                                                      "group_id" => 0, 
-                                                                                                                                                      "round_id" => 0, 
-                                                                                                                                                      "child_count" => 0, 
-                                                                                                                                                      "status" => 0, 
-                                                                                                                                                      "opponent1" => null, 
-                                                                                                                                                      "opponent2" => [
-                                                                                                                                                         "id" => 4, 
-                                                                                                                                                         "position" => 6 
-                                                                                                                                                      ] 
-                                                                                                                                                   ], 
-                                                                                                                                 [
-                                                                                                                                                            "id" => 3, 
-                                                                                                                                                            "number" => 4, 
-                                                                                                                                                            "stage_id" => 0, 
-                                                                                                                                                            "group_id" => 0, 
-                                                                                                                                                            "round_id" => 0, 
-                                                                                                                                                            "child_count" => 0, 
-                                                                                                                                                            "status" => 2, 
-                                                                                                                                                            "opponent1" => [
-                                                                                                                                                               "id" => 5, 
-                                                                                                                                                               "position" => 7 
-                                                                                                                                                            ], 
-                                                                                                                                                            "opponent2" => [
-                                                                                                                                                                  "id" => 6, 
-                                                                                                                                                                  "position" => 8 
-                                                                                                                                                               ] 
-                                                                                                                                                         ], 
-                                                                                                                                 [
-                                                                                                                                                                     "id" => 4, 
-                                                                                                                                                                     "number" => 5, 
-                                                                                                                                                                     "stage_id" => 0, 
-                                                                                                                                                                     "group_id" => 0, 
-                                                                                                                                                                     "round_id" => 0, 
-                                                                                                                                                                     "child_count" => 0, 
-                                                                                                                                                                     "status" => 2, 
-                                                                                                                                                                     "opponent1" => [
-                                                                                                                                                                        "id" => 7, 
-                                                                                                                                                                        "position" => 9 
-                                                                                                                                                                     ], 
-                                                                                                                                                                     "opponent2" => [
-                                                                                                                                                                           "id" => 8, 
-                                                                                                                                                                           "position" => 10 
-                                                                                                                                                                        ] 
-                                                                                                                                                                  ], 
-                                                                                                                                 [
-                                                                                                                                                                              "id" => 5, 
-                                                                                                                                                                              "number" => 6, 
-                                                                                                                                                                              "stage_id" => 0, 
-                                                                                                                                                                              "group_id" => 0, 
-                                                                                                                                                                              "round_id" => 0, 
-                                                                                                                                                                              "child_count" => 0, 
-                                                                                                                                                                              "status" => 2, 
-                                                                                                                                                                              "opponent1" => [
-                                                                                                                                                                                 "id" => 9, 
-                                                                                                                                                                                 "position" => 11 
-                                                                                                                                                                              ], 
-                                                                                                                                                                              "opponent2" => [
-                                                                                                                                                                                    "id" => 10, 
-                                                                                                                                                                                    "position" => 12 
-                                                                                                                                                                                 ] 
-                                                                                                                                                                           ], 
-                                                                                                                                 [
-                                                                                                                                                                                       "id" => 6, 
-                                                                                                                                                                                       "number" => 7, 
-                                                                                                                                                                                       "stage_id" => 0, 
-                                                                                                                                                                                       "group_id" => 0, 
-                                                                                                                                                                                       "round_id" => 0, 
-                                                                                                                                                                                       "child_count" => 0, 
-                                                                                                                                                                                       "status" => 2, 
-                                                                                                                                                                                       "opponent1" => [
-                                                                                                                                                                                          "id" => 11, 
-                                                                                                                                                                                          "position" => 13 
-                                                                                                                                                                                       ], 
-                                                                                                                                                                                       "opponent2" => [
-                                                                                                                                                                                             "id" => 12, 
-                                                                                                                                                                                             "position" => 14 
-                                                                                                                                                                                          ] 
-                                                                                                                                                                                    ], 
-                                                                                                                                 [
-                                                                                                                                                                                                "id" => 7, 
-                                                                                                                                                                                                "number" => 8, 
-                                                                                                                                                                                                "stage_id" => 0, 
-                                                                                                                                                                                                "group_id" => 0, 
-                                                                                                                                                                                                "round_id" => 0, 
-                                                                                                                                                                                                "child_count" => 0, 
-                                                                                                                                                                                                "status" => 2, 
-                                                                                                                                                                                                "opponent1" => [
-                                                                                                                                                                                                   "id" => 13, 
-                                                                                                                                                                                                   "position" => 15 
-                                                                                                                                                                                                ], 
-                                                                                                                                                                                                "opponent2" => [
-                                                                                                                                                                                                      "id" => null, 
-                                                                                                                                                                                                      "position" => 16 
-                                                                                                                                                                                                   ] 
-                                                                                                                                                                                             ], 
-                                                                                                                                 [
-                                                                                                                                                                                                         "id" => 8, 
-                                                                                                                                                                                                         "number" => 1, 
-                                                                                                                                                                                                         "stage_id" => 0, 
-                                                                                                                                                                                                         "group_id" => 0, 
-                                                                                                                                                                                                         "round_id" => 1, 
-                                                                                                                                                                                                         "child_count" => 0, 
-                                                                                                                                                                                                         "status" => 1, 
-                                                                                                                                                                                                         "opponent1" => [
-                                                                                                                                                                                                            "id" => 0 
-                                                                                                                                                                                                         ], 
-                                                                                                                                                                                                         "opponent2" => [
-                                                                                                                                                                                                               "id" => null 
-                                                                                                                                                                                                            ] 
-                                                                                                                                                                                                      ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                  "id" => 9, 
-                                                                                                                                                                                                                  "number" => 2, 
-                                                                                                                                                                                                                  "stage_id" => 0, 
-                                                                                                                                                                                                                  "group_id" => 0, 
-                                                                                                                                                                                                                  "round_id" => 1, 
-                                                                                                                                                                                                                  "child_count" => 0, 
-                                                                                                                                                                                                                  "status" => 1, 
-                                                                                                                                                                                                                  "opponent1" => [
-                                                                                                                                                                                                                     "id" => 4 
-                                                                                                                                                                                                                  ], 
-                                                                                                                                                                                                                  "opponent2" => [
-                                                                                                                                                                                                                        "id" => null 
-                                                                                                                                                                                                                     ] 
-                                                                                                                                                                                                               ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                           "id" => 10, 
-                                                                                                                                                                                                                           "number" => 3, 
-                                                                                                                                                                                                                           "stage_id" => 0, 
-                                                                                                                                                                                                                           "group_id" => 0, 
-                                                                                                                                                                                                                           "round_id" => 1, 
-                                                                                                                                                                                                                           "child_count" => 0, 
-                                                                                                                                                                                                                           "status" => 0, 
-                                                                                                                                                                                                                           "opponent1" => [
-                                                                                                                                                                                                                              "id" => null 
-                                                                                                                                                                                                                           ], 
-                                                                                                                                                                                                                           "opponent2" => [
-                                                                                                                                                                                                                                 "id" => null 
-                                                                                                                                                                                                                              ] 
-                                                                                                                                                                                                                        ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                    "id" => 11, 
-                                                                                                                                                                                                                                    "number" => 4, 
-                                                                                                                                                                                                                                    "stage_id" => 0, 
-                                                                                                                                                                                                                                    "group_id" => 0, 
-                                                                                                                                                                                                                                    "round_id" => 1, 
-                                                                                                                                                                                                                                    "child_count" => 0, 
-                                                                                                                                                                                                                                    "status" => 0, 
-                                                                                                                                                                                                                                    "opponent1" => [
-                                                                                                                                                                                                                                       "id" => null 
-                                                                                                                                                                                                                                    ], 
-                                                                                                                                                                                                                                    "opponent2" => [
-                                                                                                                                                                                                                                          "id" => null 
-                                                                                                                                                                                                                                       ] 
-                                                                                                                                                                                                                                 ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                             "id" => 12, 
-                                                                                                                                                                                                                                             "number" => 1, 
-                                                                                                                                                                                                                                             "stage_id" => 0, 
-                                                                                                                                                                                                                                             "group_id" => 0, 
-                                                                                                                                                                                                                                             "round_id" => 2, 
-                                                                                                                                                                                                                                             "child_count" => 0, 
-                                                                                                                                                                                                                                             "status" => 0, 
-                                                                                                                                                                                                                                             "opponent1" => [
-                                                                                                                                                                                                                                                "id" => null 
-                                                                                                                                                                                                                                             ], 
-                                                                                                                                                                                                                                             "opponent2" => [
-                                                                                                                                                                                                                                                   "id" => null 
-                                                                                                                                                                                                                                                ] 
-                                                                                                                                                                                                                                          ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                      "id" => 13, 
-                                                                                                                                                                                                                                                      "number" => 2, 
-                                                                                                                                                                                                                                                      "stage_id" => 0, 
-                                                                                                                                                                                                                                                      "group_id" => 0, 
-                                                                                                                                                                                                                                                      "round_id" => 2, 
-                                                                                                                                                                                                                                                      "child_count" => 0, 
-                                                                                                                                                                                                                                                      "status" => 0, 
-                                                                                                                                                                                                                                                      "opponent1" => [
-                                                                                                                                                                                                                                                         "id" => null 
-                                                                                                                                                                                                                                                      ], 
-                                                                                                                                                                                                                                                      "opponent2" => [
-                                                                                                                                                                                                                                                            "id" => null 
-                                                                                                                                                                                                                                                         ] 
-                                                                                                                                                                                                                                                   ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                               "id" => 14, 
-                                                                                                                                                                                                                                                               "number" => 1, 
-                                                                                                                                                                                                                                                               "stage_id" => 0, 
-                                                                                                                                                                                                                                                               "group_id" => 0, 
-                                                                                                                                                                                                                                                               "round_id" => 3, 
-                                                                                                                                                                                                                                                               "child_count" => 0, 
-                                                                                                                                                                                                                                                               "status" => 0, 
-                                                                                                                                                                                                                                                               "opponent1" => [
-                                                                                                                                                                                                                                                                  "id" => null 
-                                                                                                                                                                                                                                                               ], 
-                                                                                                                                                                                                                                                               "opponent2" => [
-                                                                                                                                                                                                                                                                     "id" => null 
-                                                                                                                                                                                                                                                                  ] 
-                                                                                                                                                                                                                                                            ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                        "id" => 15, 
-                                                                                                                                                                                                                                                                        "number" => 1, 
-                                                                                                                                                                                                                                                                        "stage_id" => 0, 
-                                                                                                                                                                                                                                                                        "group_id" => 1, 
-                                                                                                                                                                                                                                                                        "round_id" => 4, 
-                                                                                                                                                                                                                                                                        "child_count" => 0, 
-                                                                                                                                                                                                                                                                        "status" => 1, 
-                                                                                                                                                                                                                                                                        "opponent1" => [
-                                                                                                                                                                                                                                                                           "id" => 1, 
-                                                                                                                                                                                                                                                                           "position" => 1 
-                                                                                                                                                                                                                                                                        ], 
-                                                                                                                                                                                                                                                                        "opponent2" => [
-                                                                                                                                                                                                                                                                              "id" => null, 
-                                                                                                                                                                                                                                                                              "position" => 2 
-                                                                                                                                                                                                                                                                           ] 
-                                                                                                                                                                                                                                                                     ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                 "id" => 16, 
-                                                                                                                                                                                                                                                                                 "number" => 2, 
-                                                                                                                                                                                                                                                                                 "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                 "group_id" => 1, 
-                                                                                                                                                                                                                                                                                 "round_id" => 4, 
-                                                                                                                                                                                                                                                                                 "child_count" => 0, 
-                                                                                                                                                                                                                                                                                 "status" => 0, 
-                                                                                                                                                                                                                                                                                 "opponent1" => null, 
-                                                                                                                                                                                                                                                                                 "opponent2" => [
-                                                                                                                                                                                                                                                                                    "id" => null, 
-                                                                                                                                                                                                                                                                                    "position" => 4 
-                                                                                                                                                                                                                                                                                 ] 
-                                                                                                                                                                                                                                                                              ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                       "id" => 17, 
-                                                                                                                                                                                                                                                                                       "number" => 3, 
-                                                                                                                                                                                                                                                                                       "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                       "group_id" => 1, 
-                                                                                                                                                                                                                                                                                       "round_id" => 4, 
-                                                                                                                                                                                                                                                                                       "child_count" => 0, 
-                                                                                                                                                                                                                                                                                       "status" => 0, 
-                                                                                                                                                                                                                                                                                       "opponent1" => [
-                                                                                                                                                                                                                                                                                          "id" => null, 
-                                                                                                                                                                                                                                                                                          "position" => 5 
-                                                                                                                                                                                                                                                                                       ], 
-                                                                                                                                                                                                                                                                                       "opponent2" => [
-                                                                                                                                                                                                                                                                                             "id" => null, 
-                                                                                                                                                                                                                                                                                             "position" => 6 
-                                                                                                                                                                                                                                                                                          ] 
-                                                                                                                                                                                                                                                                                    ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                "id" => 18, 
-                                                                                                                                                                                                                                                                                                "number" => 4, 
-                                                                                                                                                                                                                                                                                                "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                "round_id" => 4, 
-                                                                                                                                                                                                                                                                                                "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                "status" => 0, 
-                                                                                                                                                                                                                                                                                                "opponent1" => [
-                                                                                                                                                                                                                                                                                                   "id" => null, 
-                                                                                                                                                                                                                                                                                                   "position" => 7 
-                                                                                                                                                                                                                                                                                                ], 
-                                                                                                                                                                                                                                                                                                "opponent2" => [
-                                                                                                                                                                                                                                                                                                      "id" => null, 
-                                                                                                                                                                                                                                                                                                      "position" => 8 
-                                                                                                                                                                                                                                                                                                   ] 
-                                                                                                                                                                                                                                                                                             ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                         "id" => 19, 
-                                                                                                                                                                                                                                                                                                         "number" => 1, 
-                                                                                                                                                                                                                                                                                                         "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                         "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                         "round_id" => 5, 
-                                                                                                                                                                                                                                                                                                         "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                         "status" => 0, 
-                                                                                                                                                                                                                                                                                                         "opponent1" => [
-                                                                                                                                                                                                                                                                                                            "id" => null, 
-                                                                                                                                                                                                                                                                                                            "position" => 2 
-                                                                                                                                                                                                                                                                                                         ], 
-                                                                                                                                                                                                                                                                                                         "opponent2" => [
-                                                                                                                                                                                                                                                                                                               "id" => null 
-                                                                                                                                                                                                                                                                                                            ] 
-                                                                                                                                                                                                                                                                                                      ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                  "id" => 20, 
-                                                                                                                                                                                                                                                                                                                  "number" => 2, 
-                                                                                                                                                                                                                                                                                                                  "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                  "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                                  "round_id" => 5, 
-                                                                                                                                                                                                                                                                                                                  "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                  "status" => 0, 
-                                                                                                                                                                                                                                                                                                                  "opponent1" => [
-                                                                                                                                                                                                                                                                                                                     "id" => null, 
-                                                                                                                                                                                                                                                                                                                     "position" => 1 
-                                                                                                                                                                                                                                                                                                                  ], 
-                                                                                                                                                                                                                                                                                                                  "opponent2" => [
-                                                                                                                                                                                                                                                                                                                        "id" => null 
-                                                                                                                                                                                                                                                                                                                     ] 
-                                                                                                                                                                                                                                                                                                               ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                           "id" => 21, 
-                                                                                                                                                                                                                                                                                                                           "number" => 3, 
-                                                                                                                                                                                                                                                                                                                           "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                           "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                                           "round_id" => 5, 
-                                                                                                                                                                                                                                                                                                                           "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                           "status" => 0, 
-                                                                                                                                                                                                                                                                                                                           "opponent1" => [
-                                                                                                                                                                                                                                                                                                                              "id" => null, 
-                                                                                                                                                                                                                                                                                                                              "position" => 4 
-                                                                                                                                                                                                                                                                                                                           ], 
-                                                                                                                                                                                                                                                                                                                           "opponent2" => [
-                                                                                                                                                                                                                                                                                                                                 "id" => null 
-                                                                                                                                                                                                                                                                                                                              ] 
-                                                                                                                                                                                                                                                                                                                        ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                                    "id" => 22, 
-                                                                                                                                                                                                                                                                                                                                    "number" => 4, 
-                                                                                                                                                                                                                                                                                                                                    "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                                    "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                                                    "round_id" => 5, 
-                                                                                                                                                                                                                                                                                                                                    "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                                    "status" => 0, 
-                                                                                                                                                                                                                                                                                                                                    "opponent1" => [
-                                                                                                                                                                                                                                                                                                                                       "id" => null, 
-                                                                                                                                                                                                                                                                                                                                       "position" => 3 
-                                                                                                                                                                                                                                                                                                                                    ], 
-                                                                                                                                                                                                                                                                                                                                    "opponent2" => [
-                                                                                                                                                                                                                                                                                                                                          "id" => null 
-                                                                                                                                                                                                                                                                                                                                       ] 
-                                                                                                                                                                                                                                                                                                                                 ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                                             "id" => 23, 
-                                                                                                                                                                                                                                                                                                                                             "number" => 1, 
-                                                                                                                                                                                                                                                                                                                                             "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                                             "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                                                             "round_id" => 6, 
-                                                                                                                                                                                                                                                                                                                                             "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                                             "status" => 0, 
-                                                                                                                                                                                                                                                                                                                                             "opponent1" => [
-                                                                                                                                                                                                                                                                                                                                                "id" => null 
-                                                                                                                                                                                                                                                                                                                                             ], 
-                                                                                                                                                                                                                                                                                                                                             "opponent2" => [
-                                                                                                                                                                                                                                                                                                                                                   "id" => null 
-                                                                                                                                                                                                                                                                                                                                                ] 
-                                                                                                                                                                                                                                                                                                                                          ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                                                      "id" => 24, 
-                                                                                                                                                                                                                                                                                                                                                      "number" => 2, 
-                                                                                                                                                                                                                                                                                                                                                      "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                                                      "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                                                                      "round_id" => 6, 
-                                                                                                                                                                                                                                                                                                                                                      "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                                                      "status" => 0, 
-                                                                                                                                                                                                                                                                                                                                                      "opponent1" => [
-                                                                                                                                                                                                                                                                                                                                                         "id" => null 
-                                                                                                                                                                                                                                                                                                                                                      ], 
-                                                                                                                                                                                                                                                                                                                                                      "opponent2" => [
-                                                                                                                                                                                                                                                                                                                                                            "id" => null 
-                                                                                                                                                                                                                                                                                                                                                         ] 
-                                                                                                                                                                                                                                                                                                                                                   ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                                                               "id" => 25, 
-                                                                                                                                                                                                                                                                                                                                                               "number" => 1, 
-                                                                                                                                                                                                                                                                                                                                                               "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                                                               "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                                                                               "round_id" => 7, 
-                                                                                                                                                                                                                                                                                                                                                               "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                                                               "status" => 0, 
-                                                                                                                                                                                                                                                                                                                                                               "opponent1" => [
-                                                                                                                                                                                                                                                                                                                                                                  "id" => null, 
-                                                                                                                                                                                                                                                                                                                                                                  "position" => 2 
-                                                                                                                                                                                                                                                                                                                                                               ], 
-                                                                                                                                                                                                                                                                                                                                                               "opponent2" => [
-                                                                                                                                                                                                                                                                                                                                                                     "id" => null 
-                                                                                                                                                                                                                                                                                                                                                                  ] 
-                                                                                                                                                                                                                                                                                                                                                            ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                                                                        "id" => 26, 
-                                                                                                                                                                                                                                                                                                                                                                        "number" => 2, 
-                                                                                                                                                                                                                                                                                                                                                                        "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                        "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                                                                                        "round_id" => 7, 
-                                                                                                                                                                                                                                                                                                                                                                        "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                        "status" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                        "opponent1" => [
-                                                                                                                                                                                                                                                                                                                                                                           "id" => null, 
-                                                                                                                                                                                                                                                                                                                                                                           "position" => 1 
-                                                                                                                                                                                                                                                                                                                                                                        ], 
-                                                                                                                                                                                                                                                                                                                                                                        "opponent2" => [
-                                                                                                                                                                                                                                                                                                                                                                              "id" => null 
-                                                                                                                                                                                                                                                                                                                                                                           ] 
-                                                                                                                                                                                                                                                                                                                                                                     ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                                                                                 "id" => 27, 
-                                                                                                                                                                                                                                                                                                                                                                                 "number" => 1, 
-                                                                                                                                                                                                                                                                                                                                                                                 "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                 "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                                                                                                 "round_id" => 8, 
-                                                                                                                                                                                                                                                                                                                                                                                 "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                 "status" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                 "opponent1" => [
-                                                                                                                                                                                                                                                                                                                                                                                    "id" => null 
-                                                                                                                                                                                                                                                                                                                                                                                 ], 
-                                                                                                                                                                                                                                                                                                                                                                                 "opponent2" => [
-                                                                                                                                                                                                                                                                                                                                                                                       "id" => null 
-                                                                                                                                                                                                                                                                                                                                                                                    ] 
-                                                                                                                                                                                                                                                                                                                                                                              ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                                                                                          "id" => 28, 
-                                                                                                                                                                                                                                                                                                                                                                                          "number" => 1, 
-                                                                                                                                                                                                                                                                                                                                                                                          "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                          "group_id" => 1, 
-                                                                                                                                                                                                                                                                                                                                                                                          "round_id" => 9, 
-                                                                                                                                                                                                                                                                                                                                                                                          "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                          "status" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                          "opponent1" => [
-                                                                                                                                                                                                                                                                                                                                                                                             "id" => null, 
-                                                                                                                                                                                                                                                                                                                                                                                             "position" => 1 
-                                                                                                                                                                                                                                                                                                                                                                                          ], 
-                                                                                                                                                                                                                                                                                                                                                                                          "opponent2" => [
-                                                                                                                                                                                                                                                                                                                                                                                                "id" => null 
-                                                                                                                                                                                                                                                                                                                                                                                             ] 
-                                                                                                                                                                                                                                                                                                                                                                                       ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                                                                                                   "id" => 29, 
-                                                                                                                                                                                                                                                                                                                                                                                                   "number" => 1, 
-                                                                                                                                                                                                                                                                                                                                                                                                   "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                                   "group_id" => 2, 
-                                                                                                                                                                                                                                                                                                                                                                                                   "round_id" => 10, 
-                                                                                                                                                                                                                                                                                                                                                                                                   "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                                   "status" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                                   "opponent1" => [
-                                                                                                                                                                                                                                                                                                                                                                                                      "id" => null 
-                                                                                                                                                                                                                                                                                                                                                                                                   ], 
-                                                                                                                                                                                                                                                                                                                                                                                                   "opponent2" => [
-                                                                                                                                                                                                                                                                                                                                                                                                         "id" => null, 
-                                                                                                                                                                                                                                                                                                                                                                                                         "position" => 1 
-                                                                                                                                                                                                                                                                                                                                                                                                      ] 
-                                                                                                                                                                                                                                                                                                                                                                                                ], 
-                                                                                                                                 [
-                                                                                                                                                                                                                                                                                                                                                                                                            "id" => 30, 
-                                                                                                                                                                                                                                                                                                                                                                                                            "number" => 1, 
-                                                                                                                                                                                                                                                                                                                                                                                                            "stage_id" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                                            "group_id" => 2, 
-                                                                                                                                                                                                                                                                                                                                                                                                            "round_id" => 11, 
-                                                                                                                                                                                                                                                                                                                                                                                                            "child_count" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                                            "status" => 0, 
-                                                                                                                                                                                                                                                                                                                                                                                                            "opponent1" => [
-                                                                                                                                                                                                                                                                                                                                                                                                               "id" => null 
-                                                                                                                                                                                                                                                                                                                                                                                                            ], 
-                                                                                                                                                                                                                                                                                                                                                                                                            "opponent2" => [
-                                                                                                                                                                                                                                                                                                                                                                                                                  "id" => null 
-                                                                                                                                                                                                                                                                                                                                                                                                               ] 
-                                                                                                                                                                                                                                                                                                                                                                                                         ] 
-                                                                                                                              ], 
-            "match_game" => [
-                                                                                                                                                                                                                                                                                                                                                                                                                  ] 
-        ];
+        $bracketData = Tournament::getBracketData($tournamentId);
+
+        if (!$bracketData) {
+            return $response->setStatusCode(404)->setData(['error' => 'Bracket data not found.  Generate the bracket first.'])->send();
+        }
 
         return $response->setData($bracketData)->send();
     }
@@ -800,11 +207,15 @@ class TournamentAPIController extends APIController implements RouteProvider
     public function generateBracket($tournamentId)
     {
         $response = new APIResponse();
-        $user = User::getUserById($_SESSION['user_id']);
-        $tournament = Tournament::getById($tournamentId);
+        $userId = $_SESSION['user_id'];
 
-        // Add actual bracket generation logic here
-        // This would typically create matches between registered teams
+        $user = User::getUserById($userId);
+        if ($user['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
+        }
+
+        $bracketData = Tournament::generateKnockoutBracket($tournamentId);
+        Tournament::saveBracketData($tournamentId, $bracketData);
 
         return $response->setData(['message' => 'Bracket generated'])->send();
     }
@@ -813,7 +224,7 @@ class TournamentAPIController extends APIController implements RouteProvider
     {
         $response = new APIResponse();
         $team = Tournament::getByInviteToken($token);
-        
+
         if (!$team) {
             return $response->setStatusCode(404)->setData(['error' => 'Invalid invite link'])->send();
         }
@@ -822,9 +233,28 @@ class TournamentAPIController extends APIController implements RouteProvider
             return $response->setStatusCode(401)->setData(['error' => 'Login required'])->send();
         }
 
-        // Add user to team logic
         Tournament::addParticipant($team['tournament_team_id'], $_SESSION['user_id']);
 
         return $response->setData(['message' => 'Joined team successfully'])->send();
+    }
+
+    public function updateMatchScore($tournamentId, $matchId) {
+        $response = new APIResponse();
+        $data = json_decode(file_get_contents('php://input'), true);
+        $userId = $_SESSION['user_id'];
+
+        $user = User::getUserById($userId);
+        if ($user['status'] !== 'admin') {
+            return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
+        }
+
+        $team1Score = $data['team1_score'] ?? null;
+        $team2Score = $data['team2_score'] ?? null;
+        $winnerId = $data['winner_id'] ?? null;
+
+        $bracketData = Tournament::updateMatchScore($tournamentId, $matchId, $team1Score, $team2Score, $winnerId);
+        Tournament::saveBracketData($tournamentId, $bracketData);
+
+        return $response->setData(['message' => 'Match score updated'])->send();
     }
 }
