@@ -151,6 +151,105 @@ class Booking
         }
     }
 
+    public static function getTeamName($team_id) {
+        try {
+             $pdo = Database::getConnection();
+             $stmt = $pdo->prepare("SELECT team_name FROM TEAM WHERE team_id = :team_id");
+             $stmt->execute(['team_id' => $team_id]);
+             $result =  $stmt->fetch(PDO::FETCH_ASSOC);
+             return $result['team_name'] ?? null;
+   
+         } catch (\PDOException $e) {
+             error_log("PDOException in getTeamName: " . $e->getMessage());
+             return false;
+         }
+      }
+
+      public static function allInvitationsAnswered($team_id)
+    {
+        try {
+            $pdo = Database::getConnection();
+            $sql = "SELECT COUNT(*) FROM TEAM_INVITATION WHERE team_id = :team_id AND status = 'pending'";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([':team_id' => $team_id]);
+            $pendingCount = $stmt->fetchColumn();
+            return $pendingCount == 0; // Retourne true si toutes les invitations ont reçu une réponse
+        } catch (\PDOException $e) {
+            error_log("PDOException in allInvitationsAnswered: " . $e->getMessage());
+            return false;
+        }
+    } 
+
+    public static function addTeamParticipants($team_id)
+    {
+        try {
+            $pdo = Database::getConnection();
+            // Insère seulement les participants qui ont accepté l'invitation
+            $sql = "INSERT INTO TEAM_PARTICIPANT (team_id, member_id)
+                    SELECT :team_id, member_id
+                    FROM TEAM_INVITATION
+                    WHERE team_id = :team_id AND status = 'accepted'";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([':team_id' => $team_id]);
+            return true;
+        } catch (\PDOException $e) {
+            error_log("PDOException in addTeamParticipants: " . $e->getMessage());
+            return false;
+        }
+    }
+
+   public static function createReservationFromTeam($team_id) {
+          try {
+              $pdo = Database::getConnection();
+
+              // Récupérer les informations nécessaires pour la réservation
+              $sqlSelect = "SELECT
+                      ti.member_id,
+                      cr.court_id,
+                      cr.reservation_date,
+                      cr.start_time,
+                      cr.end_time
+                  FROM
+                      TEAM_INVITATION ti
+                  JOIN
+                      COURT_RESERVATION cr ON ti.team_id = :team_id
+                  WHERE ti.team_id = :team_id and ti.status = 'accepted'
+                    LIMIT 1;
+                  ";
+              $stmtSelect = $pdo->prepare($sqlSelect);
+              $stmtSelect->execute([':team_id' => $team_id]);
+              $reservationInfo = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+
+              if (!$reservationInfo) {
+                  error_log("Aucune information de réservation trouvée pour l'équipe ID : " . $team_id);
+                  return false;
+              }
+
+             // Créer la réservation avec les informations récupérées
+                $sqlReservation = "INSERT INTO COURT_RESERVATION (member_id, court_id, reservation_date, start_time, end_time, team_id)
+                                 VALUES (:member_id, :court_id, :reservation_date, :start_time, :end_time, :team_id)";
+
+                $params = [
+                    ':member_id' => $reservationInfo['member_id'],
+                    ':court_id' => $reservationInfo['court_id'],
+                    ':reservation_date' => $reservationInfo['reservation_date'],
+                    ':start_time' => $reservationInfo['start_time'],
+                    ':end_time' => $reservationInfo['end_time'],
+                    ':team_id' => $team_id,
+                ];
+
+                $stmtReserve = $pdo->prepare($sqlReservation);
+                if (!$stmtReserve->execute($params)) {
+                    throw new \Exception("Erreur lors de la création de la réservation : " . json_encode($stmtReserve->errorInfo()));
+                }
+
+              return true; // Indique que la réservation a été créée avec succès
+          } catch (\PDOException $e) {
+              error_log("PDOException in createReservationFromTeam: " . $e->getMessage());
+              return false;
+          }
+      }
+
 }
 
 ?>

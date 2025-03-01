@@ -581,7 +581,11 @@
         type: 'POST',
         data: formData,
         success: function(response) {
-          showSuccessToast('Réservation ajoutée avec succès!');
+          if (response.data && response.data.team_id) {
+            showSuccessToast('Invitations envoyées! L\'équipe sera créée quand tous les membres auront répondus.');
+          } else {
+            showSuccessToast('Réservation ajoutée avec succès!');
+          }
           closeReservationForm();
           loadReservations();
           selectedMembers.clear();
