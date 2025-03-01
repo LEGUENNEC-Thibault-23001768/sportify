@@ -52,8 +52,7 @@ final class Auth
 
             $userId = $_SESSION['user_id'];
             if (!Subscription::hasActiveSubscription($userId)) {
-                // Redirect to a page explaining subscription requirement
-                header('Location: /subscription-required');
+                header('Location: /404');
                 return false;
             }
 

@@ -167,8 +167,6 @@ class UserAPIController extends APIController implements RouteProvider
             'address' => $address,
             'phone' => $phone
         ];
-        error_log("PTNN ZEBIIII");
-        error_log(print_r($_FILES), true);
 
         if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
             $uploadResult = $this->handleProfilePictureUpload($_FILES['profile_picture']);

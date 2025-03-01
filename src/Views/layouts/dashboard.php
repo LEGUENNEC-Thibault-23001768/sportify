@@ -70,6 +70,7 @@
         <li><a href="/dashboard" data-target="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
         <li><a href="/dashboard/stats" data-target="stats"><i class="fas fa-chart-line"></i> Stats </a></li>
         <li><a href="/dashboard/booking" data-target="booking"><i class="fas fa-futbol"></i> Terrains</a></li>
+        <li><a href="/dashboard/tournament" data-target="tournament"><i class="fas fa-award"></i> Tournois</a></li>
         <li><a href="/dashboard/trainers" data-target="trainers"><i class="fas fa-user-friends"></i> Entraîneurs</a>
         </li>
         <li><a href="/dashboard/events" data-target="events"><i class="fas fa-trophy"></i> Événements</a></li>
@@ -136,6 +137,7 @@
         const dashboardCSS = "/_assets/css/dashboard.css";
         const mobiscrollCSS = "/_assets/css/mobiscroll.min.css";
         const mobiscrollJS = "/_assets/js/mobiscroll.min.js"
+        
 
         function loadContent(target, href = null) {
             if (href) {
@@ -195,6 +197,20 @@
                 }
             }
 
+            
+            if (view == 'tournament') {
+                const bracketsCSSPath = "https://cdn.jsdelivr.net/npm/brackets-viewer@latest/dist/brackets-viewer.min.css";
+                const bracketsJSPath = "https://cdn.jsdelivr.net/npm/brackets-viewer@latest/dist/brackets-viewer.min.js";
+
+                loadCSS(bracketsCSSPath, function() {
+                    bracketsCSSLoaded = true;
+                    checkComplete();
+                });
+                loadScript(bracketsJSPath, function() {
+                    bracketsJSLoaded = true;
+                    checkComplete();
+                });
+            }
             loadCSS(cssPath, function () {
                 cssLoaded = true;
                 checkComplete();
@@ -207,22 +223,41 @@
 
 
         function unloadPreviousAssets() {
-            $('link[href^="/_assets/css/"]').each(function () {
+
+            const dashboardCSS = "/_assets/css/dashboard.css";
+            const mobiscrollCSS = "/_assets/css/mobiscroll.min.css";
+            const mobiscrollJS = "/_assets/js/mobiscroll.min.js";
+            const bracketsCSSPath = "https://cdn.jsdelivr.net/npm/brackets-viewer@latest/dist/brackets-viewer.min.css";
+            const bracketsJSPath = "https://cdn.jsdelivr.net/npm/brackets-viewer@latest/dist/brackets-viewer.min.js";
+
+            $('link').each(function() { // Check all link tags
                 const href = $(this).attr('href');
-                if (href !== dashboardCSS && href !== mobiscrollCSS) {
+                if (href === bracketsCSSPath) { // Specifically target brackets-viewer CSS
+                    $(this).remove();
+                    loadedCSS[bracketsCSSPath] = false; // Update loadedCSS status
+                    console.log('Unloaded CSS:', bracketsCSSPath);
+                } else if (href && href.startsWith('/_assets/css/') && href !== dashboardCSS && href !== mobiscrollCSS) { // Existing logic for other view CSS
                     $(this).remove();
                     if (loadedCSS.hasOwnProperty(href)) {
                         loadedCSS[href] = false;
                     }
+                    console.log('Unloaded CSS:', href); // Added log for other CSS
                 }
             });
-            $('script[src^="/_assets/js/"]').each(function () {
+
+
+            $('script').each(function() { // Check all script tags
                 const src = $(this).attr('src');
-                if (src !== mobiscrollJS) {
+                if (src === bracketsJSPath) { // Specifically target brackets-viewer JS
+                    $(this).remove();
+                    loadedScripts[bracketsJSPath] = false; // Update loadedScripts status
+                    console.log('Unloaded Script:', bracketsJSPath);
+                } else if (src && src.startsWith('/_assets/js/') && src !== mobiscrollJS) { // Existing logic for other view JS
                     $(this).remove();
                     if (loadedScripts.hasOwnProperty(src)) {
                         loadedScripts[src] = false;
                     }
+                    console.log('Unloaded Script:', src); // Added log for other JS
                 }
             });
         }
