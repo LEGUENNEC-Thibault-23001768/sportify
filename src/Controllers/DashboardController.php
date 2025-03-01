@@ -3,12 +3,13 @@
 namespace Controllers;
 
 use Core\Auth;
-use Models\Stats;
-use Core\View;
-use Models\User;
-use Models\Subscription;
-use Core\Router;
 use Core\RouteProvider;
+use Core\Router;
+use Core\View;
+use Exception;
+use Models\Stats;
+use Models\Subscription;
+use Models\User;
 
 class DashboardController implements RouteProvider
 {
@@ -29,6 +30,42 @@ class DashboardController implements RouteProvider
         echo View::render('layouts/dashboard', $viewData);
     }
 
+    protected function getCommonViewData($user)
+    {
+        $userId = $user['member_id'];
+        $hasActiveSubscription = Subscription::hasActiveSubscription($userId);
+        $subscriptionInfo = $hasActiveSubscription ? Subscription::getStripeSubscriptionId($userId) : null;
+
+        $viewData = [
+            'user' => $user,
+            'hasActiveSubscription' => $subscriptionInfo["status"] ?? false,
+            'subscription' => [
+                'plan_name' => $subscriptionInfo["subscription_type"] ?? "Aucun",
+                'start_date' => $subscriptionInfo["start_date"] ?? "Aucun",
+                'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
+                'amount' => $subscriptionInfo["amount"] ?? 0,
+                'currency' => $subscriptionInfo["currency"] ?? '€',
+                'status' => $subscriptionInfo["status"] ?? "Aucun"
+            ]
+        ];
+
+        if ($user['status'] === 'admin') {
+            $viewData = array_merge($viewData, [
+                'totalUsers' => Stats::getTotalUsers(),
+                'recentRegistrations' => Stats::getRecentRegistrations(),
+                'activeSubscriptions' => Stats::getActiveSubscriptionsCount(),
+                'globalOccupancyRate' => Stats::getGlobalOccupancyRate(),
+                'topActivities' => Stats::getTop5Activities(),
+                'memberStatusDistribution' => Stats::getMemberStatusDistribution(),
+                'reservationsByDay' => Stats::getReservationsByDay(),
+                'averageMemberAge' => Stats::getAverageMemberAge(),
+                'retentionRate' => Stats::getMemberRetentionRate()
+            ]);
+        }
+
+        return $viewData;
+    }
+
     public function contentLoader($category, $wildcard = '')
     {
         $userId = $_SESSION['user_id'];
@@ -38,38 +75,11 @@ class DashboardController implements RouteProvider
         try {
             $viewData = $this->handleCategoryLogic($category, $wildcard, $viewData);
             $viewPath = $this->getViewPath($category, $wildcard);
-            
+
             $viewData['dataView'] = $viewPath;
             echo View::render('layouts/dashboard', $viewData);
-            
-        } catch (\Exception $e) {
-            echo "<p>Content not found: " . htmlspecialchars($e->getMessage()) . "</p>";
-        }
-    }
 
-    public function ajaxContentLoader($category, $wildcard = '')
-    {
-        $userId = $_SESSION['user_id'];
-        $user = User::getUserById($userId);
-        $viewData = $this->getCommonViewData($user);
-
-	$hasActiveSubscription = Subscription::hasActiveSubscription($userId);
-        $subscriptionInfo = $hasActiveSubscription ? Subscription::getStripeSubscriptionId($userId) : null;
-        
-
-        $is_subscribed = $subscriptionInfo["status"] ?? false;
-
-        if (!$is_subscribed) {
-            echo "<p> VOUS N'ÊTES PAS ABONNE</p>";
-        }
-
-	try {
-            $viewData = $this->handleCategoryLogic($category, $wildcard, $viewData);
-            $viewPath = $this->getViewPath($category, $wildcard);
-
-            echo View::render($viewPath, $viewData);
-           
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             echo "<p>Content not found: " . htmlspecialchars($e->getMessage()) . "</p>";
         }
     }
@@ -119,39 +129,30 @@ class DashboardController implements RouteProvider
         return $viewPath;
     }
 
-    protected function getCommonViewData($user)
+    public function ajaxContentLoader($category, $wildcard = '')
     {
-        $userId = $user['member_id'];
+        $userId = $_SESSION['user_id'];
+        $user = User::getUserById($userId);
+        $viewData = $this->getCommonViewData($user);
+
         $hasActiveSubscription = Subscription::hasActiveSubscription($userId);
         $subscriptionInfo = $hasActiveSubscription ? Subscription::getStripeSubscriptionId($userId) : null;
 
-        $viewData = [
-            'user' => $user,
-            'hasActiveSubscription' => $subscriptionInfo["status"] ?? false,
-            'subscription' => [
-                'plan_name' => $subscriptionInfo["subscription_type"] ?? "Aucun",
-                'start_date' => $subscriptionInfo["start_date"] ?? "Aucun",
-                'end_date' => $subscriptionInfo["end_date"] ?? "Aucun",
-                'amount' => $subscriptionInfo["amount"] ?? 0,
-                'currency' => $subscriptionInfo["currency"] ?? '€',
-                'status' => $subscriptionInfo["status"] ?? "Aucun"
-            ]
-        ];
 
-        if ($user['status'] === 'admin') {
-            $viewData = array_merge($viewData, [
-                'totalUsers' => Stats::getTotalUsers(),
-                'recentRegistrations' => Stats::getRecentRegistrations(),
-                'activeSubscriptions' => Stats::getActiveSubscriptionsCount(),
-                'globalOccupancyRate' => Stats::getGlobalOccupancyRate(),
-                'topActivities' => Stats::getTop5Activities(),
-                'memberStatusDistribution' => Stats::getMemberStatusDistribution(),
-                'reservationsByDay' => Stats::getReservationsByDay(),
-                'averageMemberAge' => Stats::getAverageMemberAge(),
-                'retentionRate' => Stats::getMemberRetentionRate()
-            ]);
+        $is_subscribed = $subscriptionInfo["status"] ?? false;
+
+        if (!$is_subscribed && $user['status'] == 'membre') {
+            echo "<p> VOUS N'ÊTES PAS ABONNE</p>";
         }
 
-        return $viewData;
+        try {
+            $viewData = $this->handleCategoryLogic($category, $wildcard, $viewData);
+            $viewPath = $this->getViewPath($category, $wildcard);
+
+            echo View::render($viewPath, $viewData);
+
+        } catch (Exception $e) {
+            echo "<p>Content not found: " . htmlspecialchars($e->getMessage()) . "</p>";
+        }
     }
 }
