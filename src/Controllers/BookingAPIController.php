@@ -108,7 +108,6 @@ class BookingAPIController extends APIController implements RouteProvider
 
         return $response->setStatusCode(200)->setData(['message' => 'Reservation deleted successfully'])->send();
     }
-
     public function post()
     {
         $response = new APIResponse();
@@ -134,7 +133,9 @@ class BookingAPIController extends APIController implements RouteProvider
         $pdo = Database::getConnection();
 
         try {
-            $team_id = null;
+            $team_id = null; // Initialise team_id
+            $reservation_id = null; // Initialise reservation_id
+
             $sqlCourt = "SELECT max_capacity FROM COURT WHERE court_id = :court_id";
             $stmtCourt = $pdo->prepare($sqlCourt);
             $stmtCourt->execute(['court_id' => $court_id]);
@@ -151,25 +152,81 @@ class BookingAPIController extends APIController implements RouteProvider
                 return $response->setStatusCode(400)->setData(['error' => "La capacité maximale pour cette salle est atteinte."])->send();
             }
 
-            if ($reservation_type === 'team') {
+            // Réservation individuelle ou d'équipe : la logique est séparée
+            if ($reservation_type === 'individual') {
+                // Réservation individuelle
+                foreach ($start_times as $start_time) {
+                    $end_time = date('H:i', strtotime($start_time . ' +1 hour'));
+                    if ($end_time === false) {
+                        throw new \Exception("Erreur lors du calcul de l'heure de fin.");
+                    }
+                    $sqlReservation = "INSERT INTO COURT_RESERVATION (member_id, court_id, reservation_date, start_time, end_time, team_id) VALUES (:member_id, :court_id, :reservation_date, :start_time, :end_time, :team_id)";
+
+                    $params = [
+                        ':member_id' => $member_id,
+                        ':court_id' => $court_id,
+                        ':reservation_date' => $reservation_date,
+                        ':start_time' => $start_time,
+                        ':end_time' => $end_time,
+                        ':team_id' => null, // Pas d'équipe pour une réservation individuelle
+                    ];
+
+                    $stmtReserve = $pdo->prepare($sqlReservation);
+                    if (! $stmtReserve->execute($params)){
+                        throw new \Exception("Create Reservation Failed." .json_encode($stmtReserve->errorInfo()));;
+                    }
+                }
+                return $response->setStatusCode(201)->setData(['message' => 'Reservation created successfully'])->send();
+
+            } else {
+                // Réservation d'équipe
                 if (empty($team_name)) {
                     throw new \Exception("Le nom de l'équipe est requis pour les réservations en équipe.");
                 }
 
-                // Crée l'équipe
-                $sqlTeam = "INSERT INTO TEAM (team_name) VALUES (:team_name)";
+                // 1. Créer la réservation (sans team_id initialement)
+                foreach ($start_times as $start_time) {
+                $end_time = date('H:i', strtotime($start_time . ' +1 hour'));
+                if ($end_time === false) {
+                    throw new \Exception("Erreur lors du calcul de l'heure de fin.");
+                }
+
+                $sqlReservation = "INSERT INTO COURT_RESERVATION (member_id, court_id, reservation_date, start_time, end_time, team_id) VALUES (:member_id, :court_id, :reservation_date, :start_time, :end_time, :team_id)";
+
+                $params = [
+                    ':member_id' => $member_id,
+                    ':court_id' => $court_id,
+                    ':reservation_date' => $reservation_date,
+                    ':start_time' => $start_time,
+                    ':end_time' => $end_time,
+                    ':team_id' => null, // Pas d'équipe pour une réservation individuelle
+                ];
+
+                $stmtReserve = $pdo->prepare($sqlReservation);
+                    if (! $stmtReserve->execute($params)){
+                        throw new \Exception("Create Reservation Failed." .json_encode($stmtReserve->errorInfo()));;
+                    }
+
+                }
+
+                $reservation_id = $pdo->lastInsertId(); // Récupérer l'ID de la réservation créée
+                if (!$reservation_id) {
+                    throw new \Exception("Erreur: ID de réservation non généré.");
+                }
+
+                // 2. Créer l'équipe (avec l'ID de la réservation)
+                $sqlTeam = "INSERT INTO TEAM (team_name, reservation_id) VALUES (:team_name, :reservation_id)";
                 $stmtTeam = $pdo->prepare($sqlTeam);
-                if (!$stmtTeam->execute(['team_name' => $team_name])) {
+                if (!$stmtTeam->execute(['team_name' => $team_name, ':reservation_id' => $reservation_id])) {
                     throw new \Exception("Erreur lors de la création de l'équipe : " . json_encode($stmtTeam->errorInfo()));
                 }
 
-                $team_id = $pdo->lastInsertId();
-
+                $team_id = $pdo->lastInsertId(); // Récupérer l'ID de l'équipe créée
                 if (!$team_id) {
                     throw new \Exception("Erreur lors de la création de l'équipe : ID non généré.");
                 }
 
-                // Créer les invitations et envoyer les e-mails
+                // 3. Créer les invitations et envoyer les e-mails
                 foreach ($team_members as $team_member_id) {
                     $token = bin2hex(random_bytes(32)); // Génère un token unique
                     $sqlInvite = "INSERT INTO TEAM_INVITATION (team_id, member_id, token) VALUES (:team_id, :member_id, :token)";
@@ -195,33 +252,9 @@ class BookingAPIController extends APIController implements RouteProvider
                 }
 
                 //Retourne l'ID de l'équipe et indique que les invitations ont étés envoyées
-                 return $response->setStatusCode(200)->setData(['message' => 'Invitations envoyées. L\'équipe sera créée une fois que les membres auront répondu.', 'team_id' => $team_id])->send();
-            } else {
-              // Réservation individuelle
-              foreach ($start_times as $start_time) {
-                  $end_time = date('H:i', strtotime($start_time . ' +1 hour'));
-                  if ($end_time === false) {
-                      throw new \Exception("Erreur lors du calcul de l'heure de fin.");
-                  }
-                  $sqlReservation = "INSERT INTO COURT_RESERVATION (member_id, court_id, reservation_date, start_time, end_time, team_id) VALUES (:member_id, :court_id, :reservation_date, :start_time, :end_time, :team_id)";
+                return $response->setStatusCode(200)->setData(['message' => 'Invitations envoyées. L\'équipe sera créée une fois que les membres auront répondu.', 'team_id' => $team_id])->send();
 
-                  $params = [
-                      ':member_id' => $member_id,
-                      ':court_id' => $court_id,
-                      ':reservation_date' => $reservation_date,
-                      ':start_time' => $start_time,
-                      ':end_time' => $end_time,
-                      ':team_id' => null, // Pas d'équipe pour une réservation individuelle
-                  ];
-
-                  $stmtReserve = $pdo->prepare($sqlReservation);
-                  if (! $stmtReserve->execute($params)){
-                      throw new \Exception("Create Reservation Failed." .json_encode($stmtReserve->errorInfo()));;
-                  }
-              }
-              return $response->setStatusCode(201)->setData(['message' => 'Reservation created successfully'])->send();
-
-            }
+            } // End if reservation type individual or team
 
         } catch (\Exception $e) {
             error_log("Error 08: " . $e->getMessage());
@@ -362,11 +395,15 @@ class BookingAPIController extends APIController implements RouteProvider
             $invitation = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
             if (!$invitation) {
+                error_log("Invitation invalide ou déjà traitée. Team ID: $team_id, Token: $token, Email: $email");
                 return $response->setStatusCode(404)->setData(['error' => 'Invitation invalide ou déjà traitée.'])->send();
             }
 
             $invitation_id = $invitation['invitation_id'];
             $member_id = $invitation['member_id'];
+
+            // Log des infos récupérées
+            error_log("Invitation trouvée : Invitation ID: $invitation_id, Member ID: $member_id, Team ID: $team_id");
 
             // 2. Mettre à jour le statut de l'invitation (accepted/declined)
             $status = ($action === 'accept') ? 'accepted' : 'declined';
@@ -377,15 +414,26 @@ class BookingAPIController extends APIController implements RouteProvider
                 ':invitation_id' => $invitation_id,
             ]);
 
-             // 3. Si tout le monde a répondu ou si la réservation n'est plus possible (par exemple, date dépassée), finaliser la réservation
+            // Log du statut mis à jour
+            error_log("Statut de l'invitation mis à jour à : $status, Invitation ID: $invitation_id");
 
-           $team_name = Booking::getTeamName($team_id);
+            // 3. Si tout le monde a répondu, finaliser la réservation
             if (Booking::allInvitationsAnswered($team_id)) {
-                // Enregistre les participants acceptés dans TEAM_PARTICIPANT et crée la réservation
+                error_log("Toutes les invitations ont reçu une réponse pour la Team ID: $team_id");
+
+                // Enregistre les participants acceptés dans TEAM_PARTICIPANT
                 if ($status == 'accepted') {
-                  Booking::addTeamParticipants($team_id);
+                    error_log("Ajout des participants acceptés à la Team ID: $team_id");
+                    Booking::addTeamParticipants($team_id);
+                } else {
+                    error_log("L'invitation a été refusée, pas d'ajout de participant pour la Team ID: $team_id");
                 }
-                 Booking::createReservationFromTeam($team_id);
+
+                // Mettre à jour la table COURT_RESERVATION avec le team_id
+                error_log("Mise à jour de la table COURT_RESERVATION avec le Team ID: $team_id");
+                Booking::updateReservationTeamId($team_id);
+            } else {
+                error_log("Toutes les invitations n'ont pas encore reçu de réponse pour la Team ID: $team_id");
             }
 
             $message = ($status === 'accepted') ? 'Invitation acceptée.' : 'Invitation refusée.';

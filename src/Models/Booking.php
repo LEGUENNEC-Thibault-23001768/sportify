@@ -151,6 +151,35 @@ class Booking
         }
     }
 
+    public static function updateReservationTeamId($team_id) {
+        try {
+            $pdo = Database::getConnection();
+    
+            // Récupère le reservation_id depuis la table TEAM
+            $sqlSelectReservationId = "SELECT reservation_id FROM TEAM WHERE team_id = :team_id";
+            $stmtSelectReservationId = $pdo->prepare($sqlSelectReservationId);
+            $stmtSelectReservationId->execute([':team_id' => $team_id]);
+            $result = $stmtSelectReservationId->fetch(PDO::FETCH_ASSOC);
+    
+            if (!$result || !isset($result['reservation_id'])) {
+                error_log("Reservation ID introuvable pour l'équipe ID : " . $team_id);
+                return false;
+            }
+    
+            $reservation_id = $result['reservation_id'];
+    
+            // Met à jour la table COURT_RESERVATION avec l'ID de l'équipe
+            $sqlUpdate = "UPDATE COURT_RESERVATION SET team_id = :team_id WHERE reservation_id = :reservation_id";
+            $stmtUpdate = $pdo->prepare($sqlUpdate);
+            $stmtUpdate->execute([':team_id' => $team_id, ':reservation_id' => $reservation_id]);
+    
+            return true;
+        } catch (\PDOException $e) {
+            error_log("PDOException in updateReservationTeamId: " . $e->getMessage());
+            return false;
+        }
+    }
+
     public static function getTeamName($team_id) {
         try {
              $pdo = Database::getConnection();
@@ -171,29 +200,50 @@ class Booking
             $pdo = Database::getConnection();
             $sql = "SELECT COUNT(*) FROM TEAM_INVITATION WHERE team_id = :team_id AND status = 'pending'";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([':team_id' => $team_id]);
+            $stmt->bindParam(':team_id', $team_id, PDO::PARAM_INT);
+
+            if (!$stmt->execute()) {
+                $errorInfo = $stmt->errorInfo();
+                error_log("Erreur dans allInvitationsAnswered: " . $errorInfo[2]);
+                return false; // Ou lancez une exception, selon votre gestion des erreurs
+            }
+
             $pendingCount = $stmt->fetchColumn();
+            error_log("Nombre d'invitations en attente pour la Team ID $team_id: " . $pendingCount);
+
             return $pendingCount == 0; // Retourne true si toutes les invitations ont reçu une réponse
         } catch (\PDOException $e) {
-            error_log("PDOException in allInvitationsAnswered: " . $e->getMessage());
+            error_log("PDOException dans allInvitationsAnswered: " . $e->getMessage());
             return false;
         }
-    } 
+    }
 
     public static function addTeamParticipants($team_id)
     {
         try {
             $pdo = Database::getConnection();
-            // Insère seulement les participants qui ont accepté l'invitation
+            error_log("Debut addTeamParticipants");
+
             $sql = "INSERT INTO TEAM_PARTICIPANT (team_id, member_id)
-                    SELECT :team_id, member_id
+                    SELECT team_id, member_id
                     FROM TEAM_INVITATION
                     WHERE team_id = :team_id AND status = 'accepted'";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([':team_id' => $team_id]);
+            $stmt->bindParam(':team_id', $team_id, PDO::PARAM_INT);
+            error_log("SQL = ". $sql);
+            error_log("TeamIdParam = ".$team_id);
+
+            if (!$stmt->execute()) {
+                $errorInfo = $stmt->errorInfo();
+                error_log("Erreur lors de l'exécution de la requête d'insertion : " . $errorInfo[2]);
+                return false;
+            }
+            $count = $stmt->rowCount();
+            error_log("Nombre de membres insérés : ". $count);
+
             return true;
         } catch (\PDOException $e) {
-            error_log("PDOException in addTeamParticipants: " . $e->getMessage());
+            error_log("PDOException dans addTeamParticipants: " . $e->getMessage());
             return false;
         }
     }
