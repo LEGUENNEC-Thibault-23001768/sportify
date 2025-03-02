@@ -143,7 +143,8 @@ function initialize() {
             format: document.getElementById('tournament-format').value,
             location: document.getElementById('tournament-location').value,
             maxTeams: document.getElementById('tournament-teams').value,
-            teamList: document.getElementById('tournament-teams-list').value.split('\n').filter(team => team.trim() !== '')
+            teams: getTeamsFromForm(),
+            //teamList: document.getElementById('tournament-teams-list').value.split('\n').filter(team => team.trim() !== '')
         };
 
         try {
@@ -176,6 +177,25 @@ function initialize() {
         }
     });
 
+    function getTeamsFromForm() {
+        const teamListText = document.getElementById('tournament-teams-list').value;
+        const teamLines = teamListText.split('\n').filter(line => line.trim() !== '');
+        const teams = [];
+
+        teamLines.forEach(line => {
+            const parts = line.split(':');
+            const teamName = parts[0].trim();
+            const memberNames = parts[1] ? parts[1].split(',').map(name => name.trim()) : []; // Split member names
+
+            teams.push({
+                name: teamName,
+                memberNames: memberNames
+            });
+        });
+
+        return teams;
+    }
+
     async function showAddTeamsPopup(tournamentId) {
         // Fetch tournament data
         try {
@@ -199,9 +219,9 @@ function initialize() {
                             </ul>
                         </div>
                         <div class="form-group">
-                            <label>Équipes à ajouter (une par ligne):</label>
-                            <textarea id="edit-tournament-teams-list" rows="5"></textarea>
-                        </div>
+                        <label>Équipes à ajouter (Nom: Membre1, Membre2):</label>
+                        <textarea id="edit-tournament-teams-list" rows="5"></textarea>
+                    </div>
                         <div class="buttons-container">
                             <button type="submit">Modifier le tournoi</button>
                         </div>
@@ -215,15 +235,34 @@ function initialize() {
             document.getElementById('edit-tournament-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const tournamentId = document.getElementById('edit-tournament-id').value;
-                const teamList = document.getElementById('edit-tournament-teams-list').value.split('\n').filter(team => team.trim() !== '');
-                console.log("submitted")
+                const teamListText = document.getElementById('edit-tournament-teams-list').value;
+
+                // Function to parse the team list
+                function parseTeamList(teamListText) {
+                    const teams = [];
+                    const teamLines = teamListText.split('\n').filter(line => line.trim() !== '');
+
+                    teamLines.forEach(line => {
+                        const parts = line.split(':');
+                        const teamName = parts[0].trim();
+                        const memberNames = parts[1] ? parts[1].split(',').map(name => name.trim()) : [];
+                        teams.push({
+                            name: teamName,
+                            memberNames: memberNames
+                        });
+                    });
+                    return teams;
+                }
+
+                const teams = parseTeamList(teamListText);
+
                 try {
                     const response = await fetch(`/api/tournaments/${tournamentId}/addTeams`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({teamList})
+                        body: JSON.stringify({teams})
                     });
 
                     if (response.ok) {
@@ -234,7 +273,7 @@ function initialize() {
                         showToast(successData.message, 'success');
                     } else {
                         const errorData = await response.json();
-                        
+
                         showToast(`Erreur de modification du tournoi: ${errorData.error}`, 'error');
                     }
                 } catch (error) {
@@ -313,23 +352,103 @@ function initialize() {
             const matchElement = e.target.closest('.match');
             const matchId = matchElement.dataset.matchId;
             const tournamentId = document.querySelector('#bracket-container').dataset.tournamentId;
+            const participantId = e.target.dataset.participantId;
 
-            showMatchEditPopup(tournamentId, matchId, e.target);
+            const userStatus = await getUserStatus();
+            if (userStatus == 'admin') {
+                showMatchEditPopup(tournamentId, matchId, e.target);
+            } else {
+                showTeamMembersPopup(tournamentId, participantId); // Participant ID is the team ID
+            }
         }
     });
+
+    async function getUserStatus() {
+        try {
+            const response = await fetch('/api/profile/status');
+            const data = await response.json();
+            return data.status; 
+        } catch (error) {
+            console.error('Failed to get user status:', error);
+            return 'non-admin'; // Default to non-admin in case of an error
+        }
+    }
+
+    async function getTeamMembers(tournamentId, teamId) {
+        try {
+            const response = await fetch(`/api/tournaments/${tournamentId}/showteams`);
+            const data = await response.json();
+            const team = data.teams.find(team => team.tournament_team_id == teamId);
+
+            if (!team) {
+                showToast('Team not found', 'error');
+                return [];
+            }
+
+            return team.members;
+        } catch (error) {
+            console.error('Error fetching team members:', error);
+            showToast('Error fetching team members', 'error');
+            return [];
+        }
+    }
+
+    async function showTeamMembersPopup(tournamentId, teamId) {
+        try {
+            const teamMembers = await getTeamMembers(tournamentId, teamId);
+    
+            const membersPopup = document.createElement('div');
+            membersPopup.id = 'team-members-popup';
+            membersPopup.className = 'popup';
+            membersPopup.innerHTML = `
+                <div class="popup-content">
+                    <span class="close-popup">×</span>
+                    <h2>Membres de l'équipe:</h2>
+                    <ul>
+                        ${teamMembers.map(member => `<li>${member}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+    
+            document.body.appendChild(membersPopup);
+            showPopup('team-members-popup');
+    
+            membersPopup.querySelector('.close-popup').addEventListener('click', () => {
+                hidePopup('team-members-popup');
+                membersPopup.remove();
+            });
+    
+        } catch (error) {
+            console.error('Error fetching team members:', error);
+            showToast('Error fetching team members', 'error');
+        }
+    }
+
 
     async function showMatchEditPopup(tournamentId, matchId, clickedElement) {
         const inputMask = document.getElementById(INPUT_MASK);
         inputMask.style.display = 'flex';
 
-        const team1Element = clickedElement.closest('.opponents').querySelector('.participant:first-child .name');
+        const team1Element = clickedElement.closest('.opponents').querySelector('.participant:nth-child(2) .name');
         const team2Element = clickedElement.closest('.opponents').querySelector('.participant:last-child .name');
+        console.log("els:",team1Element, team2Element);
 
         const team1Name = team1Element ? team1Element.textContent : 'Équipe 1';
         const team2Name = team2Element ? team2Element.textContent : 'Équipe 2';
         const matchTitle = clickedElement.querySelector('.name').textContent;
 
         inputMask.querySelector('h3').textContent = `Modifier le match pour ${matchTitle}`;
+
+        // Fetch team data
+        const team1Id = clickedElement.closest('.match').querySelectorAll('.opponents .participant')[0].dataset.participantId;
+        const team2Id = clickedElement.closest('.match').querySelectorAll('.opponents .participant')[1].dataset.participantId;
+
+        const team1Members = await getTeamMembers(tournamentId, team1Id);
+        const team2Members = await getTeamMembers(tournamentId, team2Id);
+
+        // Display team members
+        document.getElementById('opponent1-label').textContent = `${team1Name} ( ${team1Members.join(', ')})`;
+        document.getElementById('opponent2-label').textContent = `${team2Name} ( ${team2Members.join(', ')})`;
 
         const saveMatchButton = document.getElementById(INPUT_SUBMIT);
         saveMatchButton.onclick = async () => {
@@ -361,7 +480,9 @@ function initialize() {
         };
 
         // Close Button
+        console.log(inputMask);
         inputMask.querySelector('.' + CLOSE_POPUP).addEventListener('click', () => {
+            console.log("we are trying to close");
             inputMask.style.display = 'none';
         });
     }

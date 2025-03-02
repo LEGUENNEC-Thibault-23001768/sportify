@@ -28,7 +28,6 @@ class BookingAPIController extends APIController implements RouteProvider
         }
     
         if ($reservationId === null) {
-            $user = User::getUserById($currentUserId);
             $bookings = Booking::getAllReservations();
     
             return $response->setStatusCode(200)->setData([
@@ -36,13 +35,12 @@ class BookingAPIController extends APIController implements RouteProvider
             ])->send();
         } else {
             $reservation = Booking::getReservationById($reservationId);
-            $user = User::getUserById($currentUserId);
     
             if (!$reservation) {
                 return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
             }
     
-            if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+            if ($reservation['member_id'] != $currentUserId && $_SESSION['user_status'] !== 'admin') {
                 return $response->setStatusCode(403)->setData(['error' => 'User not authorized to access this reservation'])->send();
             }
     
@@ -60,14 +58,13 @@ class BookingAPIController extends APIController implements RouteProvider
             return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
         }
 
-        $user = User::getUserById($currentUserId);
         $reservation = Booking::getReservationById($reservation_id);
 
         if (!$reservation) {
             return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
         }
 
-        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+        if ($reservation['member_id'] != $currentUserId && $_SESSION['user_status'] !== 'admin') {
             return $response->setStatusCode(403)->setData(['error' => 'User not authorized to delete this reservation'])->send();
         }
 
@@ -135,9 +132,7 @@ class BookingAPIController extends APIController implements RouteProvider
         if (!$reservation) {
             return $response->setStatusCode(404)->setData(['error' => 'Reservation not found'])->send();
         }
-
-        $user = User::getUserById($currentUserId);
-        if ($reservation['member_id'] != $currentUserId && $user['status'] !== 'admin') {
+        if ($reservation['member_id'] != $currentUserId && $_SESSION['user_status']!== 'admin') {
             return $response->setStatusCode(403)->setData(['error' => 'User not authorized to modify this reservation'])->send();
         }
 

@@ -20,6 +20,12 @@ class UserAPIController extends APIController implements RouteProvider
         Router::post('/api/users/{user_id}/subscription', self::class . '@updateSubscriptionAction', Auth::isAdmin());
         Router::post('/api/users/{user_id}/subscription/cancel', self::class . '@cancelSubscriptionAction', Auth::isAdmin());
         Router::post('/api/users/{user_id}/subscription/resume', self::class . '@resumeSubscriptionAction', Auth::isAdmin());
+        Router::get('/api/profile/status', self::class . '@getUserStatus', Auth::requireLogin());
+    }
+
+
+    public function getUserStatus() {
+        return (new APIResponse())->setStatusCode(200)->setData(['status' => $_SESSION['user_status'] ?? 'membre'])->send();
     }
 
     public function post()

@@ -30,9 +30,7 @@ class StatsAPIController extends APIController implements RouteProvider
             return $response->setStatusCode(401)->setData(['error' => 'User not authenticated'])->send();
         }
 
-        $user = User::getUserById($currentUserId);
-
-        if ($user['status'] === 'admin') {
+        if ($_SESSION['user_status'] === 'admin') {
             $totalUsers = Stats::getTotalUsers();
             $recentRegistrations = Stats::getRecentRegistrations();
             $activeSubscriptions = Stats::getActiveSubscriptionsCount();

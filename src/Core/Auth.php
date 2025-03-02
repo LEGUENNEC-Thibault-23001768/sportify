@@ -32,9 +32,7 @@ final class Auth
                 header('Location: /login');
                 return false;
             }
-
-            $user = User::getUserById($_SESSION['user_id']);
-            if (!$user || $user['status'] !== 'admin') {
+            if ($_SESSION['user_status'] !== 'admin') {
                 header('Location: /dashboard');
                 return false;
             }
@@ -67,9 +65,7 @@ final class Auth
                 header('Location: /login');
                 return false;
             }
-
-            $user = User::getUserById($_SESSION['user_id']);
-            if (!$user || $user['status'] !== 'coach') {
+            if ($_SESSION['user_status'] !== 'coach') {
                 header('Location: /not-a-coach');
                 return false;
             }

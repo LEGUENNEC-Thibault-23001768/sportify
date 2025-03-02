@@ -46,9 +46,7 @@ class TournamentAPIController extends APIController implements RouteProvider
         $response = new APIResponse();
         $data = json_decode(file_get_contents('php://input'), true);
         $userId = $_SESSION['user_id'];
-
-        $user = User::getUserById($userId);
-        if ($user['status'] !== 'admin') {
+        if ($_SESSION['user_status'] !== 'admin') {
             return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
         }
 
@@ -71,9 +69,12 @@ class TournamentAPIController extends APIController implements RouteProvider
             $data['location'] ?? null
         );
 
-        $teamList = $data['teamList'] ?? [];
-        foreach ($teamList as $teamName) {
-            Tournament::addTeam($tournamentId, trim($teamName), $userId); // Add team, using logged in user as team leader
+        // Process teams with member names
+        $teams = $data['teams'] ?? [];  // Expect an array of {name: string, memberNames: array}
+        foreach ($teams as $teamData) {
+            $teamName = trim($teamData['name']);
+            $memberNames = $teamData['memberNames'] ?? [];  // Array of member names
+            Tournament::addTeam($tournamentId, $teamName, $memberNames);
         }
 
         $bracketData = Tournament::generateKnockoutBracket($tournamentId);
@@ -89,9 +90,7 @@ class TournamentAPIController extends APIController implements RouteProvider
         $response = new APIResponse();
         $data = json_decode(file_get_contents('php://input'), true);
         $userId = $_SESSION['user_id'];
-
-        $user = User::getUserById($userId);
-        if ($user['status'] !== 'admin') {
+        if ($_SESSION['user_status'] !== 'admin') {
             return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
         }
 
@@ -102,10 +101,7 @@ class TournamentAPIController extends APIController implements RouteProvider
 
     public function delete($id = null) {
         $response = new APIResponse();
-        $userId = $_SESSION['user_id'];
-
-        $user = User::getUserById($userId);
-        if ($user['status'] !== 'admin') {
+        if ($_SESSION['user_status'] !== 'admin') {
             return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
         }
 
@@ -116,53 +112,57 @@ class TournamentAPIController extends APIController implements RouteProvider
         return $response->setData(['message' => 'Tournament deleted'])->send();
     }
 
-    public function showTeams($tournamentId) {
+    public function showTeams($tournamentId)
+    {
         $response = new APIResponse();
         $userId = $_SESSION['user_id'];
-    
+
         $user = User::getUserById($userId);
-        if ($user['status'] !== 'admin') {
-            return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
-        }
-    
+
         $tournament = Tournament::getById($tournamentId);
         if (!$tournament) {
             return $response->setStatusCode(404)->setData(['error' => 'Tournament not found'])->send();
         }
-    
+
         $teams = Tournament::getTeams($tournamentId);
+        foreach ($teams as &$team) {
+            $team['members'] = Tournament::getTeamMembers($team['tournament_team_id']);
+        }
+
         return $response->setData(['teams' => $teams, 'tournament' => $tournament])->send();
     }
 
-    public function addTeams($tournamentId) {
+    public function addTeams($tournamentId)
+    {
         $response = new APIResponse();
         $data = json_decode(file_get_contents('php://input'), true);
-        $userId = $_SESSION['user_id'];
-    
-        $user = User::getUserById($userId);
-        if ($user['status'] !== 'admin') {
+        if ($_SESSION['user_status'] !== 'admin') {
             return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
         }
-    
+
         $tournament = Tournament::getById($tournamentId);
         if (!$tournament) {
             return $response->setStatusCode(404)->setData(['error' => 'Tournament not found'])->send();
         }
-    
-        $teamList = $data['teamList'] ?? [];
+
+        // Process teams with member names
+        $teams = $data['teams'] ?? [];  // Expect an array of {name: string, memberNames: array}
+
         $currentTeamCount = count(Tournament::getTeams($tournamentId));
-        $newTeamCount = $currentTeamCount + count($teamList);
+        $newTeamCount = $currentTeamCount + count($teams);
         if ($newTeamCount > $tournament['max_teams']) {
             return $response->setStatusCode(400)->setData(['error' => 'Exceeds max teams'])->send();
         }
-    
-        foreach ($teamList as $teamName) {
-            Tournament::addTeam($tournamentId, trim($teamName), $userId);
+
+        foreach ($teams as $teamData) {
+            $teamName = trim($teamData['name']);
+            $memberNames = $teamData['memberNames'] ?? [];  // Array of member names
+            Tournament::addTeam($tournamentId, $teamName, $memberNames);
         }
-    
+
         $bracketData = Tournament::generateKnockoutBracket($tournamentId);
         Tournament::saveBracketData($tournamentId, $bracketData);
-    
+
         return $response->setData(['message' => 'Teams added successfully'])->send();
     }
 
@@ -207,10 +207,7 @@ class TournamentAPIController extends APIController implements RouteProvider
     public function generateBracket($tournamentId)
     {
         $response = new APIResponse();
-        $userId = $_SESSION['user_id'];
-
-        $user = User::getUserById($userId);
-        if ($user['status'] !== 'admin') {
+        if ($_SESSION['user_status'] !== 'admin') {
             return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
         }
 
@@ -241,10 +238,7 @@ class TournamentAPIController extends APIController implements RouteProvider
     public function updateMatchScore($tournamentId, $matchId) {
         $response = new APIResponse();
         $data = json_decode(file_get_contents('php://input'), true);
-        $userId = $_SESSION['user_id'];
-
-        $user = User::getUserById($userId);
-        if ($user['status'] !== 'admin') {
+        if ($_SESSION['user_status'] !== 'admin') {
             return $response->setStatusCode(403)->setData(['error' => 'User not authorized'])->send();
         }
 

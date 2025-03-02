@@ -30,8 +30,8 @@
     <div>
         <span class="close-popup">×</span>
         <h3></h3>
-        <label id="opponent1-label" for="team1-score">Équipe 1 Score:</label><input type="number" id="team1-score"><br>
-        <label id="opponent2-label" for="team2-score">Équipe 2 Score:</label><input type="number" id="team2-score"><br>
+        <label id="opponent1-label" for="team1-score"></label><input type="number" id="team1-score"><br>
+        <label id="opponent2-label" for="team2-score"></label><input type="number" id="team2-score"><br>
         <button id="input-submit">Enregistrer</button>
     </div>
     </div>
@@ -77,10 +77,10 @@
                 <input type="number" id="tournament-teams" required>
             </div>
             <div class="form-group">
-                <label>Équipes initiales (une par ligne):</label>
+                <label>Équipes initiales (Nom: Membre1, Membre2):</label>
                 <textarea id="tournament-teams-list" rows="5"></textarea>
             </div>
-            <?php if (isset($user) && ($user["status"] === "admin" || $user["status"] === "coach")): ?>
+            <?php if (isset($user) && ($user["status"] === "admin")): ?>
                 <div class="buttons-container">
                     <button type="submit">Créer le tournoi et générer le bracket</button>
                 </div>
