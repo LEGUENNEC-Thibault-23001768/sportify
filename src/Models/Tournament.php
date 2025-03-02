@@ -65,24 +65,58 @@ class Tournament
         return Database::query($sql, [$status, $tournamentId]);
     }
 
-    public static function addTeam($tournamentId, $teamName, $leaderId = null, $generalTeamId = null)
-    {
-        $sql = "INSERT INTO TOURNAMENT_TEAM (tournament_id, team_name, team_leader_member_id, general_team_id)
-                VALUES (?, ?, ?, ?)";
-        $params = [$tournamentId, $teamName, $leaderId, $generalTeamId];
-        return Database::query($sql, $params);
+    public static function addTeam(
+        $tournamentId,
+        $teamName,
+        $memberNames
+    ) {
+        $sql = "INSERT INTO TOURNAMENT_TEAM (tournament_id, team_name) VALUES (?, ?)";
+        Database::query($sql, [$tournamentId, $teamName]);
+        $tournamentTeamId = Database::getConnection()->lastInsertId();
+
+        // Assign the first member as the team leader
+        if (!empty($memberNames)) {
+            $leaderName = $memberNames[0];
+            self::setTeamLeader($tournamentTeamId, $leaderName);
+
+            foreach ($memberNames as $memberName) {
+                self::addParticipant($tournamentTeamId, $memberName);
+            }
+        }
+        return $tournamentTeamId;
     }
+
+    public static function setTeamLeader($tournamentTeamId, $memberName)
+    {
+        $sql = "UPDATE TOURNAMENT_TEAM SET team_leader_member_id = NULL, team_leader_name = ? WHERE tournament_team_id = ?";
+        return Database::query($sql, [$memberName, $tournamentTeamId]);
+    }
+
 
     public static function getTeams($tournamentId)
     {
-        $sql = "SELECT tt.*, m.last_name as leader_name, t.team_name as general_team_name
-                FROM TOURNAMENT_TEAM tt
-                LEFT JOIN MEMBER m ON tt.team_leader_member_id = m.member_id
-                LEFT JOIN TEAM t ON tt.general_team_id = t.team_id
-                WHERE tt.tournament_id = ?";
-        return Database::query($sql, [$tournamentId])->fetchAll(PDO::FETCH_ASSOC);
-    }
+        $sql = "SELECT
+                    tt.tournament_team_id,
+                    tt.team_name,
+                    tt.team_leader_member_id,
+                    tt.team_leader_name AS leader_name,
+                    t.team_name AS general_team_name,
+                    GROUP_CONCAT(tm.member_name ORDER BY tm.member_name ASC SEPARATOR ', ') AS member_names
+                FROM
+                    TOURNAMENT_TEAM tt
+                LEFT JOIN
+                    TEAM t ON tt.general_team_id = t.team_id
+                LEFT JOIN
+                    TEAM_MEMBERS tm ON tt.tournament_team_id = tm.tournament_team_id
+                WHERE
+                    tt.tournament_id = ?
+                GROUP BY
+                    tt.tournament_team_id, tt.team_name, tt.team_leader_member_id, tt.team_leader_name, t.team_name";
 
+        $result = Database::query($sql, [$tournamentId])->fetchAll(PDO::FETCH_ASSOC);
+        return $result;
+    }
+    
     public static function generateInviteToken($teamId)
     {
         $token = bin2hex(random_bytes(32));
@@ -97,10 +131,35 @@ class Tournament
         return Database::query($sql, [$token])->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function addParticipant($teamId, $memberId)
+    public static function addParticipant($teamId, $memberName)
     {
-        $sql = "INSERT INTO TEAM_MEMBERS (tournament_team_id, member_id) VALUES (?, ?)";
-        Database::query($sql, [$teamId, $memberId]);
+        $sql = "INSERT INTO TEAM_MEMBERS (tournament_team_id, member_name) VALUES (?, ?)";
+        try {
+            Database::query($sql, [$teamId, $memberName]);
+        } catch (\PDOException $e) {
+            // Handle the exception, e.g., log the error or display a user-friendly message
+            if ($e->getCode() == '23000') { // Check for duplicate key error
+                // Log the error or display a message indicating the user is already on the team
+                error_log("Duplicate entry for member_name: " . $memberName . " in team_id: " . $teamId);
+                // You might want to return an error code or message to the client
+            } else {
+                // Handle other PDO exceptions
+                error_log("PDOException: " . $e->getMessage());
+            }
+        }
+    }
+
+    public static function getTeamMembers($teamId)
+    {
+        $sql = "SELECT member_name
+                FROM TEAM_MEMBERS
+                WHERE tournament_team_id = ?";
+        $stmt = Database::query($sql, [$teamId]);
+        $members = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $members[] = $row['member_name'];
+        }
+        return $members;
     }
 
     public static function generateKnockoutBracket($tournamentId)
