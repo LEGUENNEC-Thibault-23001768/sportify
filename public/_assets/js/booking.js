@@ -150,7 +150,6 @@
     const maxCapacity = parseInt(roomElement.getAttribute('data-max-capacity'), 10);
 
     document.getElementById('court_id').value = courtId;
-    document.getElementById('member_name').value = userName;
     document.getElementById('member_id').value = window.currentUserId;
     document.getElementById('max_capacity').value = maxCapacity
 
@@ -164,6 +163,7 @@
     dateInput.value = today.toISOString().split('T')[0];
     generateHours(courtId, today.toISOString().split('T')[0], 'reserve');
     const reservationsContainer = document.getElementById('reservations');
+    console.log('Element trouvé ?', reservationsContainer);
     reservationsContainer.style.display = 'block';
     displayReservations(reservations, courtId);
     $("#reserve-button").text("Réserver");
