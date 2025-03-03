@@ -144,7 +144,7 @@ body, html {
 
 .performance-card select:focus, .performance-card select:hover {
     background: transparent;
-    color: black !important;
+    color: rgb(255, 255, 255) !important;
 }
 
 .performance-card::after {
@@ -192,6 +192,14 @@ body, html {
   justify-content: center;
   margin-top: 20px;
 }
+
+.popup-content h2, 
+.popup-content p, 
+.popup-content label {
+    margin-bottom: 15px; /* Augmente l'espacement sous les titres et textes */
+    line-height: 1.6; /* Augmente l'espacement entre les lignes */
+}
+
 
 #taskCompletionChart {
   width: 100%;
@@ -335,6 +343,9 @@ body, html {
 
 
 .add-stats-btn {
+    position: relative;
+    left: -280px; /* Déplace le bouton vers la gauche */
+    top: 50px; /* Déplace le bouton vers le bas */
     background-color: #C1FF72;
     border: none;
     border-radius: 15px;
@@ -362,7 +373,7 @@ body, html {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
+
     backdrop-filter: blur(5px); /* Add blur to the background */
 }
  .popup.hidden {
@@ -370,7 +381,8 @@ body, html {
    }
 
 .popup-content {
-    background-color: #fefefe;
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(38, 38, 38, 0.8));
+    color: white; /* Texte en blanc */
     margin: 10% auto;
     padding: 20px;
     border: 1px solid #888;
@@ -378,14 +390,13 @@ body, html {
     max-width: 600px;
     border-radius: 10px;
     position: relative;
-     color: black;
 }
    
 .popup-content h2 {
-       color: #333;
+       color: #ffffff;
    }
     .popup-content p {
-        color: #555;
+        color: #ffffff;
     }
     
 .popup-content .close-popup {
@@ -395,10 +406,10 @@ body, html {
     font-size: 28px;
     font-weight: bold;
    cursor: pointer;
-   color: #aaa;
+   color: #c80000;
 }
 .popup-content .close-popup:hover {
-    color: #555;
+    color: #520000;
  }
 .categories-container {
     display: flex;
@@ -417,7 +428,7 @@ body, html {
    align-items: center;
     justify-content: center;
    text-align: center;
-    background-color: #f9f9f9;
+    background-color: #000000;
     cursor: pointer;
      transition: all 0.3s ease;
      margin-bottom: 10px;
@@ -560,3 +571,19 @@ body, html {
   .page-wrapper.blur {
        filter: blur(3px);
 }
+
+#stat-submit-btn {
+    background-color: #C1FF72; /* Vert clair */
+    color: black; /* Texte en noir */
+}
+
+#back-btn {
+    background-color: #555; /* Gris classique */
+    color: white; /* Texte en blanc */
+}
+
+#sport-select {
+    color: rgb(255, 255, 255); 
+
+}
+
