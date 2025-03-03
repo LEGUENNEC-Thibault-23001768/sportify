@@ -16,6 +16,8 @@
     transition: filter 0.3s ease-out;
 }
 
+
+
 h2 {
     font-size: 60px;
     margin-bottom: 20px;
@@ -100,6 +102,11 @@ h2 {
     width: 15%;
     height: 10%;
 }
+
+#reservations h3 {
+    color: #ffffff !important; /* Blanc */
+}
+
 
 .room.boxe {
     top: 62%;
@@ -193,22 +200,32 @@ button:hover {
        display: none;
         position: fixed;
         top: 50%;
-         left: 50%;
-          transform: translate(-50%, -50%);
-          background-color: #f5f3f2;
-          padding: 25px 20px 20px;/*ajustemant avec padings haut et bas*/
-           box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-           border-radius: 10px;
-         border: 2px solid #C1FF72;
-         max-width: 400px;
-           width: 100%;
-            z-index: 1001;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #0b0b0b; /* Noir encore plus foncé */
+        padding: 25px 20px 20px;/*ajustemant avec padings haut et bas*/
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        border: 2px solid #181818; /* Bordure plus subtile */
+        max-width: 400px;
+        width: 100%;
+        z-index: 1001;
 
     }
 
 
-#reservation-container h3,
-#edit-reservation-container h2 {
+    #reservation-title, #edit-reservation-container h2 {
+        font-size: 1.8em;
+        font-weight: bold;
+        background: linear-gradient(to right, #ffffff, #666666);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+    }
+    
+
+#reservation-container h3 {
     text-align: center;
     margin-bottom: 10px;
     color: #1d1c1c96;
@@ -218,17 +235,58 @@ button:hover {
 label {
     font-size: 1em;
     margin-bottom: 5px;
-    color: #1d1c1c96;
+    color: #ffffff96;
 }
+
+
+#reservation-container input[readonly], 
+#edit-reservation-container input[readonly] {
+    background-color: #292929 !important; /* Plus foncé */
+    color: #999 !important; /* Texte plus clair */
+    border: 1px solid #444;
+}
+
+
+#reservation-container label, 
+#edit-reservation-container label {
+    margin-bottom: 12px;
+}
+
+input, select {
+    margin-bottom: 20px; /* Plus d'espacement */
+}
+
+#available-hours button.booked {
+    background-color: #1a1a1a !important; /* Fond encore plus foncé */
+    color: #777 !important; /* Texte plus grisé */
+    cursor: not-allowed;
+}
+
+#edit-available-hours button.booked {
+    background-color: #1a1a1a !important; /* Fond encore plus foncé */
+    color: #777 !important; /* Texte plus grisé */
+    cursor: not-allowed;
+}
+
+
+#reserve-button, #update-button, #delete-reservation {
+    padding: 12px 20px;
+    font-size: 1.1em;
+}
+
+.tab-button {
+    padding: 10px 15px;
+}
+
 
 input[type="text"],
 input[type="date"],
 input[type="time"] {
     padding: 10px;
-    border: 1px solid #C1FF72;
+    border: 1px solid #444;
     border-radius: 5px;
-    background-color: #ece4e4;
-    color: #1d1c1c96;
+    background-color: #424242;
+    color: #ffffff96;
     /* Light text */
     font-size: 1em;
      width: 100%;
@@ -239,7 +297,7 @@ input[type="text"]:focus,
 input[type="date"]:focus,
 input[type="time"]:focus {
     border-color: #C1FF72;
-    outline: none;
+    background-color: #2a2a2a;
 }
 
 #reservation-form,
@@ -312,7 +370,7 @@ input[type="time"]:focus {
 
 #available-hours button:hover:not(.selected):not(.booked),
 #edit-available-hours button:hover:not(.selected):not(.booked) {
-    background-color: #b3acac;
+    background-color: #444444;
 }
 
 #available-hours button.selected,
@@ -323,16 +381,25 @@ input[type="time"]:focus {
 
 #available-hours button.booked,
 #edit-available-hours button.booked {
-     background-color: #b3acac;
+     background-color: #4f4f4f;
     color: #252525;
    cursor: not-allowed;
 }
 #available-hours button.past,
 #edit-available-hours button.past{
-   background-color: #b3acac;
+   background-color: #4f4f4f;
     color: #252525;
      cursor: not-allowed;
 }
+
+.close-button {
+    color: #ff1f1f !important; /* Rouge vif */
+}
+
+.close-button:hover {
+    color: #ff4c4c !important; /* Rouge plus clair au survol */
+}
+
 
 /* Tabs */
 .form-container {
@@ -358,7 +425,6 @@ input[type="time"]:focus {
 }
 
 .tab-button.active {
-      background-color: #C1FF72;
      color: #000;
 }
 .tab-content{
