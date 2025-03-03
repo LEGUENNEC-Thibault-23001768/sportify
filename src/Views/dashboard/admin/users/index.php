@@ -67,8 +67,8 @@
         <div class="modal-header">
             <h5 class="modal-title">Modifier l'utilisateur</h5>
             <div class="modal-tab-buttons">
-            <button data-tab="user-tab" class="active">User Details</button>
-                <button data-tab="subscription-tab">Subscription</button>
+            <button data-tab="user-tab" class="active">Détails de l'utilisateur</button>
+                <button data-tab="subscription-tab">Abonnement</button>
             </div>
             <button type="button" class="modal-close" aria-label="Close">
                 <span aria-hidden="true">×</span>
@@ -115,30 +115,30 @@
                 </form>
             </div>
             <div id="subscription-tab" class="modal-tab-content">
-                <h3>Subscription Details</h3>
+                <h3>Détails de l'abonnement</h3>
                 <div class="form-group">
-                    <label for="subscription_type">Type</label>
+                    <label for="subscription_type">Type d'abonnement</label>
                     <input type="text" id="subscription_type" name="subscription_type">
                 </div>
                 <div class="form-group">
-                    <label for="start_date">Start Date</label>
+                    <label for="start_date">Date de début</label>
                     <input type="date" id="start_date" name="start_date">
                 </div>
                 <div class="form-group">
-                    <label for="end_date">End Date</label>
+                    <label for="end_date">Date de fin</label>
                     <input type="date" id="end_date" name="end_date">
                 </div>
                 <div class="form-group">
-                    <label for="amount">Amount</label>
+                    <label for="amount">Montant</label>
                     <input type="text" id="amount" name="amount">
                 </div>
                 <div class="form-group">
-                    <label for="status">Status</label>
+                    <label for="status">Statut</label>
                     <input type="text" id="status" name="status">
                 </div>
-                <button type="button" class="btn btn-primary" id="updateSubscription">Update Subscription</button>
-                <button type="button" class="btn btn-danger" id="cancelSubscription">Cancel Subscription</button>
-                <button type="button" class="btn btn-success" id="resumeSubscription">Resume Subscription</button>
+                <button type="button" class="btn btn-primary" id="updateSubscription">Mettre à jour l'abonnement</button>
+                <button type="button" class="btn btn-danger" id="cancelSubscription">Annuler l'abonnement</button>
+                <button type="button" class="btn btn-success" id="resumeSubscription">Reprendre l'abonnemen</button>
                 <div class="error-message" id="subscription-error"></div>
             </div>
         </div>
