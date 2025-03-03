@@ -2,7 +2,7 @@
 .container {
     margin: 20px auto;
     padding: 20px;
-    background-color: #282828;
+    background-color: #000000;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
@@ -34,8 +34,8 @@ h1, h3 {
     padding: 8px 15px;
     border: none;
     border-radius: 4px;
-    background-color: #0077cc;
-    color: #fff;
+    background-color: #C1FF72;
+    color: #000000;
     cursor: pointer;
 }
 
@@ -67,8 +67,8 @@ h1, h3 {
 }
 
 .user-table .btn-edit {
-    background-color: #ffaa00;
-    color: #fff;
+    background-color: #C1FF72;
+    color: black;
     border: none;
 }
 
@@ -134,6 +134,22 @@ h1, h3 {
     width: 100%;
     font-size: 24px; /* Increased title size */
 }
+/* Modifier les boutons */
+#cancelSubscription {
+    background-color: #cc0000; /* Rouge */
+    color: #ffffff !important; /* Texte en blanc */
+}
+
+#updateSubscription, #saveUser {
+    background-color: #C1FF72; /* Vert */
+    color: #000000 !important; /* Texte en noir */
+}
+
+/* Modifier les onglets actifs */
+.modal-tab-buttons button.active {
+    color: #ffffff !important; /* Texte en blanc */
+    border-bottom-color: #C1FF72; /* Bordure verte */
+}
 
 .modal-close {
     position: absolute;
@@ -185,7 +201,7 @@ h1, h3 {
 }
 
 .modal-footer .btn-primary {
-    background-color: #0077cc;
+    background-color: #C1FF72;
 }
 
 /* Modal Form */
@@ -255,8 +271,8 @@ body.modal-open .main-content {
 }
 
 .modal-tab-buttons button.active {
-    color: #eee;
-    border-bottom-color: #0077cc;
+    color: black;
+    border-bottom-color: #C1FF72;
 }
 
 .modal-tab-content {
@@ -288,7 +304,7 @@ body.modal-open .main-content {
 }
 
 .modal-form button.btn-primary, .modal-footer button.btn-primary {
-    background-color: #0077cc;
+    background-color: #C1FF72;
 }
 
 .modal-form button.btn-secondary, .modal-footer button.btn-secondary {
@@ -300,7 +316,8 @@ body.modal-open .main-content {
 }
 
 .modal-form button.btn-success, .modal-footer button.btn-success {
-    background-color: #008800;
+    background-color: white;
+    color: #000000;
 }
 
 .modal-form input, .modal-form select {
@@ -315,7 +332,7 @@ body.modal-open .main-content {
 }
 
 .modal-form input:focus, .modal-form select:focus {
-    border-color: #0077cc;
+    border-color: #C1FF72;
     outline: none;
 }
 
@@ -331,7 +348,7 @@ body.modal-open .main-content {
 }
 
 #subscription-tab .form-group input:focus {
-    border-color: #0077cc;
+    border-color: #C1FF72;
     outline: none;
 }
 
@@ -339,7 +356,7 @@ body.modal-open .main-content {
     padding: 8px 15px;
     border: none;
     border-radius: 4px;
-    color: #fff;
+    color: #000000;
     cursor: pointer;
     transition: background-color 0.3s ease;
     margin-top: 10px; /* Added some space above buttons */
@@ -350,7 +367,8 @@ body.modal-open .main-content {
 }
 
 #subscription-tab .btn-primary {
-    background-color: #0077cc;
+    background-color: #C1FF72;
+    color: rgb(255, 255, 255);
 }
 
 #subscription-tab .btn-danger {
@@ -358,5 +376,5 @@ body.modal-open .main-content {
 }
 
 #subscription-tab .btn-success {
-    background-color: #008800;
+    background-color: white;
 }
