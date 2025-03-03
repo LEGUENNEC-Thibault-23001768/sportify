@@ -523,5 +523,14 @@ function initialize() {
     }
 
     loadTournaments();
+
+    // Fermer les popups quand on clique sur la croix (pour toutes les popups)
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('close-popup')) {
+        e.target.closest('.popup').classList.add('hidden');
+        document.body.classList.remove('modal-open');
+    }
+});
+
     
 }
