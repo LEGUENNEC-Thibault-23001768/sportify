@@ -5,7 +5,7 @@
     max-width: 800px;
     margin: 30px auto;
     padding: 30px;
-    background-color: rgba(128, 128, 128, 0.5);
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(38, 38, 38, 0.8));
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
